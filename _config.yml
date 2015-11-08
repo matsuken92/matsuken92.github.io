@@ -47,14 +47,14 @@ license:
 
 # Configurations for the menu items of the navigation bar
 menuitems:
-    - { title:    datascience, 
-        category: datascience,
+    - { title:    Data Science, 
+        category: Data Science,
         url:      /datascience.html }
-    - { title:    programming, 
-        category: programming,
+    - { title:    Programming, 
+        category: Programming,
         url:      /programming.html }
-    - { title:    math, 
-        category: math,
+    - { title:    Math, 
+        category: Math,
         url:      /math.html }
     - { title:    Misc, 
         category: misc,
