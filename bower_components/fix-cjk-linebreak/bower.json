@@ -1,0 +1,27 @@
+{
+  "name": "fix-cjk-linebreak.js",
+  "main": "fix-cjk-linebreak.js",
+  "version": "1.0.1",
+  "authors": [
+    "Haixing Hu <starfish.hu@gmail.com>"
+  ],
+  "description": "Fix the extra space btween CJK characters introduced by the line break in the HTML source.",
+  "keywords": [
+    "CJK",
+    "space",
+    "linebreak"
+  ],
+  "license": "GPLv2",
+  "homepage": "https://github.com/Haixing-Hu/fix-cjk-linebreak",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "xregexp": "*",
+    "domready": "*"
+  }
+}

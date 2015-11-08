@@ -1,0 +1,39 @@
+{
+  "name": "Haixing-Hu.github.io",
+  "version": "0.1.0",
+  "homepage": "http://haixing-hu.github.io/",
+  "authors": [
+    "Haixing Hu <starfish.hu@gmail.com>"
+  ],
+  "description": "Haixing Hu's personal page",
+  "keywords": [
+    "personal page",
+    "Haixing Hu",
+    "starfish",
+    "programming",
+    "algorithm",
+    "mathematics",
+    "quantum computing",
+    "computer science"
+  ],
+  "main": "index.html",
+  "license": "GPLv2",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "augment.js": "*",
+    "bootstrap-css": "2.3.2",
+    "domready": "*",
+    "fix-cjk-linebreak": "*",
+    "html5shiv-dist": "*",
+    "jqueryjs": "*",
+    "lunr.js": "*",
+    "normalize-css": "*"
+  }
+}

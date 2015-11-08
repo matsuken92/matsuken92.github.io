@@ -1,0 +1,16 @@
+{% if site.JB.sharing.provider and page.sharing != false %}
+
+  {% for provider in site.JB.sharing.provider %}
+    {% case provider %}
+      {% when 'googleplus' %}
+        {% include JB/sharing-providers/googleplus %}
+      {% when 'facebook' %}
+        {% include JB/sharing-providers/facebook %}
+      {% when 'twitter' %}
+        {% include JB/sharing-providers/twitter %}
+      {% when 'linkedin' %}
+        {% include JB/sharing-providers/linkedin %}
+    {% endcase %}
+  {% endfor %}
+
+{% endif %}

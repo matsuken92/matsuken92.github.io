@@ -1,0 +1,33 @@
+{% comment %}<!--
+The `source_info` generate the source information of a post.
+
+Usage:
+  1. assign the `this_post` variable to the current post
+  2. include `source_info`
+
+Example:
+  
+  {% assign this_post = page %}
+  {% include source_info %}
+
+-->{% endcomment %}
+
+<div class="source-info">
+  <p>
+  <span class="date">{{ this_post.date | date: "%b %d, %Y" }}</span>
+  &nbsp;|&nbsp;by
+  <span class="author">
+    {% if this_post.author %}
+      {{ this_post.author }}
+    {% else %}
+      {{ site.author.name }}
+    {% endif %}
+  </span>
+  {% if this_post.source_url %}
+  <br/>
+  <span class="source-url">
+    From: <a href="{{ this_post.source_url }}">{{ this_post.source_url }}</a>
+  </span>
+  {% endif %}
+  </p>
+</div>

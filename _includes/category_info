@@ -1,0 +1,28 @@
+{% comment %}<!--
+The `category_info` generate the category information of a post.
+
+Usage:
+  1. assign the `this_post` variable to the current post
+  2. include `category_info`
+
+Example:
+  
+  {% assign this_post = page %}
+  {% include category_info %}
+
+-->{% endcomment %}
+
+<div class="category-info">
+  <ul class="tag_box inline">
+  {% unless this_post.categories == empty %}
+    <li><i class="icon-folder-open"></i></li>
+    {% assign categories_list = this_post.categories %}
+    {% include JB/categories_list %}
+  {% endunless %}  
+  {% unless this_post.tags == empty %}
+    <li><i class="icon-tags"></i></li>
+    {% assign tags_list = this_post.tags %}
+    {% include JB/tags_list %}
+  {% endunless %}  
+  </ul>
+</div>

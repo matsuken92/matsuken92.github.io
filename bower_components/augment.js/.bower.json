@@ -1,0 +1,15 @@
+{
+  "name": "augment.js",
+  "homepage": "https://github.com/olivernn/augment.js",
+  "version": "1.0.0",
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.0",
+    "commit": "d350b0f19cd46c431ccc7e9585bae8aa65ea8661"
+  },
+  "_source": "git://github.com/olivernn/augment.js.git",
+  "_target": "~1.0.0",
+  "_originalSource": "augment.js",
+  "_direct": true
+}

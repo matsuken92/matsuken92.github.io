@@ -1,0 +1,26 @@
+{% comment %}<!--
+The `feed` generate the RSS feed icon and link
+
+Usage:
+  1. include `feed`
+
+Example:
+
+  <ul class="nav pull-right">
+    <li>...</li>      
+    <li>...</li>      
+    <li>...</li>      
+    {% include feed %}
+  </ul>
+
+-->{% endcomment %}
+
+{% if site.JB.atom_path %}
+<li>
+  <a href="{{ site.JB.atom_path }}"
+     rel="subscribe-rss"
+     title="subscribe via ATOM feed">
+      <img src="/img/rss.png" alt="rss"/>
+  </a>
+</li>
+{% endif %}

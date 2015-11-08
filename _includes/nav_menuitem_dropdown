@@ -1,0 +1,54 @@
+{% comment %}<!--
+The `nav_menuitem_dropdown` generate a dropdown menu as a menu item in a
+navigation bar.
+
+Usage:
+  1. assigns the configuration object of the menu item to the variable 
+     `this_menuitem`
+  2. include `nav_menuitem_dropdown`
+
+Example:
+
+  <ul class="nav pull-right">
+    {% for this_menuitem in site.menuitems %}
+      {% if this_menuitem.dropdown %}
+        {% include nav_menuitem_dropdown %}
+      {% else %}
+        {% include nav_menuitem %}
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+-->{% endcomment %}
+
+{% assign this_menuitem_active = false %}
+{% if this_menuitem.url == page.url %}
+  {% assign this_menuitem_active = true %}
+{% else %}
+   {% if this_menuitem.category and this_menuitem.category == page.category %}
+     {% assign this_menuitem_active = true %}
+   {% endif %}
+{% endif %}
+
+  {% if this_menuitem_active == true %}
+<li class="dropdown active">
+  <a role="button" 
+     class="dropdown-toggle" 
+     data-toggle="dropdown" 
+     href="#">{{ this_menuitem.title }} <b class="caret"></b></a>
+  {% else %}
+<li class="dropdown">
+  <a id="{{ this_menuitem.title }}"
+     role="button" 
+     class="dropdown-toggle" 
+     data-toggle="dropdown"
+     href="#">{{ this_menuitem.title }} <b class="caret"></b></a>
+  {% endif %}   
+  <ul class="dropdown-menu" role="menu" aria-labelledby="{{ this_menuitem.title }}">
+    {% for item in this_menuitem.subitems %}
+    <li>
+      <a role="menuitem" tableindex="-1" href="{{ item.url }}">{{ item.title }}</a>
+    </li>
+    {% endfor %}
+  </ul>   
+</li>

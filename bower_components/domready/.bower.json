@@ -1,0 +1,14 @@
+{
+  "name": "domready",
+  "homepage": "https://github.com/ded/domready",
+  "_release": "master",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "b3ba502dcd41b67fc2fcd06416b9d0be27a8dce2"
+  },
+  "_source": "git://github.com/ded/domready.git",
+  "_target": "*",
+  "_originalSource": "domready",
+  "_direct": true
+}

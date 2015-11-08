@@ -1,0 +1,45 @@
+{% comment %}<!--
+The `fork_me` generate a fork me icon on the right corner of the page.
+
+Usage:
+
+  1. assign the `fork_me_top` variable to the distance of the icon from the
+     absolute top side of the page.
+  2. assign the `fork_me_right` variable to the distance of the icon from the
+     absolute right side of the page.
+  3. include `fork_me`
+
+Example:
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      {% include html_meta %}
+      ...
+      {% include mathjax_support %}
+    </head>
+    <body>
+      {% assign fork_me_top = "41px" %}
+      {% assign fork_me_right = "0" %}
+      {% include fork_me %}
+      ...
+    </body>
+  </html>
+
+-->{% endcomment %}
+
+{% unless fork_me_top %}
+   {% assign fork_me_top = "41px" %}
+{% endunless %}
+{% unless fork_me_right %}
+   {% assign fork_me_right = "0" %}
+{% endunless %}
+
+<a href="https://github.com/{{ site.author.github }}">
+  <img style="position: absolute;
+              border: 0;
+              top: {{fork_me_top}};
+              right: {{fork_me_right}};"
+       src="/img/forkme_right_gray.png"
+       alt="Fork me on GitHub"/>
+</a>

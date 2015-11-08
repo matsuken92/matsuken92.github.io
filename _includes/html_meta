@@ -1,0 +1,43 @@
+{% comment %}<!--
+The `html_meta` generate the meta data for a HTML page. It must be used in the
+`<head>..</head>` part of a HTML page.
+
+Usage:
+  1. include `html_meta`
+
+Example:
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      {% include html_meta %}
+      ...
+    </head>
+    <body>
+      ...
+    </body>
+  </html>
+
+-->{% endcomment %}
+
+<meta charset="utf-8"/>
+<meta name="author" content="{{ site.author.name }}"/>
+{% if page.description %}
+<meta name="description" content="{{ page.description }}"/>
+{% endif %}
+{% if page.tags %}
+<meta name="keywords" content="{{ page.tags }}"/>
+{% endif %}
+
+<!-- Enable responsive viewport -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<!-- atom & rss feed -->
+<link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed"/>
+
+<!--
+<link href="{{ BASE_PATH }}{{ site.JB.rss_path }}" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed"/>
+-->
+
+<!-- Le fav and touch icons -->
+<link rel="shortcut icon" href="/img/favicon.ico"/>

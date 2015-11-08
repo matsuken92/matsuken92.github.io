@@ -1,0 +1,40 @@
+{% comment %}<!--
+The `nav_menuitem` generate a menu item in the navigation bar.
+
+Usage:
+  1. assigns the configuration object of the menu item to the variable
+     `this_menuitem`
+  2. include `nav_menuitem`
+
+Example:
+
+  <ul class="nav pull-right">
+    {% for this_menuitem in site.menuitems %}
+      {% if this_menuitem.dropdown %}
+        {% include nav_menuitem_dropdown %}
+      {% else %}
+        {% include nav_menuitem %}
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+-->{% endcomment %}
+
+{% assign this_menuitem_active = false %}
+{% if this_menuitem.url == page.url %}
+  {% assign this_menuitem_active = true %}
+{% else %}
+   {% if this_menuitem.category and this_menuitem.category == page.category %}
+     {% assign this_menuitem_active = true %}
+   {% endif %}
+{% endif %}
+
+{% if this_menuitem_active == true %}
+<li class="active">
+  <a href="{{ BASE_PATH }}{{ this_menuitem.url }}" class="active">{{this_menuitem.title}}</a>
+</li>
+{% else %}
+<li>
+  <a href="{{ BASE_PATH }}{{ this_menuitem.url }}">{{ this_menuitem.title }}</a>
+</li>
+{% endif %}

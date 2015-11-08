@@ -1,0 +1,40 @@
+{% comment %}<!--
+The `nav_bar` generate the navigation bar of the site.
+
+Usage:
+  1. include `nav_bar`
+
+Example:
+
+  <!DOCTYPE html>
+  <html>
+    <head>
+      {% include html_meta %}
+      ...
+      {% include mathjax_support %}
+    </head>
+    <body>
+      {% include nav_bar %}
+      ...
+    </body>
+  </html>
+
+-->{% endcomment %}
+
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="container-narrow">
+      <a class="brand" href="{{ HOME_PATH }}">{{ site.author.name }}</a>
+      <ul class="nav pull-right">
+        {% for this_menuitem in site.menuitems %}
+           {% if this_menuitem.dropdown %}
+             {% include nav_menuitem_dropdown %}
+           {% else %}
+             {% include nav_menuitem %}
+           {% endif %}
+        {% endfor %}
+        {% include feed_menuitem %}
+      </ul>
+    </div>
+  </div>
+</div>

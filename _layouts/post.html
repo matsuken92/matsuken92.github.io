@@ -1,0 +1,28 @@
+---
+layout: default
+---
+<div class="page-header">
+  <h1>{{ page.title }}
+      {% if page.tagline %}<br/><small>{{page.tagline}}</small>{% endif %}</h1>
+</div>
+{% assign this_post = page %}
+<div class="post-info">
+  {% include category_info %}
+  {% include source_info %}
+</div>
+<div id="post-content" class="post-content">
+   {{ content }}
+</div>
+<script type="text/javascript">
+  var el = document.getElementById("post-content");
+  fix_cjk_linebreak(el);
+  fix_table_style(el);
+</script>
+<div class="sharing align-right">
+  {% include JB/sharing %}
+</div>
+<div class="align-center">
+  {% include post_pagination %}
+</div>
+<hr/>
+{% include JB/comments %}
