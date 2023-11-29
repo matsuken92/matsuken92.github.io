@@ -1,33 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>kenmatsu4のブログページ</title>
+    <title>人気のブログページ</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             line-height: 1.6;
+            background: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .header-container {
+            text-align: center;
+            margin-bottom: 40px;
         }
         .container {
             width: 80%;
-            margin: auto;
-            overflow: hidden;
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap; /* フレックスボックスでの折り返しを許可 */
         }
         .page {
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #f4f4f4;
+            flex: 1 1 40%; /* 各カードの幅を45%に設定 */
+            background: #fff;
             border: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            margin: 10px; /* 上下左右のマージンを追加 */
+            height: auto; /* 高さを自動調整に変更 */
         }
         .page h3 {
             margin-top: 0;
         }
+        .page p {
+            color: #666;
+        }
+        .page a {
+            align-self: flex-end; /* リンクを下部に配置 */
+            background: #007bff;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .section-title {
+            width: 100%; /* タイトルの幅を全体に */
+            font-size: 1.5em;
+            color: #333;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .introduction {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
+    <div class="header-container">
+        <h1 style="text-align: center;">kenmatsu4のりれき</h1>
+        <p class="introduction">
+            過去に書いたブログや、発表スライドから気に入っているものを抜粋して紹介するページです。
+        </p>
+    </div>
     <div class="container">
-        <h1>kenmatsu4のりれき</h1>
-        過去に書いたブログや、発表スライドから気に入っているものを抜粋して紹介するページです。
-        <h2>統計・機械学習</h2>
+        <h2 class="section-title">統計・機械学習</h2>
         <div class="page">
             <h3>Variational Autoencoder徹底解説</h3>
             <p>VAE(Variational Autoencoder)とはどういうものか、直感的に理解しつつ数式も読めるような解説を書いています。</p>
@@ -84,7 +124,7 @@
         </div>
 
         <br>
-        <h2>確率分布シリーズ</h2>
+        <h2 class="section-title">確率分布シリーズ</h2>
 
         <div class="page">
             <h3>全ての確率はコイン投げに通ず</h3>
@@ -105,7 +145,7 @@
         </div>
 
         <br>
-        <h2>入門</h2>
+        <h2 class="section-title">入門</h2>
         <div class="page">
             <h3>確率統計入門@数学カフェ</h3>
             <p>主に確率、統計の初心者の方や、プログラマ、エンジニアの方でデータ分析に興味を持っている方が確率統計のエッセンスを数理的に理解できることを目標に、データの集約方法から、大数の法則や中心極限定理など、確率・統計で利用される非常に重要な数学の定理などを紹介します。</p>
@@ -165,8 +205,6 @@
             <p>統計学において、正規分布というのは非常に重要な役割を果たしています。その正規分布をあらわす数式(密度関数)は複雑な数式です。この式が示す意味を探っていきます。</p>
             <a href="https://qiita.com/kenmatsu4/items/74b8a9f696507af410a4">https://qiita.com/kenmatsu4/items/74b8a9f696507af410a4</a>
         </div>
-
-
 
     </div>
 </body>
