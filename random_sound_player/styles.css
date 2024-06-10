@@ -1,0 +1,83 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.container {
+    text-align: center;
+}
+
+button {
+    padding: 15px 30px;
+    font-size: 18px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    transition: background-color 0.3s;
+}
+
+#playButton {
+    background-color: #007bff;
+    color: white;
+}
+
+#playButton:hover {
+    background-color: #0056b3;
+}
+
+#replayButton {
+    background-color: #17a2b8;
+    color: white;
+}
+
+#replayButton:hover {
+    background-color: #138496;
+}
+
+#correctButton {
+    background-color: #28a745;
+    color: white;
+}
+
+#correctButton:hover {
+    background-color: #218838;
+}
+
+#incorrectButton {
+    background-color: #dc3545;
+    color: white;
+}
+
+#incorrectButton:hover {
+    background-color: #c82333;
+}
+
+#soundList {
+    margin-top: 20px;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2;
+}
