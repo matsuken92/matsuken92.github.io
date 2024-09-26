@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タップ位置表示アプリ</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        /* 座標表示用スタイル */
+        #coordinates {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            display: none; /* 初期状態では非表示 */
+            pointer-events: none; /* タッチイベントを通過させる */
+        }
+
+        /* スクリーンサイズ表示用スタイル */
+        #screen-size {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 座標表示用 -->
+    <div id="coordinates">(x, y)</div>
+
+    <!-- スクリーンサイズ表示用 -->
+    <div id="screen-size">(width, height)</div>
+
+    <script>
+        // 要素の取得
+        const coordinatesDiv = document.getElementById('coordinates');
+        const screenSizeDiv = document.getElementById('screen-size');
+
+        // スクリーンサイズの表示
+        function updateScreenSize() {
+            const width = window.screen.width;
+            const height = window.screen.height;
+            screenSizeDiv.textContent = `(${width}, ${height})`;
+        }
+
+        // 初期表示
+        updateScreenSize();
+
+        // ウィンドウサイズが変更された場合に更新
+        window.addEventListener('resize', updateScreenSize);
+
+        // タッチまたはクリックイベントのハンドリング
+        function displayCoordinates(event) {
+            let x, y;
+
+            if (event.type.startsWith('touch')) {
+                // タッチイベントの場合
+                const touch = event.touches[0] || event.changedTouches[0];
+                x = touch.clientX;
+                y = touch.clientY;
+            } else {
+                // マウスイベントの場合
+                x = event.clientX;
+                y = event.clientY;
+            }
+
+            // 座標の表示
+            coordinatesDiv.textContent = `(${x}, ${y})`;
+            coordinatesDiv.style.display = 'block';
+
+            // 数秒後に非表示にする
+            clearTimeout(coordinatesDiv.hideTimeout);
+            coordinatesDiv.hideTimeout = setTimeout(() => {
+                coordinatesDiv.style.display = 'none';
+            }, 2000);
+        }
+
+        // イベントリスナーの追加
+        document.addEventListener('touchstart', displayCoordinates, false);
+        document.addEventListener('click', displayCoordinates, false);
+    </script>
+</body>
+</html>
