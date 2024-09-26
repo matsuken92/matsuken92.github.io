@@ -29,6 +29,8 @@
             font-size: 1.5em;
             display: none; /* 初期状態では非表示 */
             pointer-events: none; /* タッチイベントを通過させる */
+            text-align: center;
+            line-height: 1.5;
         }
 
         /* スクリーンサイズ表示用スタイル */
@@ -47,7 +49,10 @@
 <body>
 
     <!-- 座標表示用 -->
-    <div id="coordinates">(x, y)</div>
+    <div id="coordinates">
+        <div id="device-coordinates">(x, y)</div>
+        <div id="percentage-coordinates">(%, %)</div>
+    </div>
 
     <!-- スクリーンサイズ表示用 -->
     <div id="screen-size">(width, height)</div>
@@ -55,6 +60,8 @@
     <script>
         // 要素の取得
         const coordinatesDiv = document.getElementById('coordinates');
+        const deviceCoordinatesDiv = document.getElementById('device-coordinates');
+        const percentageCoordinatesDiv = document.getElementById('percentage-coordinates');
         const screenSizeDiv = document.getElementById('screen-size');
 
         // スクリーンサイズの表示（デバイスピクセルを考慮）
@@ -79,21 +86,33 @@
 
         // タッチまたはクリックイベントのハンドリング
         function displayCoordinates(event) {
-            let x, y;
+            let x_css, y_css;
+            const ratio = window.devicePixelRatio || 1;
+            const deviceWidth = window.screen.width * ratio;
+            const deviceHeight = window.screen.height * ratio;
 
             if (event.type.startsWith('touch')) {
                 // タッチイベントの場合
                 const touch = event.touches[0] || event.changedTouches[0];
-                x = touch.clientX;
-                y = touch.clientY;
+                x_css = touch.clientX;
+                y_css = touch.clientY;
             } else {
                 // マウスイベントの場合
-                x = event.clientX;
-                y = event.clientY;
+                x_css = event.clientX;
+                y_css = event.clientY;
             }
 
+            // デバイスピクセルに変換
+            const x_device = Math.round(x_css * ratio);
+            const y_device = Math.round(y_css * ratio);
+
+            // パーセント計算
+            const percent_x = ((x_device / deviceWidth) * 100).toFixed(1);
+            const percent_y = ((y_device / deviceHeight) * 100).toFixed(1);
+
             // 座標の表示
-            coordinatesDiv.textContent = `(${x}, ${y})`;
+            deviceCoordinatesDiv.textContent = `(${x_device}, ${y_device})`;
+            percentageCoordinatesDiv.textContent = `(${percent_x}%, ${percent_y}%)`;
             coordinatesDiv.style.display = 'block';
 
             // 数秒後に非表示にする
