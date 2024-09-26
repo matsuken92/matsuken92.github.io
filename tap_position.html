@@ -57,15 +57,22 @@
         const coordinatesDiv = document.getElementById('coordinates');
         const screenSizeDiv = document.getElementById('screen-size');
 
-        // スクリーンサイズの表示
+        // スクリーンサイズの表示（デバイスピクセルを考慮）
         function updateScreenSize() {
-            const width = window.screen.width;
-            const height = window.screen.height;
-            screenSizeDiv.textContent = `(${width}, ${height})`;
+            const cssWidth = window.screen.width;
+            const cssHeight = window.screen.height;
+            const ratio = window.devicePixelRatio || 1;
+            const deviceWidth = Math.round(cssWidth * ratio);
+            const deviceHeight = Math.round(cssHeight * ratio);
+            screenSizeDiv.textContent = `(${deviceWidth}, ${deviceHeight})`;
         }
 
         // 初期表示
         updateScreenSize();
+
+        // デバイスピクセル比の変化を監視
+        const mediaQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+        mediaQuery.addEventListener('change', updateScreenSize);
 
         // ウィンドウサイズが変更された場合に更新
         window.addEventListener('resize', updateScreenSize);
