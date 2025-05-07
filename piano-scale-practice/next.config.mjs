@@ -10,8 +10,8 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'export',
-  basePath: '/piano-scale-practice',
-  assetPrefix: '/piano-scale-practice/',
+  basePath: '/piano-scale-practice/out',
+  assetPrefix: '/piano-scale-practice/out',
 }
 
 export default nextConfig
