@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/piano-scale-trainer/static/css/main.0778cfcd.css",
-    "main.js": "/piano-scale-trainer/static/js/main.e094ff66.js",
+    "main.css": "/piano-scale-trainer/static/css/main.b6ffb406.css",
+    "main.js": "/piano-scale-trainer/static/js/main.241c3b21.js",
     "index.html": "/piano-scale-trainer/index.html",
-    "main.0778cfcd.css.map": "/piano-scale-trainer/static/css/main.0778cfcd.css.map",
-    "main.e094ff66.js.map": "/piano-scale-trainer/static/js/main.e094ff66.js.map"
+    "main.b6ffb406.css.map": "/piano-scale-trainer/static/css/main.b6ffb406.css.map",
+    "main.241c3b21.js.map": "/piano-scale-trainer/static/js/main.241c3b21.js.map"
   },
   "entrypoints": [
-    "static/css/main.0778cfcd.css",
-    "static/js/main.e094ff66.js"
+    "static/css/main.b6ffb406.css",
+    "static/js/main.241c3b21.js"
   ]
 }
