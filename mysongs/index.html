@@ -6,7 +6,6 @@
   <title>My Music - 楽曲一覧</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@1,300&display=swap" rel="stylesheet">
-
   <style>
     body { font-family: 'Noto Sans JP', sans-serif; margin:0; background:#fff; color:#111;}
     header { border-bottom:1px solid #ccc; padding:20px 30px 10px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
@@ -17,10 +16,10 @@
       font-size: 2.4em;
       letter-spacing: 0.05em;
       margin: 0;
-      }
-    nav { margin-top: 10px; }
+    }
+    /* nav { margin-top: 10px; }
     nav a { margin-left: 20px; color: #222; text-decoration: none; font-weight: bold; }
-    nav a:first-child { margin-left: 0; }
+    nav a:first-child { margin-left: 0; } */
     main { max-width:1000px; margin:40px auto; padding: 0 20px; }
     h2 { text-align:center; font-size:2em; margin:40px 0 30px 0;}
     h2 a {
@@ -32,13 +31,18 @@
     }
     .music-list { display:flex; flex-wrap:wrap; justify-content:space-between; gap: 20px;}
     .music-item { width: 47%; background:#fafafa; border-radius:18px; box-shadow:0 2px 12px #0001; padding-bottom:25px;}
-    .music-thumb {
+    .youtube-embed {
+      position: relative;
       width: 100%;
-      height: auto;
-      aspect-ratio: 5 / 3;
-      object-fit: cover;
+      padding-top: 56.25%; /* 16:9 aspect ratio */
       border-radius: 18px 18px 0 0;
-      display: block;
+      overflow: hidden;
+      background: #000;
+    }
+    .youtube-embed iframe {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      border: none;
     }
     .music-info { padding:18px 24px 0 24px;}
     .music-title { font-size:1.3em; margin:0 0 10px 0; font-weight:bold; }
@@ -64,7 +68,7 @@
 
     @media (max-width: 800px) {
       header { flex-direction: column; align-items: flex-start; }
-      nav { margin-top: 10px; }
+      /* nav { margin-top: 10px; } */
       .music-list { flex-direction:column; }
       .music-item { width: 100%; }
     }
@@ -116,21 +120,25 @@
 <body>
   <header>
     <h1>My Music Page</h1>
-<!--     <nav>
+    <!--
+    <nav>
       <a href="#">HOME</a>
       <a href="#">MUSIC</a>
       <a href="#">PROFILE</a>
       <a href="#">CONTACT</a>
-    </nav> -->
+    </nav>
+    -->
   </header>
 
   <main>
-    <h2><a href="#songs">楽曲一覧 powered by AI</a></h2>
+    <h2 id="songs"><a href="#songs">楽曲一覧 powered by AI</a></h2>
     <div class="music-list">
       <div class="music-item">
-        <a href="https://youtu.be/_OiXW14Tsak" target="_blank" rel="noopener">
-          <img class="music-thumb" src="./img/yorunokaze.jpg" alt="夜の風と共に">
-        </a>
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/_OiXW14Tsak" title="夜の風と共に"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
         <div class="music-info">
           <div class="music-title">夜の風と共に</div>
           <div class="music-date">2024.02.16 RELEASE</div>
@@ -138,19 +146,23 @@
         </div>
       </div>
       <div class="music-item">
-        <a href="https://youtu.be/_a1EDgzhmPg" target="_blank" rel="noopener">
-          <img class="music-thumb" src="./img/zutto.jpg" alt="ずっと待っていたんだよ">
-        </a>
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/_a1EDgzhmPg" title="ずっと待っていたんだよ"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
         <div class="music-info">
           <div class="music-title">ずっと待っていたんだよ</div>
           <div class="music-date">2024.05.21 RELEASE</div>
-          <div class="music-desc">息子が電話ごっこをしながら突然「ずっと待ってたんだよ」と言ったことにインスピレーションを受け作った楽曲。</div>
+          <div class="music-desc">2歳の息子が電話ごっこをしていたら、その中で突然「ずっと待ってたんだよ」と言ったことにインスピレーションを受け作った楽曲です。</div>
         </div>
       </div>
       <div class="music-item">
-        <a href="https://youtu.be/h5pjf22TB_4" target="_blank" rel="noopener">
-          <img class="music-thumb" src="./img/hoshikage.jpg" alt="星影と静寂のあいだ">
-        </a>
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/h5pjf22TB_4" title="星影と静寂のあいだ"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
         <div class="music-info">
           <div class="music-title">星影と静寂のあいだ</div>
           <div class="music-date">2024.05.21 RELEASE</div>
@@ -158,9 +170,11 @@
         </div>
       </div>
       <div class="music-item">
-        <a href="https://youtu.be/VYIwMV66or0" target="_blank" rel="noopener">
-          <img class="music-thumb" src="./img/yorisoi.jpg" alt="寄り添いながら">
-        </a>
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/VYIwMV66or0" title="寄り添いながら"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
         <div class="music-info">
           <div class="music-title">寄り添いながら</div>
           <div class="music-date">2024.05.21 RELEASE</div>
@@ -168,9 +182,11 @@
         </div>
       </div>
       <div class="music-item">
-        <a href="https://youtu.be/p64OEIuNZeE" target="_blank" rel="noopener">
-          <img class="music-thumb" src="./img/atarashiikaze.jpg" alt="新しい風、光が満ちて">
-        </a>
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/p64OEIuNZeE" title="新しい風、光が満ちて"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
         <div class="music-info">
           <div class="music-title">新しい風、光が満ちて</div>
           <div class="music-date">2024.05.21 RELEASE</div>
@@ -179,110 +195,109 @@
       </div>
     </div>
 
-  <h2><a href="#originals">オリジナル楽曲</a></h2>
-  <div class="music-list">
-
-    <div class="music-item">
-      <a href="https://www.youtube.com/watch?v=64SU5GjEyxk" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/flushing_main_st.png" alt="Flushing Main St.">
-      </a>
-      <div class="music-info">
-        <div class="music-title">Flushing Main St.</div>
-        <div class="music-date">2011.09.24 RELEASE</div>
-        <div class="music-desc">ロックな初音ミク楽曲です。</div>
+    <h2 id="originals"><a href="#originals">オリジナル楽曲</a></h2>
+    <div class="music-list">
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/64SU5GjEyxk" title="Flushing Main St."
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">Flushing Main St.</div>
+          <div class="music-date">2011.09.24 RELEASE</div>
+          <div class="music-desc">ロックな初音ミク楽曲です。</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/cT0j3WU2koo" title="Youthful Days"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">Youthful Days</div>
+          <div class="music-date">2016.10.23 RELEASE</div>
+          <div class="music-desc">しっとり歌う初音ミク楽曲です。</div>
+        </div>
       </div>
     </div>
 
-    <div class="music-item">
-      <a href="https://youtu.be/cT0j3WU2koo" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/youthfuldays.jpeg" alt="Flushing Main St.">
-      </a>
-      <div class="music-info">
-        <div class="music-title">Youthful Days</div>
-        <div class="music-date">2016.10.23 RELEASE</div>
-        <div class="music-desc">しっとり歌う初音ミク楽曲です。</div>
+    <h2 id="covers"><a href="#covers">カバー動画 & 弾いてみた動画</a></h2>
+    <div class="music-list">
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/HGkLDOnIa6U" title="フラッシュバッカー（Cover）"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">フラッシュバッカー（Cover）</div>
+          <div class="music-date">2025.05.14 RELEASE</div>
+          <div class="music-desc">バンド 電撃⚡️結束団 による結束バンドのフラッシュバッカーのカバー演奏です。</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/WsexoZPIJ0U" title="あのバンド/結束バンド ギター弾いてみた"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">あのバンド/結束バンド ギター弾いてみた</div>
+          <div class="music-date">2024.08.18 RELEASE</div>
+          <div class="music-desc">ぼっち・ざ・ろっくの挿入歌「あのバンド」（結束バンド）のリードギターを弾いてみました！</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/3NUN_PZ7c_0" title="青春コンプレックス/結束バンド ギター弾いてみた"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">青春コンプレックス/結束バンド ギター弾いてみた</div>
+          <div class="music-date">2023.04.13 RELEASE</div>
+          <div class="music-desc">アニメ ぼっち・ざ・ろっくの結束バンドによる名曲「青春コンプレックス」に感銘を受けて、眠っていたギターを引っ張り出して弾いてみました！</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/7sEB69KD-gI" title="フラッシュバッカー/結束バンド ギター弾いてみた"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">フラッシュバッカー/結束バンド ギター弾いてみた</div>
+          <div class="music-date">2023.06.26 RELEASE</div>
+          <div class="music-desc">体に染み入る名曲ですね。ギター弾いてみました！</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/A766TpkftvQ" title="『ミラーチューン』/ずっと真夜中でいいのに ギター弾いてみた"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">『ミラーチューン』/ずっと真夜中でいいのに ギター弾いてみた</div>
+          <div class="music-date">2023.06.23 RELEASE</div>
+          <div class="music-desc">難曲ですが『ミラーチューン』のギターを弾いてみました！ずとまよ最高です！</div>
+        </div>
+      </div>
+      <div class="music-item">
+        <div class="youtube-embed">
+          <iframe src="https://www.youtube.com/embed/AzgfoAy-ahs" title="綺羅キラー (feat.Mori Calliope)/ずっと真夜中でいいのに ギター弾いてみた"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
+        </div>
+        <div class="music-info">
+          <div class="music-title">綺羅キラー (feat.Mori Calliope)/ずっと真夜中でいいのに ギター弾いてみた</div>
+          <div class="music-date">2023.06.23 RELEASE</div>
+          <div class="music-desc">難曲ですが『ミラーチューン』のギターを弾いてみました！ずとまよ最高です！</div>
+        </div>
       </div>
     </div>
-
-
-  </div>
-
-
-  <h2><a href="#covers">カバー動画 & 弾いてみた動画</a></h2>
-  <div class="music-list">
-
-    <div class="music-item">
-      <a href="https://youtu.be/HGkLDOnIa6U" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/cover_flashbacker.jpg" alt="フラッシュバッカー Cover">
-      </a>
-      <div class="music-info">
-        <div class="music-title">フラッシュバッカー（Cover）</div>
-        <div class="music-date">2025.05.14 RELEASE</div>
-        <div class="music-desc">バンド 電撃⚡️結束団 による結束バンドのフラッシュバッカーのカバー演奏です。</div>
-      </div>
-    </div>
-
-
-    <div class="music-item">
-      <a href="https://youtu.be/WsexoZPIJ0U" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/anoband.jpg" alt="あのバンド ギター弾いてみた">
-      </a>
-      <div class="music-info">
-        <div class="music-title">あのバンド/結束バンド ギター弾いてみた</div>
-        <div class="music-date">2024.08.18 RELEASE</div>
-        <div class="music-desc">ぼっち・ざ・ろっくの挿入歌「あのバンド」（結束バンド）のリードギターを弾いてみました！</div>
-      </div>
-    </div>
-
-
-    <div class="music-item">
-      <a href="https://youtu.be/3NUN_PZ7c_0" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/seishun.jpg" alt="フラッシュバッカー Cover">
-      </a>
-      <div class="music-info">
-        <div class="music-title">青春コンプレックス/結束バンド ギター弾いてみた</div>
-        <div class="music-date">2023.04.13 RELEASE</div>
-        <div class="music-desc">アニメ ぼっち・ざ・ろっくの結束バンドによる名曲「青春コンプレックス」に感銘を受けて、眠っていたギターを引っ張り出して弾いてみました！</div>
-      </div>
-    </div>
-
-
-    <div class="music-item">
-      <a href="https://youtu.be/7sEB69KD-gI" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/flachbacker_guitar.jpeg" alt="フラッシュバッカー 弾いてみた">
-      </a>
-      <div class="music-info">
-        <div class="music-title">フラッシュバッカー/結束バンド ギター弾いてみた</div>
-        <div class="music-date">2023.06.26 RELEASE</div>
-        <div class="music-desc">体に染み入る名曲ですね。ギター弾いてみました！</div>
-      </div>
-    </div>
-
-    <div class="music-item">
-      <a href="https://youtu.be/A766TpkftvQ" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/mirror.jpg" alt="ミラーチューン ギター弾いてみた">
-      </a>
-      <div class="music-info">
-        <div class="music-title">『ミラーチューン』/ずっと真夜中でいいのに ギター弾いてみた</div>
-        <div class="music-date">2023.06.23 RELEASE</div>
-        <div class="music-desc">難曲ですが『ミラーチューン』のギターを弾いてみました！ずとまよ最高です！</div>
-      </div>
-    </div>
-
-
-    <div class="music-item">
-      <a href="https://youtu.be/AzgfoAy-ahs" target="_blank" rel="noopener">
-        <img class="music-thumb" src="./img/killer.jpg" alt="綺羅キラー ギター弾いてみた">
-      </a>
-      <div class="music-info">
-        <div class="music-title">綺羅キラー (feat.Mori Calliope)/ずっと真夜中でいいのに ギター弾いてみた</div>
-        <div class="music-date">2023.06.23 RELEASE</div>
-        <div class="music-desc">難曲ですが『ミラーチューン』のギターを弾いてみました！ずとまよ最高です！</div>
-      </div>
-    </div>
-
-  </div>
-
 
   </main>
 
