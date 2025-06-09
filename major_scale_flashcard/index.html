@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>音階フラッシュカード</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f8ff;
+    }
+    button {
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+      border: none;
+      background-color: #4682b4;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #5a9bd3;
+    }
+    stats {
+    margin-top: 2rem;
+    font-size: 1rem;
+    background: #ffffffcc;
+    padding: 1rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 600px;
+   }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="stats"></div> <!-- 成績表示用 -->
+  <script src="app.js"></script>
+</body>
+</html>
