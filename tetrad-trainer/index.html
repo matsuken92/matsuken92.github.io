@@ -12,6 +12,12 @@
 </head>
 <body>
   <h1>四和音フラッシュカード</h1>
+  <p>
+    ①コード名を言う<br>
+    ②調合の数と場所を言う<br>
+    ③<strong>【大事】コードの音名を言う</strong><br>
+    ④両手で抑える（薬指を使わない）
+  </p>
   <div id="card"></div>
   <div class="buttons">
     <button onclick="showAnswer()">回答</button>
@@ -26,18 +32,18 @@
 
   <script>
     const chords = [
-      { name: "C", notes: ["ド", "ミ", "ソ", "シ"], keySig: "なし" },
-      { name: "D", notes: ["レ", "ファ#", "ラ", "ド#"], keySig: "♯2つ（ファド）" },
-      { name: "E", notes: ["ミ", "ソ#", "シ", "レ#"], keySig: "♯4つ（ファソドレ）" },
-      { name: "F", notes: ["ファ", "ラ", "ド", "ミ"], keySig: "♭1つ（シ）" },
-      { name: "G", notes: ["ソ", "シ", "レ", "ファ#"], keySig: "♯1つ（ファ）" },
-      { name: "A", notes: ["ラ", "ド#", "ミ", "ソ#"], keySig: "♯3つ（ドファソ）" },
-      { name: "B", notes: ["シ", "レ#", "ファ#", "ラ#"], keySig: "♯5つ（-(シミ)）" },
-      { name: "B♭", notes: ["シ♭", "レ", "ファ", "ラ"], keySig: "♭2つ（シミ）" },
-      { name: "E♭", notes: ["ミ♭", "ソ", "シ♭", "レ"], keySig: "♭3つ（ミラシ）" },
-      { name: "A♭", notes: ["ラ♭", "ド", "ミ♭", "ソ"], keySig: "♭4つ（ラシレミ）" },
-      { name: "D♭", notes: ["レ♭", "ファ", "ラ♭", "ド"], keySig: "♭5つ（-(ドファ)）" },
-      { name: "G♭", notes: ["ソ♭", "シ♭", "レ♭", "ファ"], keySig: "♭6つ（-(-ファ)）" },
+      { name: "CM7", notes: ["ド", "ミ", "ソ", "シ"], keySig: "なし" },
+      { name: "DM7", notes: ["レ", "ファ#", "ラ", "ド#"], keySig: "♯2つ（ファド）" },
+      { name: "EM7", notes: ["ミ", "ソ#", "シ", "レ#"], keySig: "♯4つ（ファソドレ）" },
+      { name: "FM7", notes: ["ファ", "ラ", "ド", "ミ"], keySig: "♭1つ（シ）" },
+      { name: "GM7", notes: ["ソ", "シ", "レ", "ファ#"], keySig: "♯1つ（ファ）" },
+      { name: "AM7", notes: ["ラ", "ド#", "ミ", "ソ#"], keySig: "♯3つ（ドファソ）" },
+      { name: "BM7", notes: ["シ", "レ#", "ファ#", "ラ#"], keySig: "♯5つ（-(シミ)）" },
+      { name: "B♭M7", notes: ["シ♭", "レ", "ファ", "ラ"], keySig: "♭2つ（シミ）" },
+      { name: "E♭M7", notes: ["ミ♭", "ソ", "シ♭", "レ"], keySig: "♭3つ（ミラシ）" },
+      { name: "A♭M7", notes: ["ラ♭", "ド", "ミ♭", "ソ"], keySig: "♭4つ（ラシレミ）" },
+      { name: "D♭M7", notes: ["レ♭", "ファ", "ラ♭", "ド"], keySig: "♭5つ（-(ドファ)）" },
+      { name: "G♭M7", notes: ["ソ♭", "シ♭", "レ♭", "ファ"], keySig: "♭6つ（-(-ファ)）" },
     ];
 
     let previous = null;
