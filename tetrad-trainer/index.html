@@ -4,30 +4,59 @@
   <meta charset="UTF-8">
   <title>四和音フラッシュカード</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 2rem; }
-    #card { font-size: 2rem; margin: 1rem; }
-    .answer, .buttons, .stats { margin: 1rem; }
-    button { padding: 0.5rem 1rem; font-size: 1rem; margin: 0.3rem; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    #card {
+      font-size: 2rem;
+      margin: 1rem;
+    }
+    .answer, .buttons, .stats {
+      margin: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      margin: 0.3rem;
+    }
+    #guideline {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
   <h1>四和音フラッシュカード</h1>
-  <p>
+  <div id="guideline">
     ①コード名を言う<br>
     ②調合の数と場所を言う<br>
     ③<strong>【大事】コードの音名を言う</strong><br>
     ④両手で抑える（薬指を使わない）
-  </p>
+  </div>
+
+  <div style="margin: 1rem;">
+    <label>
+      <input type="checkbox" id="orderedMode" onchange="resetOrder()"> 順番指定モード（C→G♭→G）
+    </label>
+  </div>
+
   <div id="card"></div>
+
   <div class="buttons">
     <button onclick="showAnswer()">回答</button>
   </div>
+
   <div class="answer" id="answer"></div>
   <div class="answer" id="keySignature"></div>
+
   <div class="buttons" id="selfAssessment" style="display:none;">
     <button onclick="markAnswer(true)">正解</button>
     <button onclick="markAnswer(false)">不正解</button>
   </div>
+
   <div class="stats" id="stats"></div>
 
   <script>
@@ -46,9 +75,17 @@
       { name: "G♭M7", notes: ["ソ♭", "シ♭", "レ♭", "ファ"], keySig: "♭6つ（-(-ファ)）" },
     ];
 
+    const order = ["CM7", "FM7", "B♭M7", "E♭M7", "A♭M7", "D♭M7", "G♭M7", "BM7", "EM7", "AM7", "DM7", "GM7"];
+    let orderedIndex = 0;
     let previous = null;
     let current = null;
+
     let stats = Object.fromEntries(chords.map(c => [c.name, { correct: 0, total: 0 }]));
+
+    function resetOrder() {
+      orderedIndex = 0;
+      nextCard();
+    }
 
     function weightedRandom() {
       let weights = chords.map(c => {
@@ -69,7 +106,18 @@
       document.getElementById('answer').textContent = "";
       document.getElementById('keySignature').textContent = "";
       document.getElementById('selfAssessment').style.display = 'none';
-      current = weightedRandom();
+
+      const isOrdered = document.getElementById('orderedMode').checked;
+      if (isOrdered) {
+        current = chords.find(c => c.name === order[orderedIndex]);
+        orderedIndex = (orderedIndex + 1) % order.length;
+      } else {
+        current = weightedRandom();
+        while (current.name === previous) {
+          current = weightedRandom();
+        }
+      }
+
       previous = current.name;
       document.getElementById('card').textContent = current.name;
     }
