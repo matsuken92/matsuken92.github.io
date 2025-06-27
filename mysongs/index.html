@@ -7,132 +7,94 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@1,300&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Noto Sans JP', sans-serif; margin:0; background:#fff; color:#111;}
-    header { border-bottom:1px solid #ccc; padding:20px 30px 10px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    body { font-family: 'Noto Sans JP', sans-serif; margin:0; background:#fff; color:#111; }
+    header {
+      background-color: #000;
+      border-bottom:1px solid #333;
+      padding:20px 30px 10px 30px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+    }
     header h1 {
       font-family: 'Open Sans', sans-serif;
       font-style: italic;
       font-weight: 300;
-      font-size: 2.4em;
-      letter-spacing: 0.05em;
-      margin: 0;
+      font-size:2.4em;
+      letter-spacing:0.05em;
+      margin:0;
+      color:#fff;
     }
-    /* nav { margin-top: 10px; }
-    nav a { margin-left: 20px; color: #222; text-decoration: none; font-weight: bold; }
-    nav a:first-child { margin-left: 0; } */
-    main { max-width:1000px; margin:40px auto; padding: 0 20px; }
-    h2 { text-align:center; font-size:2em; margin:40px 0 30px 0;}
-    h2 a {
-      color: inherit;
-      text-decoration: none;
+    nav a {
+      margin-left:20px;
+      color:#fff;
+      text-decoration:none;
+      font-weight:bold;
     }
-    h2 a:hover {
-      text-decoration: underline;
-    }
-    .music-list { display:flex; flex-wrap:wrap; justify-content:space-between; gap: 20px;}
-    .music-item { width: 47%; background:#fafafa; border-radius:18px; box-shadow:0 2px 12px #0001; padding-bottom:25px;}
-    .youtube-embed {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%; /* 16:9 aspect ratio */
-      border-radius: 18px 18px 0 0;
-      overflow: hidden;
-      background: #000;
-    }
-    .youtube-embed iframe {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      border: none;
-    }
-    .music-info { padding:18px 24px 0 24px;}
+    nav a:first-child { margin-left:0; }
+    nav a:hover { text-decoration:underline; }
+
+    main { max-width:1000px; margin:40px auto; padding:0 20px; }
+    h2 { text-align:center; font-size:2em; margin:40px 0 30px 0; }
+    .music-list { display:flex; flex-wrap:wrap; justify-content:space-between; gap:20px; }
+    .music-item { width:47%; background:#fafafa; border-radius:18px; box-shadow:0 2px 12px #0001; padding-bottom:25px; }
+    .youtube-embed { position:relative; width:100%; padding-top:56.25%; border-radius:18px 18px 0 0; overflow:hidden; background:#000; }
+    .youtube-embed iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; }
+    .music-info { padding:18px 24px 0 24px; }
     .music-title { font-size:1.3em; margin:0 0 10px 0; font-weight:bold; }
-    .music-date { color:#777; font-size:0.95em; margin-bottom:6px;}
-    .music-desc { color:#444; font-size:1em; margin-bottom:10px;}
+    .music-date { color:#777; font-size:0.95em; margin-bottom:6px; }
+    .music-desc { color:#444; font-size:1em; margin-bottom:10px; }
+
     footer {
-      background-color: #111;
-      color: #ccc;
-      text-align: center;
-      padding: 20px 10px;
-      font-size: 0.9em;
-      margin-top: 60px;
+      background-color:#111;
+      color:#ccc;
+      text-align:center;
+      padding:20px 10px;
+      font-size:0.9em;
+      margin-top:60px;
     }
-    footer .sns-icons a {
-      margin: 0 12px;
-      color: #ccc;
-      font-size: 1.2em;
-      text-decoration: none;
-    }
-    footer .sns-icons a:hover {
-      color: #fff;
-    }
+    footer .sns-icons a { margin:0 12px; color:#ccc; font-size:1.2em; text-decoration:none; }
+    footer .sns-icons a:hover { color:#fff; }
 
-    @media (max-width: 800px) {
-      header { flex-direction: column; align-items: flex-start; }
-      /* nav { margin-top: 10px; } */
+    @media (max-width:800px) {
+      header { flex-direction:column; align-items:flex-start; }
       .music-list { flex-direction:column; }
-      .music-item { width: 100%; }
+      .music-item { width:100%; }
     }
 
-    .profile-section {
-      max-width: 1000px;
-      margin: 60px auto;
-      padding: 0 20px;
-    }
-    .profile-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      align-items: center;
-    }
-    .profile-text {
-      flex: 1 1 55%;
-    }
-    .profile-text h2 {
-      font-size: 1.8em;
-      margin-bottom: 10px;
-    }
-    .profile-text p {
-      font-size: 1.05em;
-      line-height: 1.6;
-      margin-bottom: 10px;
-    }
-    .profile-image {
-      flex: 1 1 35%;
-      text-align: center;
-    }
-    .profile-image img {
-      width: 100%;
-      max-width: 200px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
-    @media (max-width: 768px) {
-      .profile-container {
-        flex-direction: column;
-        text-align: left;
-      }
-      .profile-image img {
-        max-width: 100%;
-      }
+    .profile-section { max-width:1000px; margin:60px auto; padding:0 20px; }
+    .profile-container { display:flex; flex-wrap:wrap; gap:30px; align-items:center; }
+    .profile-text { flex:1 1 55%; }
+    .profile-text h2 { font-size:1.8em; margin-bottom:10px; }
+    .profile-text p { font-size:1.05em; line-height:1.6; margin-bottom:10px; }
+    .profile-image { flex:1 1 35%; text-align:center; }
+    .profile-image img { width:100%; max-width:200px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+    @media (max-width:768px) {
+      .profile-container { flex-direction:column; text-align:left; }
+      .profile-image img { max-width:100%; }
     }
   </style>
 </head>
 <body>
   <header>
     <h1>My Music Page</h1>
-    <!--
     <nav>
-      <a href="#">HOME</a>
-      <a href="#">MUSIC</a>
-      <a href="#">PROFILE</a>
-      <a href="#">CONTACT</a>
+      <a href="#songs">楽曲一覧 powered by AI</a>
+      <a href="#originals">オリジナル楽曲</a>
+      <a href="#covers">カバー動画 & 弾いてみた動画</a>
+      <a href="#rocca">Rocca</a>
+      <a href="#tsukimisoba">つきみそば</a>
+      <a href="#bluebeat">Blue Beat</a>
+      <a href="#profile">Profile</a>
     </nav>
-    -->
   </header>
 
   <main>
-    <h2 id="songs"><a href="#songs">楽曲一覧 powered by AI</a></h2>
+    <h2 id="songs">楽曲一覧 powered by AI</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/u5OoisIPMh0" title="夜の風と共に"
@@ -264,12 +226,12 @@
         </div>
       </div>
 
-
-
     </div>
 
-    <h2 id="originals"><a href="#originals">オリジナル楽曲</a></h2>
+    <h2 id="originals">オリジナル楽曲</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/DPxgZWdRqOI" title="Flushing Main St."
@@ -294,10 +256,15 @@
           <div class="music-desc">しっとり歌う初音ミク楽曲です。</div>
         </div>
       </div>
+      
+
+
     </div>
 
-    <h2 id="covers"><a href="#covers">カバー動画 & 弾いてみた動画</a></h2>
+    <h2 id="covers">カバー動画 & 弾いてみた動画</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/HGkLDOnIa6U" title="フラッシュバッカー（Cover）"
@@ -384,10 +351,15 @@
           <div class="music-desc">カッティングフレーズカッコよすぎな一曲です！</div>
         </div>
       </div>
+
+      
+
     </div>
 
-    <h2 id="originals"><a href="#originals">Rocca</a></h2>
+    <h2 id="rocca">Rocca</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/A4ZglrwDONE" title="都会の草原"
@@ -400,10 +372,15 @@
           <div class="music-desc">優しい歌声と繊細な旋律が胸に沁みる一曲。夢と記憶の狭間を駆け抜け、迷いも痛みも抱きしめながら進む、心の旅をそっと描き出します。ギターを担当。</div>
         </div>
       </div>
+
+      
+
     </div>
 
-    <h2 id="originals"><a href="#originals">つきみそば</a></h2>
+    <h2 id="tsukimisoba">つきみそば</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/Y67HFpiHqfY" title="ハートビート"
@@ -416,7 +393,6 @@
           <div class="music-desc">Bassを担当</div>
         </div>
       </div>
-      
 
       <div class="music-item">
         <div class="youtube-embed">
@@ -430,10 +406,14 @@
           <div class="music-desc">Bassを担当</div>
         </div>
       </div>
-    </div>  
 
-    <h2 id="originals"><a href="#originals">Blue Beat</a></h2>
+
+    </div>
+
+    <h2 id="bluebeat">Blue Beat</h2>
     <div class="music-list">
+
+
       <div class="music-item">
         <div class="youtube-embed">
           <iframe src="https://www.youtube.com/embed/DgN3mRXhj6Y" title="モノクロ"
@@ -463,14 +443,15 @@
 
 
     </div>
+
   </main>
 
-  <section class="profile-section">
+  <section class="profile-section" id="profile">
     <div class="profile-container">
       <div class="profile-text">
         <h2>Ken’ichi Matsui</h2>
         <p>高校からエレキギターを始め、社会人になってからベース、ドラムと担当パートを増やしてきたマルチプレイヤーなアマチュアミュージシャン。</p>
-        <p>自作オリジナル曲や楽曲カバー、弾いてみた動画などを <strong>YouTube</strong> で発信中。</p>
+        <p>自作オリジナル曲や楽曲カバー、弾いてみた動画などを <strong><a href="https://www.youtube.com/@matsuken92" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">YouTube</a></strong> で発信中。</p>
         <p>DTMには <strong>Cubase12</strong> を使用。</p>
       </div>
       <div class="profile-image">
@@ -480,7 +461,7 @@
   </section>
 
   <footer>
-    <div>© 2024 Ken'ichi Matsui. All rights reserved.</div>
+    <div>© 2025 Ken'ichi Matsui. All rights reserved.</div>
     <div class="sns-icons">
       <a href="https://www.youtube.com/@matsuken92" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
       <a href="https://www.instagram.com/matsuken92/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
