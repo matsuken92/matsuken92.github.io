@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/chord-trainer/static/js/main.b66acf74.js",
+    "main.js": "/chord-trainer/static/js/main.f185aed5.js",
     "index.html": "/chord-trainer/index.html",
-    "main.b66acf74.js.map": "/chord-trainer/static/js/main.b66acf74.js.map"
+    "main.f185aed5.js.map": "/chord-trainer/static/js/main.f185aed5.js.map"
   },
   "entrypoints": [
-    "static/js/main.b66acf74.js"
+    "static/js/main.f185aed5.js"
   ]
 }
