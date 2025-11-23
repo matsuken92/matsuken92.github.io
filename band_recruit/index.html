@@ -143,7 +143,7 @@
         <div class="container mx-auto px-6">
             <div class="flex flex-col md:flex-row items-center gap-12">
                 <div class="w-full md:w-1/2 reveal">
-                    <!-- Placeholder for Band Photo: 指定のパスに変更 -->
+                    <!-- Placeholder for Band Photo -->
                     <div class="aspect-[4/3] bg-gray-200 rounded-2xl overflow-hidden relative shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
                          <img src="./band_image.png" alt="Band Image" class="object-cover w-full h-full hover:grayscale-0 transition duration-700">
                          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
@@ -178,28 +178,47 @@
             <p class="text-gray-500 mb-12 reveal">私たちの現在のデモ音源です。<br class="md:hidden">今後の楽曲のイメージの参考としてください。</p>
             
             <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                <!-- Sound Item 1 -->
+                <!-- Sound Item 1: 名前のない青 -->
                 <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 reveal hover:translate-y-[-5px] transition">
-                    <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
-                        <!-- Replace with YouTube Embed -->
-                         <iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=mute" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative bg-black">
+                        <!-- 
+                             添付ファイルを参考に、srcではなくdata-srcを使用。
+                             クラスに lazy-youtube を追加。
+                             Tailwindのクラス w-full h-full を併用。
+                        -->
+                        <iframe 
+                            class="lazy-youtube w-full h-full"
+                            data-src="https://www.youtube.com/embed/kS5zeBc2f0c"
+                            title="名前のない青"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                        ></iframe>
                     </div>
-                    <h3 class="text-xl font-bold mb-1 text-left">名前のない青</h3>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-xl font-bold text-left">名前のない青</h3>
+                    </div>
                     <p class="text-sm text-gray-500 text-left">疾走感のあるギターロックチューン。</p>
                 </div>
 
-                <!-- Sound Item 2 -->
+                <!-- Sound Item 2: 光の呼吸 -->
                 <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 reveal delay-100 hover:translate-y-[-5px] transition">
-                    <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center relative group cursor-pointer">
-                        <!-- Placeholder for Soundcloud or another video -->
-                        <img src="https://images.unsplash.com/photo-1614149162883-504ce4d13909?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Demo 2" class="w-full h-full object-cover opacity-80">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition">
-                                <i data-lucide="play" class="fill-black w-6 h-6 ml-1"></i>
-                            </div>
-                        </div>
+                     <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative bg-black">
+                         <!-- 
+                             添付ファイルを参考に、srcではなくdata-srcを使用。
+                             クラスに lazy-youtube を追加。
+                             Tailwindのクラス w-full h-full を併用。
+                        -->
+                        <iframe 
+                            class="lazy-youtube w-full h-full"
+                            data-src="https://www.youtube.com/embed/TgCfHZetm0U"
+                            title="光の呼吸"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                        ></iframe>
                     </div>
-                    <h3 class="text-xl font-bold mb-1 text-left">光の呼吸</h3>
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-xl font-bold text-left">光の呼吸</h3>
+                    </div>
                     <p class="text-sm text-gray-500 text-left">エモーショナルなミディアムロックナンバー。</p>
                 </div>
             </div>
@@ -347,6 +366,32 @@
     <script>
         // Initialize Icons
         lucide.createIcons();
+
+        // YouTube Lazy Load logic from the provided example file
+        document.addEventListener("DOMContentLoaded", function () {
+            const iframes = document.querySelectorAll("iframe.lazy-youtube");
+            
+            const onIntersection = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const iframe = entry.target;
+                        // src属性がまだなく、data-src属性がある場合のみ処理
+                        if (!iframe.src && iframe.dataset.src) {
+                            iframe.src = iframe.dataset.src;
+                        }
+                        observer.unobserve(iframe);
+                    }
+                });
+            };
+
+            // 画面内に200px近づいたら読み込み開始
+            const observer = new IntersectionObserver(onIntersection, {
+                rootMargin: "200px",
+                threshold: 0.1
+            });
+
+            iframes.forEach(iframe => observer.observe(iframe));
+        });
 
         // Mobile Menu Toggle
         const menuBtn = document.getElementById('menu-btn');
