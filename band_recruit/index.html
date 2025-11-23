@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transparent Records（仮） | メンバー募集中</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Custom Font Settings */
+        body {
+            font-family: 'Zen Kaku Gothic New', sans-serif;
+            color: #333;
+        }
+        h1, h2, h3, .eng-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Artistic Background Blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out;
+        }
+        .blob-1 {
+            top: -10%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
+            animation-delay: 0s;
+        }
+        .blob-2 {
+            top: 40%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            animation-delay: 2s;
+        }
+        .blob-3 {
+            bottom: -10%;
+            left: 20%;
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(20px, 40px) rotate(10deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* Scroll Reveal Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Selection Color */
+        ::selection {
+            background: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 overflow-x-hidden relative">
+
+    <!-- Background Shapes -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 transition-all duration-300" id="navbar">
+        <div class="absolute inset-0 bg-white/70 backdrop-blur-md border-b border-white/20 shadow-sm"></div>
+        <div class="container mx-auto px-6 py-4 relative flex justify-between items-center">
+            <a href="#" class="text-lg md:text-xl font-black tracking-tighter z-50 mix-blend-multiply uppercase">Transparent Records（仮）</a>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8 text-sm font-bold tracking-widest">
+                <a href="#about" class="hover:text-purple-600 transition">ABOUT</a>
+                <a href="#sounds" class="hover:text-purple-600 transition">SOUNDS</a>
+                <a href="#recruit" class="hover:text-purple-600 transition">RECRUIT</a>
+                <a href="#contact" class="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition transform hover:scale-105">CONTACT</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="menu-btn" class="md:hidden z-50 focus:outline-none">
+                <i data-lucide="menu" class="w-8 h-8"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-white/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col justify-center items-center space-y-8 text-2xl font-bold">
+            <a href="#about" class="menu-link hover:text-purple-500">ABOUT</a>
+            <a href="#sounds" class="menu-link hover:text-purple-500">SOUNDS</a>
+            <a href="#recruit" class="menu-link hover:text-purple-500">RECRUIT</a>
+            <a href="#contact" class="menu-link px-8 py-3 bg-black text-white rounded-full">CONTACT</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-20">
+        <div class="container mx-auto px-6 text-center z-10">
+            <h1 class="text-5xl md:text-8xl font-black leading-tight mb-6 reveal delay-100 tracking-tighter">
+                JOIN OUR<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500">NEW</span> 
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400">BAND</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed reveal delay-200">
+                新規オリジナルバンド結成のため、ベースとドラムのメンバーを募集しています。<br>
+                メンバーで作曲した楽曲や、最新のAIを活用した作曲も導入し、メンバーで楽曲のアレンジをして完成させていきます。<br>
+                一緒に楽曲を作成し演奏する方の加入希望を募集しています！
+            </p>
+            <div class="flex flex-col md:flex-row justify-center gap-4 reveal delay-300">
+                <a href="#recruit" class="px-8 py-4 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2">
+                    募集要項を見る <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                </a>
+                <a href="#sounds" class="px-8 py-4 bg-white text-black border border-gray-200 font-bold rounded-full hover:bg-gray-50 transition shadow-lg flex items-center justify-center gap-2">
+                    <i data-lucide="play-circle" class="w-4 h-4"></i> 音源を聴く
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Concept Section -->
+    <section id="about" class="py-24 relative">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="w-full md:w-1/2 reveal">
+                    <!-- Placeholder for Band Photo: 指定のパスに変更 -->
+                    <div class="aspect-[4/3] bg-gray-200 rounded-2xl overflow-hidden relative shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
+                         <img src="./band_image.png" alt="Band Image" class="object-cover w-full h-full hover:grayscale-0 transition duration-700">
+                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                         <div class="absolute bottom-6 left-6 text-white text-left">
+                            <p class="text-sm font-bold tracking-widest opacity-80 mb-1">CURRENT MEMBERS</p>
+                            <p class="text-xl font-bold">女性ボーカル / 男性ギタリスト</p>
+                         </div>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 text-left md:pl-10 reveal delay-100">
+                    <h2 class="text-4xl md:text-5xl font-black mb-8 tracking-tight">メンバー募集中</h2>
+                    <p class="text-gray-600 leading-8 mb-6">
+                        私たち Transparent Records（仮） は現在、女性ボーカルと男性ギタリストのユニットです。<br>
+                        今後、バンドとして活動をしていきたいのでメンバーを募集（Bass, Drums）しています。
+                    </p>
+                    <p class="text-gray-600 leading-8 mb-6">
+                        完全なアマチュア志向ですが、オリジナル曲を作って演奏活動をしていきたいです。楽曲制作では、オリジナル曲に加え、最新のAI作曲ツールも積極的に活用しています。テクノロジーも取り入れつつ、最終的にはバンドの生音で「良い音楽」を奏でるのが目標です。
+                    </p>
+                    <ul class="space-y-2 text-gray-500 font-medium text-sm">
+                        <li class="flex items-center gap-2"><i data-lucide="music-2" class="text-pink-500 w-4 h-4"></i> ジャンル：J-Pop / Rock / AI Co-Writing</li>
+                        <li class="flex items-center gap-2"><i data-lucide="map-pin" class="text-pink-500 w-4 h-4"></i> 活動拠点：都内（月1回・土日祝の日中の予定）</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sounds Section -->
+    <section id="sounds" class="py-24 bg-white/50 backdrop-blur-sm">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-black mb-4 reveal tracking-widest">SOUNDS</h2>
+            <p class="text-gray-500 mb-12 reveal">私たちの現在のデモ音源です。<br class="md:hidden">今後の楽曲のイメージの参考としてください。</p>
+            
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <!-- Sound Item 1 -->
+                <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 reveal hover:translate-y-[-5px] transition">
+                    <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                        <!-- Replace with YouTube Embed -->
+                         <iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=mute" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                    <h3 class="text-xl font-bold mb-1 text-left">名前のない青</h3>
+                    <p class="text-sm text-gray-500 text-left">疾走感のあるギターロックチューン。</p>
+                </div>
+
+                <!-- Sound Item 2 -->
+                <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-100 reveal delay-100 hover:translate-y-[-5px] transition">
+                    <div class="aspect-video bg-gray-100 rounded-xl mb-4 flex items-center justify-center relative group cursor-pointer">
+                        <!-- Placeholder for Soundcloud or another video -->
+                        <img src="https://images.unsplash.com/photo-1614149162883-504ce4d13909?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Demo 2" class="w-full h-full object-cover opacity-80">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition">
+                                <i data-lucide="play" class="fill-black w-6 h-6 ml-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="text-xl font-bold mb-1 text-left">光の呼吸</h3>
+                    <p class="text-sm text-gray-500 text-left">エモーショナルなミディアムロックナンバー。</p>
+                </div>
+            </div>
+
+            <div class="mt-10 reveal">
+                <p class="text-sm text-gray-400">※ 上記の動画の歌はSynthesizer v2のデモですが、応募してくれた方には実際のボーカルバージョンも試聴可能とする予定です</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Recruit Requirements -->
+    <section id="recruit" class="py-24 relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-4xl font-black mb-4 tracking-widest">RECRUITMENT</h2>
+                <p class="text-gray-500">募集パート・要項</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                
+                <!-- Bass -->
+                <div class="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg border-t-4 border-blue-400 reveal">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-3xl font-black italic">BASS</h3>
+                        <i data-lucide="music" class="w-8 h-8 text-blue-400"></i>
+                    </div>
+                    <ul class="space-y-4 text-gray-700 leading-relaxed">
+                        <li class="flex items-start"><span class="text-blue-400 mr-2">●</span> 歌心のあるフレーズ作りを楽しめる方</li>
+                        <li class="flex items-start"><span class="text-blue-400 mr-2">●</span> 耳コピ可能な方</li>
+                        <li class="flex items-start"><span class="text-blue-400 mr-2">●</span> <strong>DTM/DAW環境をお持ちの方</strong>（未経験でも導入意欲があればOK！）</li>
+                        <li class="flex items-start"><span class="text-blue-400 mr-2">●</span> <span class="font-bold text-blue-500">歓迎：</span>作曲できる方</li>
+                    </ul>
+                </div>
+
+                <!-- Drums -->
+                <div class="bg-white/80 backdrop-blur-md p-8 rounded-3xl shadow-lg border-t-4 border-pink-400 reveal delay-100">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-3xl font-black italic">DRUMS</h3>
+                        <i data-lucide="drum" class="w-8 h-8 text-pink-400"></i>
+                    </div>
+                    <ul class="space-y-4 text-gray-700 leading-relaxed">
+                        <li class="flex items-start"><span class="text-pink-400 mr-2">●</span> シンプルなビートでもグルーヴを出し歌を活かすドラム演奏ができる方</li>
+                        <li class="flex items-start">
+                            <span class="text-pink-400 mr-2">●</span> 
+                            <div>
+                                <strong>自宅録音可能な方</strong><br>
+                                <span class="text-sm text-gray-500 block mt-1">※ 電子ドラムなどある方歓迎。<br>レコーディング作業も活動の主軸のひとつとしたいため。</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Common Requirements -->
+            <div class="mt-12 max-w-4xl mx-auto bg-white/60 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-sm reveal">
+                <h4 class="text-xl font-bold mb-6 text-center border-b pb-4">共通要項・活動スタイル</h4>
+                <div class="grid md:grid-cols-2 gap-y-8 gap-x-12 text-sm md:text-base">
+                    <div>
+                        <p class="font-bold mb-2 text-gray-800 flex items-center gap-2"><i data-lucide="laptop" class="w-4 h-4 text-purple-500"></i> リモート・制作活動</p>
+                        <p class="text-gray-600">
+                            活動の当初は楽曲製作活動がメインになる予定です。スタジオ入りは月１回程度を想定していますが、リモートで共同製作活動を活発にやっていきたいと考えています。<br>
+                            DTM/DAWを活用して楽曲を作っていきます。
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-bold mb-2 text-gray-800 flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-purple-500"></i> スタジオ・ライブ頻度</p>
+                        <p class="text-gray-600">
+                            スタジオ：<strong>月1回程度</strong>（週末日中・都内）<br>
+                            無理なく、でも目標を持って活動します。
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-bold mb-2 text-gray-800 flex items-center gap-2"><i data-lucide="heart" class="w-4 h-4 text-purple-500"></i> 志向性</p>
+                        <p class="text-gray-600">
+                            <strong>完全アマチュア志向</strong>です。<br>
+                            アマチュアですが、しっかりと楽曲を製作し、限られた時間でもバンド活動を盛り上げていきたいと考えています。一緒に楽曲を作成し、意欲的に活動してくれる方歓迎です！
+                        </p>
+                    </div>
+                    <div>
+                        <p class="font-bold mb-2 text-gray-800 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4 text-purple-500"></i> 応募条件</p>
+                        <p class="text-gray-600">
+                            ・社会人としてのマナーがある方<br>
+                            ・AIなど新しい試みに抵抗がない方
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section (Updated) -->
+    <section id="contact" class="py-24 bg-black text-white relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-30">
+             <div class="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-purple-800 blur-[100px]"></div>
+             <div class="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-900 blur-[100px]"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="max-w-2xl mx-auto text-center mb-12 reveal">
+                <h2 class="text-4xl font-black mb-6 tracking-widest">CONTACT</h2>
+                <p class="text-gray-400 leading-7">
+                    少しでも興味を持って頂けたら、SNSよりお気軽にご連絡ください。<br>
+                    ご自身の活動がわかるURLなどを添えて頂けるとスムーズです。<br>
+                    初回は<strong>Zoom等のリモート面談も可能</strong>です。
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-gray-900/80 backdrop-blur-lg border border-gray-800 rounded-3xl p-8 md:p-12 text-center reveal delay-100">
+                <p class="text-lg font-bold mb-8">ご連絡は以下のSNSのDMにてお待ちしています</p>
+                
+                <div class="flex flex-col md:flex-row justify-center gap-6">
+                    <!-- Twitter / X -->
+                    <a href="#" class="group flex items-center justify-center gap-4 bg-black border border-gray-700 hover:border-white hover:bg-white hover:text-black text-white px-8 py-5 rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg w-full md:w-auto">
+                        <i data-lucide="twitter" class="w-8 h-8 group-hover:scale-110 transition"></i>
+                        <div class="text-left">
+                            <p class="text-xs font-bold opacity-70">OFFICIAL X (Twitter)</p>
+                            <p class="font-bold text-lg">@Transparent_Rec</p>
+                        </div>
+                    </a>
+
+                    <!-- Instagram -->
+                    <a href="#" class="group flex items-center justify-center gap-4 bg-black border border-gray-700 hover:border-pink-500 hover:bg-pink-500 hover:text-white text-white px-8 py-5 rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg w-full md:w-auto">
+                        <i data-lucide="instagram" class="w-8 h-8 group-hover:scale-110 transition"></i>
+                        <div class="text-left">
+                            <p class="text-xs font-bold opacity-70">INSTAGRAM</p>
+                            <p class="font-bold text-lg">@transparent_gram</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-10 text-sm text-gray-500">
+                    <p>※ DMを送る際は「HPの募集を見ました」と一言添えてください。<br>※ お返事には数日いただく場合がございます。</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center border-t border-gray-800 pt-8">
+                <p class="text-gray-700 text-xs">&copy; 2025 Transparent Records（仮） All Rights Reserved.</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuLinks = document.querySelectorAll('.menu-link');
+        let isMenuOpen = false;
+
+        menuBtn.addEventListener('click', () => {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.remove('translate-x-full');
+                document.body.style.overflow = 'hidden';
+                menuBtn.innerHTML = '<i data-lucide="x" class="w-8 h-8"></i>';
+            } else {
+                mobileMenu.classList.add('translate-x-full');
+                document.body.style.overflow = '';
+                menuBtn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+            }
+            lucide.createIcons();
+        });
+
+        // Close mobile menu when link is clicked
+        menuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                isMenuOpen = false;
+                mobileMenu.classList.add('translate-x-full');
+                document.body.style.overflow = '';
+                menuBtn.innerHTML = '<i data-lucide="menu" class="w-8 h-8"></i>';
+                lucide.createIcons();
+            });
+        });
+
+        // Scroll Reveal Animation
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const revealOnScroll = () => {
+            const windowHeight = window.innerHeight;
+            const elementVisible = 100;
+
+            revealElements.forEach((element) => {
+                const elementTop = element.getBoundingClientRect().top;
+                if (elementTop < windowHeight - elementVisible) {
+                    element.classList.add('active');
+                }
+            });
+        };
+
+        window.addEventListener('scroll', revealOnScroll);
+        // Trigger once on load
+        revealOnScroll();
+
+        // Navbar blur effect on scroll
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('shadow-md');
+            } else {
+                navbar.classList.remove('shadow-md');
+            }
+        });
+    </script>
+</body>
+</html>
