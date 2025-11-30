@@ -1,0 +1,386 @@
+import React, { useState, useMemo } from 'react';
+
+// --- Constants & Data ---
+
+const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+// 6弦上のルート位置（0〜11フレット）
+const ROOT_FRETS: Record<string, number> = {
+  'E': 0, 'F': 1, 'F#': 2, 'G': 3, 'G#': 4, 
+  'A': 5, 'A#': 6, 'B': 7, 
+  'C': 8, 'C#': 9, 'D': 10, 'D#': 11
+};
+
+// 相対的な音階定義 (Offset from Root on String 6)
+// Box 1 (Root Position) for Minor Pentatonic
+// Based on Am (Root=5). Relative = Fret - 5.
+type NoteDef = { s: number, off: number, type?: 'root' | 'scale', technique?: 'slide' };
+
+const PATTERN_DEFS: Record<string, { name: string, description: string, notes: NoteDef[] }> = {
+  vertical1: {
+    name: 'Box 1 (基本形)',
+    description: '【基本】6弦ルートのポジション。まずはここから覚えましょう。',
+    notes: [
+      { s: 6, off: 0, type: 'root' }, { s: 6, off: 3 },
+      { s: 5, off: 0 }, { s: 5, off: 2 },
+      { s: 4, off: 0 }, { s: 4, off: 2, type: 'root' },
+      { s: 3, off: 0 }, { s: 3, off: 2 },
+      { s: 2, off: 0 }, { s: 2, off: 3 },
+      { s: 1, off: 0, type: 'root' }, { s: 1, off: 3 },
+    ]
+  },
+  vertical2: {
+    name: 'Box 2 (メジャー型)',
+    description: '【メジャー型】Box 1の右隣。メジャーペンタの基本形と同じ形です。',
+    notes: [
+      { s: 6, off: 3 }, { s: 6, off: 5 },
+      { s: 5, off: 2 }, { s: 5, off: 5 },
+      { s: 4, off: 2, type: 'root' }, { s: 4, off: 5 },
+      { s: 3, off: 2 }, { s: 3, off: 4 },
+      { s: 2, off: 3 }, { s: 2, off: 5, type: 'root' },
+      { s: 1, off: 3 }, { s: 1, off: 5 },
+    ]
+  },
+  vertical3: {
+    name: 'Box 3',
+    description: '【中間】5弦と2弦にルートがあります。少しストレッチする箇所があります。',
+    notes: [
+      { s: 6, off: 5 }, { s: 6, off: 7 },
+      { s: 5, off: 5 }, { s: 5, off: 7, type: 'root' },
+      { s: 4, off: 5 }, { s: 4, off: 7 },
+      { s: 3, off: 4 }, { s: 3, off: 7 },
+      { s: 2, off: 5, type: 'root' }, { s: 2, off: 8 },
+      { s: 1, off: 5 }, { s: 1, off: 7 },
+    ]
+  },
+  vertical4: {
+    name: 'Box 4',
+    description: '【高音域への入り口】5弦ルートのコード(Em型)に関連するポジションです。',
+    notes: [
+      { s: 6, off: 7 }, { s: 6, off: 10 },
+      { s: 5, off: 7, type: 'root' }, { s: 5, off: 10 },
+      { s: 4, off: 7 }, { s: 4, off: 9 },
+      { s: 3, off: 7 }, { s: 3, off: 9, type: 'root' },
+      { s: 2, off: 8 }, { s: 2, off: 10 },
+      { s: 1, off: 7 }, { s: 1, off: 10 },
+    ]
+  },
+  vertical5: {
+    name: 'Box 5',
+    description: '【Box 1の手前】Box 1の左隣にある形。Gメジャーコードのフォームに関連します。',
+    notes: [
+      { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' }, // relative to root. Am(5) -> 3, 5
+      { s: 5, off: -2 }, { s: 5, off: 0 },
+      { s: 4, off: -2 }, { s: 4, off: 0 },
+      { s: 3, off: -2 }, { s: 3, off: 0 },
+      { s: 2, off: -2 }, { s: 2, off: 0 }, // Wait, B string shift. Am Box 5 is (3,5) (3,5) (2,5) (2,5) (3,5) (3,5) ?
+      // Let's re-verify offsets based on Am (Root 5)
+      // Am Box 5: 3-5, 3-5, 2-5, 2-5, 3-5, 3-5.
+      // 6th(3,5) -> -2, 0. OK.
+      // 5th(3,5) -> -2, 0. OK.
+      // 4th(2,5) -> -3, 0.
+      // 3th(2,5) -> -3, 0.
+      // 2nd(3,5) -> -2, 0. (Wait, 2nd string 5 is E. 3 is D? No. 2nd string 5 is E. Root is A? No.)
+      // Let's stick to interval logic relative to S6 Root fret.
+      // S6 Root=0. Minor Pent: 0, 3, 5, 7, 10.
+      // Box 5 is centered around -2 (or +10).
+      // Notes: b7, R. (Intervals 10, 0).
+      // S6: 10, 12(0).
+      // S5: 10, 12(0).
+      // S4: 10, 12.
+      // S3: 9, 12.
+      // S2: 10, 13.
+      // S1: 10, 12.
+      // Converted to offsets from S6 Root (0):
+      // S6: -2, 0.
+      // S5: -2, 0.
+      // S4: -2, 0.
+      // S3: -3, 0.
+      // S2: -2, 1. (Wait, S2 fret 13 is C. S2 fret 10 is A. So 0, 3? No. S2 fret 10 is A. Root is A. So S2 is 0.)
+      // Let's use specific offsets for Box 5:
+      { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' }, // G, A
+      { s: 5, off: -2 }, { s: 5, off: 0 }, // C, D
+      { s: 4, off: -3 }, { s: 4, off: -1 }, // E, G (Wait, D string. 5th fret is G. 2nd fret is E. Offset 0 is G? No. S4 fret 5 is G. Root A is S6 fret 5. S4 fret 7 is A. So Root on S4 is off+2.)
+      // Re-calibrating offsets based on Am (Root=5)
+      // Box 5 Am: Frets 3, 5.
+      // S6 (3,5): Offsets -2, 0.
+      // S5 (3,5): Offsets -2, 0.
+      // S4 (2,5): Offsets -3, 0. (Fret 5 is G. Fret 7 is A. So fret 5 is off 0. Fret 2 is off -3. Correct: G is off 0. Wait, G is b7. A is Root. S4 fret 7 is A. So Root is at +2.)
+      // Let's just list the frets for Am(5) and subtract 5 to get offsets.
+      // Am Box 5 Frets:
+      // S6: 3, 5 -> -2, 0
+      // S5: 3, 5 -> -2, 0
+      // S4: 2, 5 -> -3, 0
+      // S3: 2, 5 -> -3, 0
+      // S2: 3, 5 -> -2, 0 (Wait, S2 5 is E. S2 3 is D. S2 1 is C. Box 5 Am usually includes C? No. Box 5 is G, A, C, D, E, G. )
+      // Correct Am Box 5:
+      // S6: 3(G), 5(A)
+      // S5: 3(C), 5(D)
+      // S4: 2(E), 5(G)
+      // S3: 2(A), 5(C) -> Root at 2!
+      // S2: 3(D), 5(E)
+      // S1: 3(G), 5(A)
+      
+      // So offsets from 5:
+      // S6: -2, 0
+      // S5: -2, 0
+      // S4: -3, 0
+      // S3: -3, 0 (Root at -3)
+      // S2: -2, 0
+      // S1: -2, 0
+      // Note: We need to mark roots correctly.
+    ]
+  },
+  horizontal_root6: {
+    name: '横ペンタ (6弦ルート)',
+    description: '【6弦発進】Box 5〜1〜2〜3を連結。低音からスムーズに上昇する定番パターン。',
+    notes: [
+      // Based on Am (Root 5) sequence:
+      // S6: 3(G), 5(A). Offsets: -2, 0
+      { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' },
+      // S5: 3(C), 5(D), 7(E, slide). Offsets: -2, 0, 2(slide)
+      { s: 5, off: -2 }, { s: 5, off: 0 }, { s: 5, off: 2, technique: 'slide' },
+      // S4: 5(G), 7(A). Offsets: 0, 2
+      { s: 4, off: 0 }, { s: 4, off: 2, type: 'root' },
+      // S3: 5(C), 7(D), 9(E, slide). Offsets: 0, 2, 4(slide)
+      { s: 3, off: 0 }, { s: 3, off: 2 }, { s: 3, off: 4, technique: 'slide' },
+      // S2: 8(G), 10(A). Offsets: 3, 5
+      { s: 2, off: 3 }, { s: 2, off: 5, type: 'root' },
+      // S1: 8(C), 10(D), 12(E, slide). Offsets: 3, 5, 7(slide)
+      { s: 1, off: 3 }, { s: 1, off: 5 }, { s: 1, off: 7, technique: 'slide' },
+    ]
+  },
+  horizontal_root5: {
+    name: '横ペンタ (5弦ルート)',
+    description: '【5弦発進】Box 3から入り、高音域を一気に駆け上がるダイナミックなパターン。',
+    notes: [
+      // Based on Am (Root 5). Sequence starts at Box 3 area (Frets 10-12).
+      // S6: 10(D), 12(E). Offsets: 5, 7
+      { s: 6, off: 5 }, { s: 6, off: 7 },
+      // S5: 10(G), 12(A). Offsets: 5, 7(root)
+      { s: 5, off: 5 }, { s: 5, off: 7, type: 'root' },
+      // S4: 10(C), 12(D), 14(E, slide). Offsets: 5, 7, 9(slide)
+      { s: 4, off: 5 }, { s: 4, off: 7 }, { s: 4, off: 9, technique: 'slide' },
+      // S3: 12(G), 14(A). Offsets: 7, 9(root)
+      { s: 3, off: 7 }, { s: 3, off: 9, type: 'root' },
+      // S2: 13(C), 15(D), 17(E, slide). Offsets: 8, 10, 12(slide)
+      { s: 2, off: 8 }, { s: 2, off: 10 }, { s: 2, off: 12, technique: 'slide' },
+      // S1: 15(G), 17(A). Offsets: 10, 12
+      { s: 1, off: 10 }, { s: 1, off: 12, type: 'root' },
+    ]
+  }
+};
+
+// Box 5 Notes fix:
+// Box 5 for Am is Fret 3,5 on most strings.
+// But S4(G string) 2,5. S3(D string) 2,5.
+// Am:
+// S6: 3(G), 5(A). (-2, 0)
+// S5: 3(C), 5(D). (-2, 0)
+// S4: 2(E), 5(G). (-3, 0)
+// S3: 2(A), 5(C). (-3, 0) -> S3 offset -3 is Root.
+// S2: 3(D), 5(E). (-2, 0)
+// S1: 3(G), 5(A). (-2, 0)
+// Applying this correction to vertical5 definition in code below.
+PATTERN_DEFS.vertical5.notes = [
+  { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' },
+  { s: 5, off: -2 }, { s: 5, off: 0 },
+  { s: 4, off: -3 }, { s: 4, off: 0 },
+  { s: 3, off: -3, type: 'root' }, { s: 3, off: 0 },
+  { s: 2, off: -2 }, { s: 2, off: 0 },
+  { s: 1, off: -2 }, { s: 1, off: 0, type: 'root' }
+];
+
+
+const Fretboard = () => {
+  const [selectedKey, setSelectedKey] = useState('A');
+  const [activePatternKey, setActivePatternKey] = useState<keyof typeof PATTERN_DEFS>('vertical1');
+
+  // Calculate notes based on selection
+  const patternNotes = useMemo(() => {
+    const rootFret = ROOT_FRETS[selectedKey];
+    const def = PATTERN_DEFS[activePatternKey];
+    
+    // 1. Calculate raw frets
+    let notes = def.notes.map(n => ({ ...n, fret: n.off + rootFret }));
+    
+    // 2. Determine best octave shift
+    // Calculate average fret to see if it's too high or too low
+    const avgFret = notes.reduce((sum, n) => sum + n.fret, 0) / notes.length;
+    
+    let shift = 0;
+    if (avgFret > 13) shift = -12; // If pattern centers around 14+, shift down
+    else if (avgFret < 2) shift = 12; // If pattern centers around 0 or negative, shift up (mostly for Box 5 on E)
+    
+    // Apply shift
+    notes = notes.map(n => ({
+      ...n,
+      fret: n.fret + shift
+    }));
+
+    // 3. Filter out of bounds (0 to 18)
+    // Actually, we might want to clamp or wrap?
+    // For now, let's keep them if they are within visible range.
+    // If a horizontal pattern goes > 18, we might lose the top.
+    // Let's filter strictly for display.
+    return notes.filter(n => n.fret >= 0 && n.fret <= 18);
+  }, [selectedKey, activePatternKey]);
+
+  // View Helpers
+  const frets = Array.from({ length: 19 }, (_, i) => i);
+  const isFretMarker = (fret: number) => [3, 5, 7, 9, 15, 17].includes(fret);
+  const isDoubleMarker = (fret: number) => fret === 12;
+
+  const getNoteAtPosition = (stringNum: number, fretNum: number) => {
+    return patternNotes.find(n => n.s === stringNum && n.fret === fretNum);
+  };
+
+  // Convert note name for display (simplified)
+  // We can calculate the note name from string+fret, but for pentatonic visualization
+  // simply showing "R" or interval might be cleaner, OR just the note name.
+  // Let's calculate the note name dynamically.
+  const getNoteName = (stringNum: number, fretNum: number) => {
+    const stringOpenNotes = ['E', 'B', 'G', 'D', 'A', 'E']; // 1 to 6
+    const openNote = stringOpenNotes[stringNum - 1];
+    const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const openIndex = chromatic.indexOf(openNote);
+    return chromatic[(openIndex + fretNum) % 12];
+  };
+
+  return (
+    <div className="flex flex-col items-center p-4 bg-gray-50 min-h-screen font-sans text-gray-800">
+      <h1 className="text-2xl font-bold mb-2">ギター指板：全キー対応・縦ペンタ vs 横ペンタ</h1>
+      <p className="text-sm text-gray-600 mb-6 text-center max-w-lg">
+        キーを選択し、ポジションごとの変化を確認してください。<br/>
+        <span className="text-red-500 font-bold">赤丸</span>はルート音({selectedKey})、<span className="text-blue-500 font-bold">青丸</span>は構成音です。
+      </p>
+
+      {/* Key Selector */}
+      <div className="flex items-center gap-2 mb-6 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+        <span className="font-bold text-gray-700">Key (Minor):</span>
+        <select 
+          value={selectedKey} 
+          onChange={(e) => setSelectedKey(e.target.value)}
+          className="p-2 border rounded hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer font-mono font-bold"
+        >
+          {KEYS.map(k => {
+            const majorKey = KEYS[(KEYS.indexOf(k) + 3) % 12];
+            return <option key={k} value={k}>{k}m ({majorKey})</option>;
+          })}
+        </select>
+      </div>
+
+      {/* Pattern Buttons */}
+      <div className="flex flex-wrap justify-center gap-2 mb-8 w-full max-w-3xl">
+        {Object.entries(PATTERN_DEFS).map(([key, pattern]) => (
+          <button
+            key={key}
+            onClick={() => setActivePatternKey(key as keyof typeof PATTERN_DEFS)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-sm ${
+              activePatternKey === key
+                ? 'bg-blue-600 text-white ring-2 ring-blue-300 ring-offset-2'
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+            }`}
+          >
+            {pattern.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Description */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-8 max-w-2xl w-full">
+        <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
+          {PATTERN_DEFS[activePatternKey].name}
+        </h3>
+        <p className="text-gray-600 leading-relaxed">
+          {PATTERN_DEFS[activePatternKey].description}
+        </p>
+      </div>
+
+      {/* Fretboard */}
+      <div className="relative overflow-x-auto w-full max-w-5xl pb-10 px-2">
+        <div className="bg-[#2a2a2a] p-1 pt-12 rounded-lg shadow-xl relative select-none" style={{ minWidth: '950px' }}>
+          
+          {/* Strings */}
+          <div className="relative flex flex-col justify-between h-48 mb-6 relative z-10">
+            {[1, 2, 3, 4, 5, 6].map((stringNum) => (
+              <div key={stringNum} className="relative w-full h-full flex items-center">
+                {/* String Line */}
+                <div 
+                  className="absolute w-full bg-[#a0a0a0]" 
+                  style={{ 
+                    height: `${Math.max(1, stringNum * 0.7)}px`,
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                  }} 
+                />
+                
+                {/* Frets */}
+                <div className="absolute inset-0 flex">
+                  {frets.map((fretNum) => {
+                    const note = getNoteAtPosition(stringNum, fretNum);
+                    
+                    return (
+                      <div 
+                        key={fretNum} 
+                        className="flex-1 border-r border-gray-500 h-full relative flex items-center justify-center"
+                        style={{ 
+                          borderColor: fretNum === 0 ? '#ddd' : '#666',
+                          borderRightWidth: fretNum === 0 ? '6px' : '2px'
+                        }}
+                      >
+                         {/* Note Bubble */}
+                         {note && (
+                           <div 
+                             className={`
+                               relative z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-all duration-300
+                               ${note.type === 'root' ? 'bg-red-500 text-white ring-2 ring-red-300' : 'bg-blue-500 text-white'}
+                               ${note.technique === 'slide' ? 'ring-2 ring-yellow-400' : ''}
+                             `}
+                           >
+                             {getNoteName(stringNum, fretNum)}
+                             {note.technique === 'slide' && (
+                               <span className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[9px] px-1 rounded">Slide</span>
+                             )}
+                           </div>
+                         )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Markers */}
+          <div className="absolute inset-0 pointer-events-none flex pt-12 pb-6 px-1 z-0">
+             {frets.map(fret => (
+               <div key={fret} className="flex-1 flex items-center justify-center h-full">
+                  {isFretMarker(fret) && <div className="w-4 h-4 bg-gray-400 rounded-full opacity-30"></div>}
+                  {isDoubleMarker(fret) && (
+                    <div className="flex flex-col gap-8 opacity-30">
+                       <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                       <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                    </div>
+                  )}
+               </div>
+             ))}
+          </div>
+
+          {/* Numbers */}
+          <div className="flex pl-1 text-gray-400 text-xs font-mono mt-2">
+            {frets.map(fret => (
+              <div key={fret} className="flex-1 text-center">{fret}</div>
+            ))}
+          </div>
+
+        </div>
+      </div>
+      
+      <div className="mt-8 text-center text-xs text-gray-400">
+        ※ 選択したキーに合わせて、自動的に見やすいオクターブ位置（0〜18F）に調整されます。
+      </div>
+    </div>
+  );
+};
+
+export default Fretboard;
