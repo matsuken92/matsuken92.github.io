@@ -300,12 +300,12 @@
         // Main App Component
         const App = () => {
             const [appMode, setAppMode] = useState('viewer'); // 'viewer' | 'training'
-            const [selectedKey, setSelectedKey] = useState('A');
-            const [selectedScaleType, setSelectedScaleType] = useState('Minor'); // 'Minor' | 'Major'
+            const [selectedKey, setSelectedKey] = useState('C'); // Default to C
+            const [selectedScaleType, setSelectedScaleType] = useState('Major'); // Default to Major
             const [activePatternKey, setActivePatternKey] = useState('vertical1');
             const [displayMode, setDisplayMode] = useState('note');
 
-            const [trainingConfig, setTrainingConfig] = useState({ key: 'A', scaleType: 'Minor', type: 'vertical', level: 1 });
+            const [trainingConfig, setTrainingConfig] = useState({ key: 'C', scaleType: 'Major', type: 'vertical', level: 1 }); // Default to C Major
             const [trainingStatus, setTrainingStatus] = useState('idle');
             const [currentQuestion, setCurrentQuestion] = useState(null); 
             
@@ -423,10 +423,16 @@
                 patternQueue.current = candidates;
             };
 
+            // NEW: Get next random degree that still has hidden notes
             const getNextTargetDegree = (notes, revealedSet) => {
+                // Filter notes that are NOT revealed yet
                 const hiddenNotes = notes.filter(n => !revealedSet.has(n.id));
-                if (hiddenNotes.length === 0) return null; 
+                if (hiddenNotes.length === 0) return null; // Completed
+
+                // Get unique degrees from hidden notes
                 const availableDegrees = [...new Set(hiddenNotes.map(n => n.degree))];
+                
+                // Pick random
                 const randomIndex = Math.floor(Math.random() * availableDegrees.length);
                 return availableDegrees[randomIndex];
             };
@@ -437,40 +443,34 @@
                 }
                 
                 const nextPatternKey = patternQueue.current.pop();
-                // 表示用パターン名: Majorの場合はBox番号が変わっているので、元々の名前（ボタンのラベル）を使うのがユーザーには分かりやすいかも？
-                // しかし、形が変わっているので、「Box 1 (Major Shape)」のように思ってもらう。
-                // Pattern Nameは定義から取るが、Major時はシフトされている。
-                // シフト後の定義名を表示すると「Box 2」と出てしまう（Box 1を選んだつもりなのに）。
-                // なので、Trainingでは「Pattern Name」を表示する際、ConfigのScaleTypeを考慮する必要があるが、
-                // ランダム出題なので「Box X」と出れば、その形を探せば良い。
-                // ここではシンプルに、内部的に選ばれたパターンの名前を表示するのではなく、
-                // 「ユーザーにとってのBox番号」を表示するのが親切だが、ランダム出題なので
-                // 「形（Shape）」が重要。
-                // 内部ロジックでシフトしてしまうとPatternKeyが変わってしまうため、
-                // ここでは「出題パターン」としては元のキー（vertical1など）を保持し、
-                // calculatePatternNotes に渡すときにシフトさせるのが良い。
-                // calculatePatternNotes は引数で scaleType を取るので、自動でシフトしてくれる。
                 const nextPatternName = PATTERN_DEFS[nextPatternKey].name;
 
                 let initialRevealed = new Set();
                 let initialTarget = 'R'; 
+                let message = "";
 
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, nextPatternKey);
 
-                if (trainingConfig.level === 2) {
+                if (trainingConfig.level === 1) {
+                    message = "Root (R) をすべて探そう！";
+                } else if (trainingConfig.level === 2) {
+                    initialTarget = 'ANY'; 
+                    message = "スケールの形をすべてなぞって表示させよう。";
+                } else if (trainingConfig.level === 3) {
                     notes.forEach(n => {
                         if (n.type === 'root') initialRevealed.add(n.id);
                     });
                     initialTarget = getNextTargetDegree(notes, initialRevealed);
                     if (!initialTarget) initialTarget = 'R'; 
+                    message = `度数 "${initialTarget}" を探そう！`;
                 }
 
                 setCurrentQuestion({
-                    patternKey: nextPatternKey, // Raw pattern key (e.g. vertical1)
+                    patternKey: nextPatternKey,
                     patternName: nextPatternName,
                     revealedNoteIds: initialRevealed,
                     targetDegree: initialTarget,
-                    message: trainingConfig.level === 1 ? "Root (R) をすべて探せ！" : `度数 "${initialTarget}" を探せ！`,
+                    message: message,
                     mistake: false,
                     showHint: false
                 });
@@ -486,7 +486,7 @@
                 if (!currentQuestion) return "";
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 const rootStrings = [...new Set(notes.filter(n => n.type === 'root').map(n => n.s))].sort((a,b) => a-b);
-                return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあります`;
+                return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあるよ`;
             };
 
             const handleGiveUp = () => {
@@ -510,7 +510,7 @@
                 const clickedNote = notes.find(n => n.s === stringNum && n.fret === fretNum);
 
                 if (!clickedNote) {
-                    triggerMistake();
+                    triggerMistake("そこには音がないよ");
                     return;
                 }
 
@@ -518,7 +518,16 @@
                     return;
                 }
 
-                const isCorrect = clickedNote.degree === currentQuestion.targetDegree;
+                // Check logic based on level
+                let isCorrect = false;
+
+                if (trainingConfig.level === 1) {
+                    isCorrect = (clickedNote.degree === 'R');
+                } else if (trainingConfig.level === 2) {
+                    isCorrect = true;
+                } else if (trainingConfig.level === 3) {
+                    isCorrect = (clickedNote.degree === currentQuestion.targetDegree);
+                }
 
                 if (isCorrect) {
                     const newRevealed = new Set(currentQuestion.revealedNoteIds);
@@ -528,7 +537,7 @@
                     const isAllRevealed = allNoteIds.every(id => newRevealed.has(id));
 
                     if (isAllRevealed) {
-                        setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                        setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "クリア！", showHint: false }));
                         setTrainingStatus('cleared');
                         return;
                     }
@@ -537,13 +546,15 @@
                         const allRoots = notes.filter(n => n.degree === 'R');
                         const foundRoots = allRoots.filter(n => newRevealed.has(n.id));
                         if (foundRoots.length === allRoots.length) {
-                             setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                             setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "クリア！", showHint: false }));
                              setTrainingStatus('cleared');
                              return;
                         } else {
                             setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, mistake: false }));
                         }
-                    } else {
+                    } else if (trainingConfig.level === 2) {
+                        setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, mistake: false }));
+                    } else if (trainingConfig.level === 3) {
                         const currentDegree = currentQuestion.targetDegree;
                         const remainingForDegree = notes.filter(n => n.degree === currentDegree && !newRevealed.has(n.id));
                         
@@ -551,14 +562,14 @@
                             setCurrentQuestion(prev => ({ 
                                 ...prev, 
                                 revealedNoteIds: newRevealed, 
-                                message: `正解！まだ "${currentDegree}" があるぞ！`, 
+                                message: `正解！まだ "${currentDegree}" があるよ！`, 
                                 mistake: false 
                             }));
                         } else {
                             const nextTarget = getNextTargetDegree(notes, newRevealed);
                             
                             if (!nextTarget) {
-                                 setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                                 setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "クリア！", showHint: false }));
                                  setTrainingStatus('cleared');
                                  return;
                             }
@@ -567,19 +578,19 @@
                                 ...prev, 
                                 revealedNoteIds: newRevealed, 
                                 targetDegree: nextTarget,
-                                message: `Excellent! 次は "${nextTarget}" を探せ！`,
+                                message: `Excellent! 次は "${nextTarget}" を探そう！`,
                                 mistake: false
                             }));
                         }
                     }
 
                 } else {
-                    triggerMistake();
+                    triggerMistake("不正解...");
                 }
             };
 
-            const triggerMistake = () => {
-                setFeedback("不正解！");
+            const triggerMistake = (msg) => {
+                setFeedback(msg);
                 setCurrentQuestion(prev => ({ ...prev, mistake: true }));
                 setTimeout(() => {
                     setFeedback(null);
@@ -669,9 +680,6 @@
                                 </div>
                             </div>
 
-                            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded mb-4 max-w-2xl w-full text-center">
-                                {PATTERN_DEFS[activePatternKey].description}
-                            </div>
                             <FretboardUI 
                                 notes={viewerNotes} 
                                 displayMode={displayMode}
@@ -727,18 +735,24 @@
 
                                         <div className="flex justify-between items-center">
                                             <label className="font-bold text-gray-600">Level</label>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-1">
                                                 <button 
                                                     onClick={() => setTrainingConfig({...trainingConfig, level: 1})}
-                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.level === 1 ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 1 ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
                                                 >
                                                     Lv.1 (Root)
                                                 </button>
                                                 <button 
                                                     onClick={() => setTrainingConfig({...trainingConfig, level: 2})}
-                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.level === 2 ? 'bg-orange-600 text-white' : 'bg-gray-100'}`}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 2 ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}
                                                 >
-                                                    Lv.2 (度数)
+                                                    Lv.2 (全音)
+                                                </button>
+                                                <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 3})}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 3 ? 'bg-orange-600 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    Lv.3 (度数)
                                                 </button>
                                             </div>
                                         </div>
