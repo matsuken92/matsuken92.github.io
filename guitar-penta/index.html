@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ギター指板：全キー対応・縦ペンタ vs 横ペンタ</title>
     
     <!-- Tailwind CSS -->
@@ -18,6 +18,38 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            background-color: #f3f4f6;
+        }
+        .fretboard-bg {
+            background-color: #d4a373; /* メイプル風単色 */
+        }
+        /* 弦の影をつけて立体感を出す */
+        .string-line {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-pop-in { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-shake { animation: shake 0.3s ease-in-out; }
+        .animate-fade-in { animation: pop-in 0.5s ease-out forwards; }
+        
+        /* カスタムスクロールバー（横スクロール用） */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -25,249 +57,219 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
         // --- Constants & Data ---
 
         const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-        // 6弦上のルート位置（0〜11フレット）
-        const ROOT_FRETS = {
+        // 6弦上のルート位置（0〜11フレット）E=0
+        const ROOT_FRETS_ON_6 = {
             'E': 0, 'F': 1, 'F#': 2, 'G': 3, 'G#': 4, 
             'A': 5, 'A#': 6, 'B': 7, 
             'C': 8, 'C#': 9, 'D': 10, 'D#': 11
         };
 
+        // 各弦の開放弦における、6弦(E)からの半音差オフセット
+        const STRING_OFFSETS = { 6: 0, 5: 5, 4: 10, 3: 15, 2: 19, 1: 24 };
+
         // パターン定義
         const PATTERN_DEFS = {
             vertical1: {
-                name: 'Box 1 (基本形)',
-                description: '【基本】6弦ルートのポジション。まずはここから覚えましょう。',
+                name: 'Box 1',
+                group: 'vertical',
+                description: '【基本】最も有名なポジション。6弦・1弦にルートがあります。',
                 notes: [
-                    { s: 6, off: 0, type: 'root' }, { s: 6, off: 3 },
-                    { s: 5, off: 0 }, { s: 5, off: 2 },
-                    { s: 4, off: 0 }, { s: 4, off: 2, type: 'root' },
-                    { s: 3, off: 0 }, { s: 3, off: 2 },
-                    { s: 2, off: 0 }, { s: 2, off: 3 },
-                    { s: 1, off: 0, type: 'root' }, { s: 1, off: 3 },
+                    { s: 6, off: 0, degree: 'R', type: 'root' }, { s: 6, off: 3, degree: 'b3' },
+                    { s: 5, off: 0, degree: '4' }, { s: 5, off: 2, degree: '5' },
+                    { s: 4, off: 0, degree: 'b7' }, { s: 4, off: 2, degree: 'R', type: 'root' },
+                    { s: 3, off: 0, degree: 'b3' }, { s: 3, off: 2, degree: '4' },
+                    { s: 2, off: 0, degree: '5' }, { s: 2, off: 3, degree: 'b7' },
+                    { s: 1, off: 0, degree: 'R', type: 'root' }, { s: 1, off: 3, degree: 'b3' },
                 ]
             },
             vertical2: {
-                name: 'Box 2 (メジャー型)',
-                description: '【メジャー型】Box 1の右隣。メジャーペンタの基本形と同じ形です。',
+                name: 'Box 2',
+                group: 'vertical',
+                description: '【メジャー型】Box 1の右隣。4弦にルートがあり、メジャーペンタの基本形としても有名。',
                 notes: [
-                    { s: 6, off: 3 }, { s: 6, off: 5 },
-                    { s: 5, off: 2 }, { s: 5, off: 5 },
-                    { s: 4, off: 2, type: 'root' }, { s: 4, off: 5 },
-                    { s: 3, off: 2 }, { s: 3, off: 4 },
-                    { s: 2, off: 3 }, { s: 2, off: 5, type: 'root' },
-                    { s: 1, off: 3 }, { s: 1, off: 5 },
+                    { s: 6, off: 3, degree: 'b3' }, { s: 6, off: 5, degree: '4' },
+                    { s: 5, off: 2, degree: '5' }, { s: 5, off: 5, degree: 'b7' },
+                    { s: 4, off: 2, degree: 'R', type: 'root' }, { s: 4, off: 5, degree: 'b3' },
+                    { s: 3, off: 2, degree: '4' }, { s: 3, off: 4, degree: '5' },
+                    { s: 2, off: 3, degree: 'b7' }, { s: 2, off: 5, degree: 'R', type: 'root' },
+                    { s: 1, off: 3, degree: 'b3' }, { s: 1, off: 5, degree: '4' },
                 ]
             },
             vertical3: {
                 name: 'Box 3',
+                group: 'vertical',
                 description: '【中間】5弦と2弦にルートがあります。少しストレッチする箇所があります。',
                 notes: [
-                    { s: 6, off: 5 }, { s: 6, off: 7 },
-                    { s: 5, off: 5 }, { s: 5, off: 7, type: 'root' },
-                    { s: 4, off: 5 }, { s: 4, off: 7 },
-                    { s: 3, off: 4 }, { s: 3, off: 7 },
-                    { s: 2, off: 5, type: 'root' }, { s: 2, off: 8 },
-                    { s: 1, off: 5 }, { s: 1, off: 7 },
+                    { s: 6, off: 5, degree: '4' }, { s: 6, off: 7, degree: '5' },
+                    { s: 5, off: 5, degree: 'b7' }, { s: 5, off: 7, degree: 'R', type: 'root' },
+                    { s: 4, off: 5, degree: 'b3' }, { s: 4, off: 7, degree: '4' },
+                    { s: 3, off: 4, degree: '5' }, { s: 3, off: 7, degree: 'b7' },
+                    { s: 2, off: 5, degree: 'R', type: 'root' }, { s: 2, off: 8, degree: 'b3' },
+                    { s: 1, off: 5, degree: '4' }, { s: 1, off: 7, degree: '5' },
                 ]
             },
             vertical4: {
                 name: 'Box 4',
-                description: '【高音域への入り口】5弦ルートのコード(Em型)に関連するポジションです。',
+                group: 'vertical',
+                description: '【高音域への入り口】Box 3の右隣。5弦と3弦にルートがあります。',
                 notes: [
-                    { s: 6, off: 7 }, { s: 6, off: 10 },
-                    { s: 5, off: 7, type: 'root' }, { s: 5, off: 10 },
-                    { s: 4, off: 7 }, { s: 4, off: 9 },
-                    { s: 3, off: 7 }, { s: 3, off: 9, type: 'root' },
-                    { s: 2, off: 8 }, { s: 2, off: 10 },
-                    { s: 1, off: 7 }, { s: 1, off: 10 },
+                    { s: 6, off: 7, degree: '5' }, { s: 6, off: 10, degree: 'b7' },
+                    { s: 5, off: 7, degree: 'R', type: 'root' }, { s: 5, off: 10, degree: 'b3' },
+                    { s: 4, off: 7, degree: '4' }, { s: 4, off: 9, degree: '5' },
+                    { s: 3, off: 7, degree: 'b7' }, { s: 3, off: 9, degree: 'R', type: 'root' },
+                    { s: 2, off: 8, degree: 'b3' }, { s: 2, off: 10, degree: '4' },
+                    { s: 1, off: 7, degree: '5' }, { s: 1, off: 10, degree: 'b7' },
                 ]
             },
             vertical5: {
                 name: 'Box 5',
-                description: '【Box 1の手前】Box 1の左隣にある形。Gメジャーコードのフォームに関連します。',
+                group: 'vertical',
+                description: '【Box 1の手前】Box 1の左隣にある形。6弦と3弦にルートがあります。',
                 notes: [
-                    // AmのキーでBox5の位置関係になるよう調整済みのオフセット
-                    { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' },
-                    { s: 5, off: -2 }, { s: 5, off: 0 },
-                    { s: 4, off: -3 }, { s: 4, off: 0 },
-                    { s: 3, off: -3, type: 'root' }, { s: 3, off: 0 },
-                    { s: 2, off: -2 }, { s: 2, off: 0 },
-                    { s: 1, off: -2 }, { s: 1, off: 0, type: 'root' }
+                    { s: 6, off: -2, degree: 'b7' }, { s: 6, off: 0, degree: 'R', type: 'root' },
+                    { s: 5, off: -2, degree: 'b3' }, { s: 5, off: 0, degree: '4' },
+                    { s: 4, off: -3, degree: '5' }, { s: 4, off: 0, degree: 'b7' },
+                    { s: 3, off: -3, degree: 'R', type: 'root' }, { s: 3, off: 0, degree: 'b3' },
+                    { s: 2, off: -2, degree: '4' }, { s: 2, off: 0, degree: '5' },
+                    { s: 1, off: -2, degree: 'b7' }, { s: 1, off: 0, degree: 'R', type: 'root' }
                 ]
             },
             horizontal_root6: {
                 name: '横ペンタ (6弦ルート)',
+                group: 'horizontal',
                 description: '【6弦発進】Box 5〜1〜2〜3を連結。低音からスムーズに上昇する定番パターン。',
                 notes: [
-                    { s: 6, off: -2 }, { s: 6, off: 0, type: 'root' },
-                    { s: 5, off: -2 }, { s: 5, off: 0 }, { s: 5, off: 2, technique: 'slide' },
-                    { s: 4, off: 0 }, { s: 4, off: 2, type: 'root' },
-                    { s: 3, off: 0 }, { s: 3, off: 2 }, { s: 3, off: 4, technique: 'slide' },
-                    { s: 2, off: 3 }, { s: 2, off: 5, type: 'root' },
-                    { s: 1, off: 3 }, { s: 1, off: 5 }, { s: 1, off: 7, technique: 'slide' },
+                    { s: 6, off: -2, degree: 'b7' }, { s: 6, off: 0, degree: 'R', type: 'root' },
+                    { s: 5, off: -2, degree: 'b3' }, { s: 5, off: 0, degree: '4' }, { s: 5, off: 2, degree: '5', technique: 'slide' },
+                    { s: 4, off: 0, degree: 'b7' }, { s: 4, off: 2, degree: 'R', type: 'root' },
+                    { s: 3, off: 0, degree: 'b3' }, { s: 3, off: 2, degree: '4' }, { s: 3, off: 4, degree: '5', technique: 'slide' },
+                    { s: 2, off: 3, degree: 'b7' }, { s: 2, off: 5, degree: 'R', type: 'root' },
+                    { s: 1, off: 3, degree: 'b3' }, { s: 1, off: 5, degree: '4' }, { s: 1, off: 7, degree: '5', technique: 'slide' },
                 ]
             },
             horizontal_root5: {
                 name: '横ペンタ (5弦ルート)',
+                group: 'horizontal',
                 description: '【5弦発進】Box 3から入り、高音域を一気に駆け上がるダイナミックなパターン。',
                 notes: [
-                    { s: 6, off: 5 }, { s: 6, off: 7 },
-                    { s: 5, off: 5 }, { s: 5, off: 7, type: 'root' },
-                    { s: 4, off: 5 }, { s: 4, off: 7 }, { s: 4, off: 9, technique: 'slide' },
-                    { s: 3, off: 7 }, { s: 3, off: 9, type: 'root' },
-                    { s: 2, off: 8 }, { s: 2, off: 10 }, { s: 2, off: 12, technique: 'slide' },
-                    { s: 1, off: 10 }, { s: 1, off: 12, type: 'root' },
+                    { s: 6, off: 5, degree: '4' }, { s: 6, off: 7, degree: '5' },
+                    { s: 5, off: 5, degree: 'b7' }, { s: 5, off: 7, degree: 'R', type: 'root' },
+                    { s: 4, off: 5, degree: 'b3' }, { s: 4, off: 7, degree: '4' }, { s: 4, off: 9, degree: '5', technique: 'slide' },
+                    { s: 3, off: 7, degree: 'b7' }, { s: 3, off: 9, degree: 'R', type: 'root' },
+                    { s: 2, off: 8, degree: 'b3' }, { s: 2, off: 10, degree: '4' }, { s: 2, off: 12, degree: '5', technique: 'slide' },
+                    { s: 1, off: 10, degree: 'b7' }, { s: 1, off: 12, degree: 'R', type: 'root' },
                 ]
             }
         };
 
+        const getNoteName = (stringNum, fretNum) => {
+            const stringOpenNotes = ['E', 'B', 'G', 'D', 'A', 'E']; // 1 to 6
+            const openNote = stringOpenNotes[stringNum - 1];
+            const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const openIndex = chromatic.indexOf(openNote);
+            return chromatic[(openIndex + fretNum) % 12];
+        };
 
-        const Fretboard = () => {
-            const [selectedKey, setSelectedKey] = useState('A');
-            const [activePatternKey, setActivePatternKey] = useState('vertical1');
+        // --- Components ---
 
-            // Calculate notes based on selection
-            const patternNotes = useMemo(() => {
-                const rootFret = ROOT_FRETS[selectedKey];
-                const def = PATTERN_DEFS[activePatternKey];
-                
-                // 1. Calculate raw frets
-                let notes = def.notes.map(n => ({ ...n, fret: n.off + rootFret }));
-                
-                // 2. Determine best octave shift
-                // Calculate average fret to see if it's too high or too low
-                const avgFret = notes.reduce((sum, n) => sum + n.fret, 0) / notes.length;
-                
-                let shift = 0;
-                if (avgFret > 13) shift = -12; // If pattern centers around 14+, shift down
-                else if (avgFret < 2) shift = 12; // If pattern centers around 0 or negative, shift up
-                
-                // Apply shift
-                notes = notes.map(n => ({
-                    ...n,
-                    fret: n.fret + shift
-                }));
-
-                // 3. Filter out of bounds (0 to 18)
-                return notes.filter(n => n.fret >= 0 && n.fret <= 18);
-            }, [selectedKey, activePatternKey]);
-
-            // View Helpers
+        const FretboardUI = ({ 
+            notes, 
+            displayMode, // 'note' | 'degree'
+            onFretClick,
+            highlightShake
+        }) => {
             const frets = Array.from({ length: 19 }, (_, i) => i);
+            
+            // ポジションマーク
             const isFretMarker = (fret) => [3, 5, 7, 9, 15, 17].includes(fret);
             const isDoubleMarker = (fret) => fret === 12;
 
             const getNoteAtPosition = (stringNum, fretNum) => {
-                return patternNotes.find(n => n.s === stringNum && n.fret === fretNum);
+                if (!notes) return null;
+                return notes.find(n => n.s === stringNum && n.fret === fretNum);
             };
 
-            const getNoteName = (stringNum, fretNum) => {
-                const stringOpenNotes = ['E', 'B', 'G', 'D', 'A', 'E']; // 1 to 6
-                const openNote = stringOpenNotes[stringNum - 1];
-                const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-                const openIndex = chromatic.indexOf(openNote);
-                return chromatic[(openIndex + fretNum) % 12];
-            };
+            const containerClass = `relative overflow-x-auto w-full max-w-5xl pb-10 px-2 transition-transform duration-300 ${highlightShake ? 'animate-shake' : ''}`;
 
             return (
-                <div className="flex flex-col items-center p-4 bg-gray-50 min-h-screen font-sans text-gray-800">
-                    <h1 className="text-2xl font-bold mb-2">ギター指板：全キー対応・縦ペンタ vs 横ペンタ</h1>
-                    <p className="text-sm text-gray-600 mb-6 text-center max-w-lg">
-                        キーを選択し、ポジションごとの変化を確認してください。<br/>
-                        <span className="text-red-500 font-bold">赤丸</span>はルート音({selectedKey})、<span className="text-blue-500 font-bold">青丸</span>は構成音です。
-                    </p>
-
-                    {/* Key Selector */}
-                    <div className="flex items-center gap-2 mb-6 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                        <span className="font-bold text-gray-700">Key (Minor):</span>
-                        <select 
-                            value={selectedKey} 
-                            onChange={(e) => setSelectedKey(e.target.value)}
-                            className="p-2 border rounded hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer font-mono font-bold"
-                        >
-                            {KEYS.map(k => {
-                                const majorKey = KEYS[(KEYS.indexOf(k) + 3) % 12];
-                                return <option key={k} value={k}>{k}m ({majorKey})</option>;
-                            })}
-                        </select>
-                    </div>
-
-                    {/* Pattern Buttons */}
-                    <div className="flex flex-wrap justify-center gap-2 mb-8 w-full max-w-3xl">
-                        {Object.entries(PATTERN_DEFS).map(([key, pattern]) => (
-                            <button
-                                key={key}
-                                onClick={() => setActivePatternKey(key)}
-                                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-sm ${
-                                    activePatternKey === key
-                                        ? 'bg-blue-600 text-white ring-2 ring-blue-300 ring-offset-2'
-                                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                                }`}
-                            >
-                                {pattern.name}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Description */}
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-8 max-w-2xl w-full">
-                        <h3 className="font-bold text-lg mb-1 flex items-center gap-2">
-                            {PATTERN_DEFS[activePatternKey].name}
-                        </h3>
-                        <p className="text-gray-600 leading-relaxed">
-                            {PATTERN_DEFS[activePatternKey].description}
-                        </p>
-                    </div>
-
-                    {/* Fretboard */}
-                    <div className="relative overflow-x-auto w-full max-w-5xl pb-10 px-2">
-                        <div className="bg-[#2a2a2a] p-1 pt-12 rounded-lg shadow-xl relative select-none" style={{ minWidth: '950px' }}>
+                <div className={containerClass}>
+                    {/* 指板全体を囲むコンテナ */}
+                    <div className="bg-[#222222] p-2 pl-4 rounded-lg shadow-2xl relative select-none" style={{ minWidth: '980px', border: '4px solid #1a1a1a' }}>
+                        
+                        {/* 指板本体 */}
+                        <div className="fretboard-bg relative rounded-md h-40 overflow-visible"> 
                             
-                            {/* Strings */}
-                            <div className="relative flex flex-col justify-between h-48 mb-6 relative z-10">
+                            {/* 背景レイヤー：フレット線、インレイ */}
+                            <div className="absolute inset-0 flex z-0 pointer-events-none">
+                                {frets.map(fret => (
+                                    <div key={fret} 
+                                         className={`${fret === 0 ? 'w-10 flex-none rounded-l-md' : 'flex-1'} ${fret === 18 ? 'rounded-r-md' : ''} flex items-center justify-center h-full relative`} 
+                                         style={{ 
+                                             backgroundColor: fret === 0 ? '#262626' : 'transparent',
+                                             borderRight: fret === 0 ? '6px solid #e5e5e5' : '2px solid #b0b0b0',
+                                             borderColor: fret === 0 ? '#e5e5e5' : '#b0b0b0',
+                                             boxSizing: 'border-box'
+                                         }}>
+                                        {fret > 0 && (
+                                            <div className="absolute inset-0 flex flex-col justify-center items-center opacity-80">
+                                                {isFretMarker(fret) && (
+                                                    <div className="w-4 h-4 rounded-full bg-[#8d6e63] shadow-inner"></div>
+                                                )}
+                                                {isDoubleMarker(fret) && (
+                                                    <div className="flex flex-col gap-8">
+                                                        <div className="w-4 h-4 rounded-full bg-[#8d6e63] shadow-inner"></div>
+                                                        <div className="w-4 h-4 rounded-full bg-[#8d6e63] shadow-inner"></div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* メインレイヤー：弦と音符 */}
+                            <div className="absolute inset-0 flex flex-col justify-between py-1 z-10">
                                 {[1, 2, 3, 4, 5, 6].map((stringNum) => (
-                                    <div key={stringNum} className="relative w-full h-full flex items-center">
-                                        {/* String Line */}
+                                    <div key={stringNum} className="flex-1 w-full relative flex items-center">
+                                        
+                                        {/* 弦 */}
                                         <div 
-                                            className="absolute w-full bg-[#a0a0a0]" 
+                                            className="absolute w-full bg-[#d1d1d1] string-line z-0" 
                                             style={{ 
-                                                height: `${Math.max(1, stringNum * 0.7)}px`,
-                                                boxShadow: '0 1px 2px rgba(0,0,0,0.5)'
+                                                height: `${Math.max(2, stringNum * 0.8)}px`,
+                                                boxShadow: '0 1px 1px rgba(0,0,0,0.3)'
                                             }} 
                                         />
-                                        
-                                        {/* Frets */}
-                                        <div className="absolute inset-0 flex">
+
+                                        {/* 音符配置エリア */}
+                                        <div className="relative w-full h-full flex z-10">
                                             {frets.map((fretNum) => {
                                                 const note = getNoteAtPosition(stringNum, fretNum);
-                                                
                                                 return (
                                                     <div 
                                                         key={fretNum} 
-                                                        className="flex-1 border-r border-gray-500 h-full relative flex items-center justify-center"
-                                                        style={{ 
-                                                            borderColor: fretNum === 0 ? '#ddd' : '#666',
-                                                            borderRightWidth: fretNum === 0 ? '6px' : '2px'
-                                                        }}
+                                                        className={`${fretNum === 0 ? 'w-10 flex-none' : 'flex-1'} h-full flex items-center justify-center cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors z-20`}
+                                                        onClick={() => onFretClick && onFretClick(stringNum, fretNum)}
                                                     >
-                                                        {/* Note Bubble */}
-                                                        {note && (
+                                                        {note && note.isVisible && (
                                                             <div 
                                                                 className={`
-                                                                    relative z-20 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shadow-md transition-all duration-300
-                                                                    ${note.type === 'root' ? 'bg-red-500 text-white ring-2 ring-red-300' : 'bg-blue-500 text-white'}
+                                                                    relative z-30 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg animate-pop-in
+                                                                    ${note.type === 'root' 
+                                                                        ? 'bg-red-600/95 text-white ring-2 ring-red-300 shadow-[0_2px_5px_rgba(0,0,0,0.4)]' 
+                                                                        : 'bg-blue-600/95 text-white shadow-[0_2px_5px_rgba(0,0,0,0.4)]'}
                                                                     ${note.technique === 'slide' ? 'ring-2 ring-yellow-400' : ''}
                                                                 `}
                                                             >
-                                                                {getNoteName(stringNum, fretNum)}
+                                                                {displayMode === 'degree' ? note.degree : getNoteName(stringNum, fretNum)}
                                                                 {note.technique === 'slide' && (
-                                                                    <span className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[9px] px-1 rounded">Slide</span>
+                                                                    <span className="absolute -top-3 -right-3 bg-yellow-400 text-black text-[9px] px-1 rounded shadow">Slide</span>
                                                                 )}
                                                             </div>
                                                         )}
@@ -279,40 +281,474 @@
                                 ))}
                             </div>
 
-                            {/* Markers */}
-                            <div className="absolute inset-0 pointer-events-none flex pt-12 pb-6 px-1 z-0">
-                                {frets.map(fret => (
-                                    <div key={fret} className="flex-1 flex items-center justify-center h-full">
-                                        {isFretMarker(fret) && <div className="w-4 h-4 bg-gray-400 rounded-full opacity-30"></div>}
-                                        {isDoubleMarker(fret) && (
-                                            <div className="flex flex-col gap-8 opacity-30">
-                                                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                                                <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Numbers */}
-                            <div className="flex pl-1 text-gray-400 text-xs font-mono mt-2">
-                                {frets.map(fret => (
-                                    <div key={fret} className="flex-1 text-center">{fret}</div>
-                                ))}
-                            </div>
-
                         </div>
-                    </div>
-                    
-                    <div className="mt-8 text-center text-xs text-gray-400">
-                        ※ 選択したキーに合わせて、自動的に見やすいオクターブ位置（0〜18F）に調整されます。
+
+                        {/* Fret Numbers */}
+                        <div className="flex pl-[8px] text-gray-400 text-xs font-mono mt-1">
+                            {frets.map(fret => (
+                                <div key={fret} className={`${fret === 0 ? 'w-10 flex-none' : 'flex-1'} text-center`}>
+                                    {fret > 0 ? fret : ''}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             );
         };
 
+
+        // Main App Component
+        const App = () => {
+            const [appMode, setAppMode] = useState('viewer'); // 'viewer' | 'training'
+            const [selectedKey, setSelectedKey] = useState('A');
+            const [activePatternKey, setActivePatternKey] = useState('vertical1');
+            const [displayMode, setDisplayMode] = useState('note');
+
+            const [trainingConfig, setTrainingConfig] = useState({ key: 'A', type: 'vertical', level: 1 });
+            const [trainingStatus, setTrainingStatus] = useState('idle');
+            const [currentQuestion, setCurrentQuestion] = useState(null); 
+            
+            const [feedback, setFeedback] = useState(null);
+
+            const patternQueue = useRef([]);
+
+            // Note Calculation with robust shift logic
+            const calculatePatternNotes = useCallback((key, patternKey) => {
+                const rootFret = ROOT_FRETS_ON_6[key];
+                const def = PATTERN_DEFS[patternKey];
+                
+                let notes = def.notes.map((n, idx) => ({ 
+                    ...n, 
+                    id: `${n.s}-${n.off}-${idx}`,
+                    fret: n.off + rootFret,
+                    isVisible: true
+                }));
+                
+                const minFret = Math.min(...notes.map(n => n.fret));
+                let shift = 0;
+                
+                if (minFret >= 12) {
+                    shift = -12;
+                } else if (minFret < 0) {
+                    shift = 12;
+                }
+                
+                notes = notes.map(n => ({ ...n, fret: n.fret + shift }));
+                return notes.filter(n => n.fret >= 0 && n.fret <= 18);
+            }, []);
+
+            const viewerNotes = useMemo(() => 
+                calculatePatternNotes(selectedKey, activePatternKey), 
+                [selectedKey, activePatternKey, calculatePatternNotes]
+            );
+
+            // --- Training Logic ---
+
+            const refillQueue = (type) => {
+                let candidates = [];
+                if (type === 'vertical') {
+                    candidates = Object.keys(PATTERN_DEFS).filter(k => PATTERN_DEFS[k].group === 'vertical');
+                } else {
+                    candidates = Object.keys(PATTERN_DEFS).filter(k => PATTERN_DEFS[k].group === 'horizontal');
+                }
+                
+                for (let i = candidates.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+                }
+                patternQueue.current = candidates;
+            };
+
+            // NEW: Get next random degree that still has hidden notes
+            const getNextTargetDegree = (notes, revealedSet) => {
+                // Filter notes that are NOT revealed yet
+                const hiddenNotes = notes.filter(n => !revealedSet.has(n.id));
+                if (hiddenNotes.length === 0) return null; // Completed
+
+                // Get unique degrees from hidden notes
+                const availableDegrees = [...new Set(hiddenNotes.map(n => n.degree))];
+                
+                // Pick random
+                const randomIndex = Math.floor(Math.random() * availableDegrees.length);
+                return availableDegrees[randomIndex];
+            };
+
+            const startTraining = () => {
+                if (patternQueue.current.length === 0) {
+                    refillQueue(trainingConfig.type);
+                }
+                
+                const nextPatternKey = patternQueue.current.pop();
+                const nextPatternName = PATTERN_DEFS[nextPatternKey].name;
+
+                let initialRevealed = new Set();
+                let initialTarget = 'R'; 
+
+                // Pre-calculate notes for this session to determine initial state
+                const notes = calculatePatternNotes(trainingConfig.key, nextPatternKey);
+
+                if (trainingConfig.level === 2) {
+                    // Level 2: Reveal all roots initially
+                    notes.forEach(n => {
+                        if (n.type === 'root') initialRevealed.add(n.id);
+                    });
+                    // Pick valid initial target
+                    initialTarget = getNextTargetDegree(notes, initialRevealed);
+                    if (!initialTarget) {
+                        // Edge case: pattern has only roots? (Unlikely for penta)
+                        initialTarget = 'R'; 
+                    }
+                }
+
+                setCurrentQuestion({
+                    patternKey: nextPatternKey,
+                    patternName: nextPatternName,
+                    revealedNoteIds: initialRevealed,
+                    targetDegree: initialTarget,
+                    message: trainingConfig.level === 1 ? "Root (R) をすべて探せ！" : `度数 "${initialTarget}" を探せ！`,
+                    mistake: false,
+                    showHint: false
+                });
+                setTrainingStatus('playing');
+                setFeedback(null);
+            };
+
+            useEffect(() => {
+                patternQueue.current = [];
+            }, [trainingConfig.type]);
+
+            const getHintText = () => {
+                if (!currentQuestion) return "";
+                const notes = calculatePatternNotes(trainingConfig.key, currentQuestion.patternKey);
+                const rootStrings = [...new Set(notes.filter(n => n.type === 'root').map(n => n.s))].sort((a,b) => a-b);
+                return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあります`;
+            };
+
+            const handleGiveUp = () => {
+                if (!currentQuestion) return;
+                const notes = calculatePatternNotes(trainingConfig.key, currentQuestion.patternKey);
+                const allNoteIds = new Set(notes.map(n => n.id));
+                
+                setCurrentQuestion(prev => ({
+                    ...prev,
+                    revealedNoteIds: allNoteIds,
+                    message: "正解(全構成音)を表示しました",
+                    showHint: false
+                }));
+                setTrainingStatus('cleared');
+            };
+
+            const handleTrainingClick = (stringNum, fretNum) => {
+                if (trainingStatus !== 'playing' || !currentQuestion) return;
+
+                const notes = calculatePatternNotes(trainingConfig.key, currentQuestion.patternKey);
+                const clickedNote = notes.find(n => n.s === stringNum && n.fret === fretNum);
+
+                if (!clickedNote) {
+                    triggerMistake();
+                    return;
+                }
+
+                // If already revealed, do nothing (ignore click)
+                if (currentQuestion.revealedNoteIds.has(clickedNote.id)) {
+                    return;
+                }
+
+                const isCorrect = clickedNote.degree === currentQuestion.targetDegree;
+
+                if (isCorrect) {
+                    const newRevealed = new Set(currentQuestion.revealedNoteIds);
+                    newRevealed.add(clickedNote.id);
+                    
+                    const allNoteIds = notes.map(n => n.id);
+                    const isAllRevealed = allNoteIds.every(id => newRevealed.has(id));
+
+                    if (isAllRevealed) {
+                        setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                        setTrainingStatus('cleared');
+                        return;
+                    }
+
+                    if (trainingConfig.level === 1) {
+                        const allRoots = notes.filter(n => n.degree === 'R');
+                        const foundRoots = allRoots.filter(n => newRevealed.has(n.id));
+                        if (foundRoots.length === allRoots.length) {
+                             setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                             setTrainingStatus('cleared');
+                             return;
+                        } else {
+                            setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, mistake: false }));
+                        }
+                    } else {
+                        // Level 2 Logic: Check if there are remaining notes for the CURRENT target degree
+                        const currentDegree = currentQuestion.targetDegree;
+                        const remainingForDegree = notes.filter(n => n.degree === currentDegree && !newRevealed.has(n.id));
+                        
+                        if (remainingForDegree.length > 0) {
+                            // Still more notes of this degree to find!
+                            setCurrentQuestion(prev => ({ 
+                                ...prev, 
+                                revealedNoteIds: newRevealed, 
+                                message: `正解！まだ "${currentDegree}" があるぞ！`, 
+                                mistake: false 
+                            }));
+                        } else {
+                            // Found all notes for this degree. Move to next degree.
+                            const nextTarget = getNextTargetDegree(notes, newRevealed);
+                            
+                            if (!nextTarget) {
+                                // Should be covered by isAllRevealed, but safety fallback
+                                setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, message: "CLEAR!!", showHint: false }));
+                                setTrainingStatus('cleared');
+                                return;
+                            }
+
+                            setCurrentQuestion(prev => ({ 
+                                ...prev, 
+                                revealedNoteIds: newRevealed, 
+                                targetDegree: nextTarget,
+                                message: `Excellent! 次は "${nextTarget}" を探せ！`,
+                                mistake: false
+                            }));
+                        }
+                    }
+
+                } else {
+                    triggerMistake();
+                }
+            };
+
+            const triggerMistake = () => {
+                setFeedback("不正解！");
+                setCurrentQuestion(prev => ({ ...prev, mistake: true }));
+                setTimeout(() => {
+                    setFeedback(null);
+                    setCurrentQuestion(prev => ({ ...prev, mistake: false }));
+                }, 800);
+            };
+
+            const getTrainingNotes = () => {
+                if (!currentQuestion) return [];
+                const notes = calculatePatternNotes(trainingConfig.key, currentQuestion.patternKey);
+                return notes.map(n => ({
+                    ...n,
+                    isVisible: currentQuestion.revealedNoteIds.has(n.id)
+                }));
+            };
+
+            return (
+                <div className="flex flex-col items-center p-4 min-h-screen font-sans text-gray-800">
+                    <div className="w-full max-w-4xl flex justify-between items-center mb-6 border-b border-gray-300 pb-4 sticky top-0 bg-[#f3f4f6] z-50 pt-2">
+                        <h1 className="text-xl font-bold text-gray-800">🎸 指板トレ</h1>
+                        <div className="flex bg-gray-200 rounded-lg p-1">
+                            <button 
+                                onClick={() => setAppMode('viewer')}
+                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${appMode === 'viewer' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+                            >
+                                閲覧
+                            </button>
+                            <button 
+                                onClick={() => setAppMode('training')}
+                                className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${appMode === 'training' ? 'bg-white shadow text-green-600' : 'text-gray-500'}`}
+                            >
+                                特訓
+                            </button>
+                        </div>
+                    </div>
+
+                    {appMode === 'viewer' && (
+                        <div className="w-full flex flex-col items-center animate-fade-in">
+                            <div className="bg-white p-3 rounded-xl shadow-sm border mb-4 w-full max-w-3xl flex flex-col md:flex-row gap-4 items-center justify-center">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold text-gray-500 uppercase">Key</span>
+                                    <select 
+                                        value={selectedKey} 
+                                        onChange={(e) => setSelectedKey(e.target.value)}
+                                        className="p-1 border rounded font-bold"
+                                    >
+                                        {KEYS.map(k => <option key={k} value={k}>{k}m</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 scrollbar-hide">
+                                    {Object.entries(PATTERN_DEFS).map(([key, pattern]) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => setActivePatternKey(key)}
+                                            className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border ${
+                                                activePatternKey === key
+                                                    ? 'bg-blue-600 text-white border-blue-600'
+                                                    : 'bg-white text-gray-600 border-gray-200'
+                                            }`}
+                                        >
+                                            {pattern.name}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="flex bg-gray-100 p-1 rounded shrink-0">
+                                    <button onClick={() => setDisplayMode('note')} className={`px-2 py-1 text-xs rounded ${displayMode==='note'?'bg-white shadow':''}`}>音名</button>
+                                    <button onClick={() => setDisplayMode('degree')} className={`px-2 py-1 text-xs rounded ${displayMode==='degree'?'bg-white shadow':''}`}>度数</button>
+                                </div>
+                            </div>
+
+                            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded mb-4 max-w-2xl w-full text-center">
+                                {PATTERN_DEFS[activePatternKey].description}
+                            </div>
+                            <FretboardUI 
+                                notes={viewerNotes} 
+                                displayMode={displayMode}
+                            />
+                        </div>
+                    )}
+
+                    {appMode === 'training' && (
+                        <div className="w-full flex flex-col items-center animate-fade-in">
+                            {trainingStatus === 'idle' && (
+                                <div className="bg-white p-6 rounded-xl shadow-lg border w-full max-w-md">
+                                    <h2 className="text-lg font-bold mb-4 text-center border-b pb-2">トレーニング設定</h2>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <label className="font-bold text-gray-600">Key</label>
+                                            <select 
+                                                value={trainingConfig.key}
+                                                onChange={(e) => setTrainingConfig({...trainingConfig, key: e.target.value})}
+                                                className="border p-2 rounded w-32 font-bold"
+                                            >
+                                                {KEYS.map(k => <option key={k} value={k}>{k}m</option>)}
+                                            </select>
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <label className="font-bold text-gray-600">Type</label>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, type: 'vertical'})}
+                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.type === 'vertical' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    縦ペンタ
+                                                </button>
+                                                <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, type: 'horizontal'})}
+                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.type === 'horizontal' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    横ペンタ
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <label className="font-bold text-gray-600">Level</label>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 1})}
+                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.level === 1 ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    Lv.1 (Root)
+                                                </button>
+                                                <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 2})}
+                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.level === 2 ? 'bg-orange-600 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    Lv.2 (度数)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={startTraining}
+                                        className="w-full mt-6 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black transition-all"
+                                    >
+                                        START
+                                    </button>
+                                </div>
+                            )}
+
+                            {trainingStatus !== 'idle' && currentQuestion && (
+                                <div className="w-full flex flex-col items-center">
+                                    <div className="flex gap-4 mb-4 items-center">
+                                        <div className="bg-white px-6 py-2 rounded-full shadow border border-gray-200 flex items-center gap-2">
+                                            <span className="text-xs font-bold text-gray-500">KEY</span>
+                                            <span className="text-2xl font-black text-gray-800">{trainingConfig.key}m</span>
+                                        </div>
+                                        <div className="bg-white px-6 py-2 rounded-full shadow border border-gray-200 flex items-center gap-2">
+                                            <span className="text-xs font-bold text-gray-500">PATTERN</span>
+                                            <span className="text-lg font-bold text-gray-800">{currentQuestion.patternName}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className={`
+                                        mb-4 px-8 py-4 rounded-xl text-xl font-bold shadow-md transition-all duration-300 text-center min-w-[300px] relative overflow-hidden
+                                        ${trainingStatus === 'cleared' ? 'bg-yellow-500 text-white scale-110' : 'bg-blue-600 text-white'}
+                                    `}>
+                                        <div className="relative z-10">
+                                            {currentQuestion.message}
+                                        </div>
+                                        {feedback && (
+                                            <div className="absolute inset-0 bg-red-600 flex items-center justify-center z-20 animate-pop-in">
+                                                {feedback}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {trainingStatus !== 'cleared' && (
+                                        <div className="mb-4 h-8 flex gap-4 items-center">
+                                            {currentQuestion.showHint ? (
+                                                <span className="text-blue-600 font-bold bg-blue-100 px-3 py-1 rounded animate-pop-in">
+                                                    {getHintText()}
+                                                </span>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => setCurrentQuestion(prev => ({...prev, showHint: true}))}
+                                                    className="text-xs text-gray-500 underline hover:text-blue-500"
+                                                >
+                                                    💡 ヒントを見る
+                                                </button>
+                                            )}
+                                            <div className="w-px h-4 bg-gray-300"></div>
+                                            <button 
+                                                onClick={handleGiveUp}
+                                                className="text-xs text-red-400 underline hover:text-red-600"
+                                            >
+                                                🏳️ 諦める
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {trainingStatus === 'cleared' && (
+                                        <div className="mb-4 h-8 animate-pop-in">
+                                            <button 
+                                                onClick={startTraining}
+                                                className="bg-green-600 text-white px-6 py-1 rounded-full font-bold shadow hover:bg-green-700"
+                                            >
+                                                次へ進む ▶
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <FretboardUI 
+                                        notes={getTrainingNotes()}
+                                        displayMode="degree"
+                                        onFretClick={handleTrainingClick}
+                                        highlightShake={currentQuestion.mistake}
+                                    />
+                                    
+                                    <button 
+                                        onClick={() => setTrainingStatus('idle')}
+                                        className="mt-8 text-gray-400 text-sm hover:text-gray-600 underline"
+                                    >
+                                        設定に戻る
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<Fretboard />);
+        root.render(<App />);
     </script>
 </body>
 </html>
