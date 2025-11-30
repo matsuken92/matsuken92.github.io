@@ -69,7 +69,7 @@
         .status-bar {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* Changed for button placement */
+            align-items: flex-start;
             width: 100%;
             max-width: 800px;
             margin-bottom: 10px;
@@ -78,7 +78,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 0.85rem;
-            min-height: 60px; /* Increased height for button */
+            min-height: 60px;
         }
 
         .score-info {
@@ -122,7 +122,7 @@
             cursor: pointer;
             font-size: 0.9rem;
             animation: bounceIn 0.3s;
-            display: none; /* Hidden by default */
+            display: none; 
         }
         .next-btn:hover {
             background-color: #ffca3a;
@@ -156,11 +156,9 @@
             position: relative;
             width: 100%;
             min-width: 320px; 
-            /* Prevent text selection on click */
             user-select: none; 
         }
 
-        /* Clickable cursor for Interval Mode */
         .fretboard.interactive .fret {
             cursor: pointer;
         }
@@ -192,7 +190,6 @@
             pointer-events: none;
         }
 
-        /* Updated CSS Selectors to match data-string attribute */
         .fret[data-string="0"] .string-line { height: 1px; transform: translateY(-0.5px); }
         .fret[data-string="1"] .string-line { height: 1.5px; transform: translateY(-0.75px); }
         .fret[data-string="2"] .string-line { height: 2px; transform: translateY(-1px); }
@@ -220,7 +217,6 @@
             top: 35px; 
         }
 
-        /* Question Dot (Red) */
         .question-dot {
             width: 18px; height: 18px;
             background-color: var(--highlight);
@@ -229,10 +225,9 @@
             z-index: 10;
             box-shadow: 0 0 8px var(--highlight);
             animation: pulse 1.5s infinite;
-            pointer-events: none; /* Allow clicking through */
+            pointer-events: none; 
         }
 
-        /* Answer Marker (Green) - For feedback in Interval Mode */
         .answer-marker {
             width: 18px; height: 18px;
             background-color: var(--answer-color);
@@ -244,7 +239,6 @@
             pointer-events: none;
         }
 
-        /* Click Feedback Marker (Temporary) */
         .click-marker {
             width: 100%; height: 100%;
             position: absolute;
@@ -288,9 +282,10 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
         }
         .note-btn:hover { background-color: var(--btn-hover); }
-        .note-btn:active { transform: translateY(2px); }
+        .note-btn:active, .note-btn.active-key { transform: translateY(2px); }
         .note-btn.show-answer { background-color: #2a9d8f !important; transform: scale(1.05); }
 
         .correct-animation { background-color: #2a9d8f !important; transform: scale(1.05); }
@@ -300,6 +295,21 @@
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
+        }
+
+        /* --- Keyboard Hint --- */
+        .keyboard-hint {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-family: monospace;
+        }
+        .keyboard-hint span {
+            color: #ffd166;
+            font-weight: bold;
         }
 
         /* --- Question Display (Interval Mode) --- */
@@ -464,6 +474,10 @@
     </div>
 
     <!-- MODE 1: Note Quiz Controls -->
+    <div class="keyboard-hint" id="keyboard-hint">
+        キーボード操作: [<span>C</span> <span>D</span> <span>E</span> <span>F</span> <span>G</span> <span>A</span> <span>B</span>] キーで回答<br>
+        <span>左Shift</span> + キー = ♭ (半音下) / <span>右Shift</span> + キー = ♯ (半音上)
+    </div>
     <div class="controls-note" id="keypad">
         <!-- JS injects buttons -->
     </div>
@@ -505,7 +519,7 @@
                     <input type="radio" name="notation" value="alphabet" onchange="handleNotationChange()"> CDE
                 </label>
             </div>
-            <!-- Separator or spacing -->
+            <!-- Separator -->
             <div style="width: 20px;"></div>
             <div class="radio-group">
                 <label class="radio-label">
@@ -569,9 +583,11 @@
     let totalQuestions = 0;
     let isProcessing = false;
 
+    // Shift Key State Tracking
+    let activeShift = 0; // -1: Left, 0: None, 1: Right
+
     // Mode 1 State
     let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0 }));
-    // Position Stats (6 strings x 12 frets) - For weighted selection
     let positionStats = [];
 
     let selectedKeys = [];
@@ -582,7 +598,7 @@
     let currentNoteQ = { s:0, f:0, ans:0 };
     
     // Mode 1 Settings
-    let selectedStrings = [0, 1, 2, 3, 4, 5]; // 0=1st(High E) ... 5=6th(Low E)
+    let selectedStrings = [0, 1, 2, 3, 4, 5]; 
     let fretRange = { min: 0, max: 11 };
 
     // Mode 2 State
@@ -590,7 +606,7 @@
         baseS: 0, baseF: 0, 
         targetPitch: 0, 
         intervalName: "", 
-        direction: 1 // 1=Up, -1=Down 
+        direction: 1 
     };
 
     // DOM Elements
@@ -602,6 +618,7 @@
         msg: document.getElementById('message'),
         subMsg: document.getElementById('sub-message'),
         nextBtn: document.getElementById('next-btn'), 
+        keyboardHint: document.getElementById('keyboard-hint'),
         tabNote: document.getElementById('tab-note'),
         tabInterval: document.getElementById('tab-interval'),
         panelNoteStats: document.getElementById('panel-note-stats'),
@@ -630,7 +647,58 @@
             else nextIntervalQuestion();
         };
 
+        setupKeyboardEvents();
         setMode('note'); 
+    }
+
+    function setupKeyboardEvents() {
+        document.addEventListener('keydown', (e) => {
+            // Track shift keys
+            if (e.code === 'ShiftLeft') activeShift = -1;
+            if (e.code === 'ShiftRight') activeShift = 1;
+
+            if (currentMode !== 'note') return;
+            if (e.target.tagName === 'INPUT') return; 
+
+            // Next Button Shortcut
+            if (els.nextBtn.style.display !== 'none') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    els.nextBtn.click();
+                }
+                return;
+            }
+
+            // Note Answer Shortcuts
+            const keyChar = e.key.toUpperCase();
+            // Map C,D,E,F,G,A,B to Base Index (0=C, 2=D, 4=E...)
+            // C=0, D=2, E=4, F=5, G=7, A=9, B=11
+            const baseMap = {
+                'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11
+            };
+
+            if (baseMap.hasOwnProperty(keyChar)) {
+                let index = baseMap[keyChar];
+                
+                // Apply Shift modifier
+                // ShiftLeft = -1 (Flat), ShiftRight = +1 (Sharp)
+                // Normalize index to 0-11
+                index = (index + activeShift + 12) % 12;
+
+                const btn = els.keypad.children[index];
+                if (btn) {
+                    btn.click();
+                    btn.classList.add('active-key');
+                    setTimeout(() => btn.classList.remove('active-key'), 150);
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            // Reset shift state only if the specific shift key that was active is released
+            if (e.code === 'ShiftLeft' && activeShift === -1) activeShift = 0;
+            if (e.code === 'ShiftRight' && activeShift === 1) activeShift = 0;
+        });
     }
 
     function initPositionStats() {
@@ -660,6 +728,7 @@
             els.tabNote.classList.add('active');
             els.tabInterval.classList.remove('active');
             els.keypad.classList.remove('hidden');
+            els.keyboardHint.style.display = 'block';
             els.intervalDisplay.classList.remove('visible');
             els.panelNoteStats.classList.remove('hidden');
             els.panelNoteSettings.classList.remove('hidden');
@@ -670,6 +739,7 @@
             els.tabNote.classList.remove('active');
             els.tabInterval.classList.add('active');
             els.keypad.classList.add('hidden');
+            els.keyboardHint.style.display = 'none';
             els.intervalDisplay.classList.add('visible');
             els.panelNoteStats.classList.add('hidden');
             els.panelNoteSettings.classList.add('hidden');
@@ -775,14 +845,11 @@
             return;
         }
 
-        // WEIGHTED SELECTION LOGIC
         let totalWeight = 0;
         const weights = candidates.map(c => {
             const stat = positionStats[c.s][c.f];
-            if (stat.asked === 0) return 50; // High priority for unasked
+            if (stat.asked === 0) return 50; 
             const rate = stat.correct / stat.asked;
-            // Lower rate -> Higher weight. 
-            // Min weight 1 (for 100% correct), Max weight 21 (for 0% correct)
             return 1 + (1 - rate) * 20; 
         });
 
@@ -817,10 +884,8 @@
         isProcessing = true;
         totalQuestions++;
         
-        // Update general stats
         noteStats[currentNoteQ.ans].asked++;
         
-        // Update position stats
         if (positionStats[currentNoteQ.s] && positionStats[currentNoteQ.s][currentNoteQ.f]) {
             positionStats[currentNoteQ.s][currentNoteQ.f].asked++;
         }
@@ -841,7 +906,6 @@
                 nextNoteQuestion();
             }, 600);
         } else {
-            // WRONG
             els.msg.textContent = `残念... 正解は「${currentNoteNames[currentNoteQ.ans]}」`;
             els.msg.style.color = "#e63946";
             btn.classList.add('wrong-animation');
