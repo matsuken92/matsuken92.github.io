@@ -343,6 +343,27 @@
             margin-top: 5px;
         }
 
+        /* --- Reset Area --- */
+        .reset-area {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        .reset-area.hidden { display: none; }
+
+        .btn-reset {
+            background: #555;
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .btn-reset:hover { background: #777; }
+
         /* --- Panels --- */
         .panel {
             width: 100%;
@@ -367,25 +388,79 @@
             align-items: center;
         }
 
+        /* Stats Grids */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
         
-        /* 3-column grid for strings (6 items) */
         .stats-grid-3 {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
         }
 
+        /* Detailed Note Stats Grid - Responsive */
+        .stats-grid-detailed {
+            display: grid;
+            /* Auto-fit columns, min width 180px */
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
         .stat-item {
             background: rgba(0,0,0,0.3);
-            padding: 6px;
+            padding: 8px;
             border-radius: 4px;
             font-size: 0.8rem;
             text-align: center;
+        }
+
+        /* Detailed Stats Item Layout */
+        .stat-item-detailed {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-align: left;
+        }
+        .stat-item-header {
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #444;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        .stat-detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .stat-detail-label {
+            width: 40px; /* Increased for Note Names */
+            flex-shrink: 0;
+        }
+        .stat-detail-bar-bg {
+            flex-grow: 1;
+            height: 4px;
+            background: #444;
+            margin: 0 8px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .stat-detail-bar {
+            height: 100%;
+            background: #2a9d8f;
+        }
+        .stat-detail-val {
+            width: 60px;
+            text-align: right;
+            font-family: monospace;
         }
 
         .stat-bar-container {
@@ -449,8 +524,9 @@
             .marker { top: var(--row-height); }
             .note-btn { font-size: 0.8rem; padding: 8px 0; }
             .key-grid, .string-grid { grid-template-columns: repeat(3, 1fr); }
-            .stats-grid { grid-template-columns: repeat(3, 1fr); }
-            .stats-grid-3 { grid-template-columns: repeat(3, 1fr); }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid-detailed { grid-template-columns: 1fr; }
             h1 { font-size: 1.1rem; }
             .interval-text { font-size: 1rem; }
         }
@@ -501,6 +577,11 @@
         <div class="interval-hint">指板上の正解の位置をクリックしてください</div>
     </div>
 
+    <!-- Reset Button Area (New) -->
+    <div class="reset-area" id="reset-area">
+        <button class="btn-reset" onclick="resetStats()">全成績リセット</button>
+    </div>
+
     <!-- MODE 1: String Stats Panel (New) -->
     <div class="panel" id="panel-string-stats">
         <div class="panel-title">
@@ -509,13 +590,12 @@
         <div class="stats-grid-3" id="string-stats-grid"></div>
     </div>
 
-    <!-- MODE 1: Note Stats Panel -->
+    <!-- MODE 1: Note Stats Panel (Updated Layout: Strings -> Notes) -->
     <div class="panel" id="panel-note-stats">
         <div class="panel-title">
-            <span>音名ごとの成績</span>
-            <button class="btn-small" onclick="resetStats()">成績リセット</button>
+            <span>弦ごとの詳細成績</span>
         </div>
-        <div class="stats-grid" id="note-stats-grid"></div>
+        <div class="stats-grid-detailed" id="note-stats-grid"></div>
     </div>
 
     <!-- MODE 1: Settings Panel -->
@@ -657,8 +737,8 @@
         tabNote: document.getElementById('tab-note'),
         tabInterval: document.getElementById('tab-interval'),
         panelNoteStats: document.getElementById('panel-note-stats'),
-        panelStringStats: document.getElementById('panel-string-stats'), // New
-        stringStatsGrid: document.getElementById('string-stats-grid'), // New
+        panelStringStats: document.getElementById('panel-string-stats'), 
+        stringStatsGrid: document.getElementById('string-stats-grid'), 
         panelNoteSettings: document.getElementById('panel-note-settings'),
         intervalDisplay: document.getElementById('interval-display'),
         intervalText: document.getElementById('interval-question-text'),
@@ -669,7 +749,8 @@
         qPerKey: document.getElementById('questionsPerKey'),
         fretMin: document.getElementById('fretMin'),
         fretMax: document.getElementById('fretMax'),
-        rowHeightInput: document.getElementById('rowHeightInput')
+        rowHeightInput: document.getElementById('rowHeightInput'),
+        resetArea: document.getElementById('reset-area')
     };
 
     // --- Initialization ---
@@ -769,6 +850,7 @@
             els.panelNoteStats.classList.remove('hidden');
             els.panelStringStats.classList.remove('hidden');
             els.panelNoteSettings.classList.remove('hidden');
+            els.resetArea.classList.remove('hidden'); // Show reset button
             els.fretboard.classList.remove('interactive');
             renderStats();
             nextNoteQuestion();
@@ -781,6 +863,7 @@
             els.panelNoteStats.classList.add('hidden');
             els.panelStringStats.classList.add('hidden');
             els.panelNoteSettings.classList.add('hidden');
+            els.resetArea.classList.add('hidden'); // Hide reset button
             els.fretboard.classList.add('interactive');
             els.subMsg.textContent = "";
             nextIntervalQuestion();
@@ -1247,21 +1330,61 @@
     }
 
     function renderStats() {
-        // --- Note Stats ---
+        // --- Note Stats (Detailed: Organized by String) ---
         const noteGrid = els.noteStatsGrid;
         noteGrid.innerHTML = '';
-        currentNoteNames.forEach((n, i) => {
-            const s = noteStats[i];
-            const p = s.asked > 0 ? Math.round((s.correct/s.asked)*100) : 0;
+        
+        // Loop by String (0 to 5)
+        for(let s=0; s<6; s++) {
+            // Calculate total stats for this string header
+            let strAsked = 0;
+            let strCorrect = 0;
+            if (positionStats[s]) {
+                positionStats[s].forEach(p => {
+                    strAsked += p.asked;
+                    strCorrect += p.correct;
+                });
+            }
+            const strTotalP = strAsked > 0 ? Math.round((strCorrect/strAsked)*100) : 0;
+
+            // Build note breakdown for this string
+            let noteBreakdownHtml = '';
+            
+            // Loop by Note Name
+            currentNoteNames.forEach((n, noteIndex) => {
+                // Find corresponding fret on this string (0-11)
+                // noteIndex = (tuning + f) % 12
+                // f = (noteIndex - tuning + 12) % 12
+                const f = (noteIndex - stringTuning[s] + 12) % 12;
+                
+                // Only process if fret is within current range (though positionStats covers 0-11)
+                // Let's assume we show all notes that map to 0-11
+                const stat = positionStats[s][f];
+                const noteP = stat.asked > 0 ? Math.round((stat.correct/stat.asked)*100) : 0;
+                const barColor = noteP < 50 ? '#e63946' : (noteP < 80 ? '#ffd166' : '#2a9d8f');
+                
+                noteBreakdownHtml += `
+                    <div class="stat-detail-row">
+                        <span class="stat-detail-label" style="width:40px;">${n}</span>
+                        <div class="stat-detail-bar-bg">
+                            <div class="stat-detail-bar" style="width:${noteP}%; background-color:${barColor};"></div>
+                        </div>
+                        <span class="stat-detail-val">${stat.correct}/${stat.asked}</span>
+                    </div>
+                `;
+            });
+
             const div = document.createElement('div');
-            div.className = 'stat-item';
+            div.className = 'stat-item-detailed';
             div.innerHTML = `
-                <span style="font-weight:bold; display:block;">${n}</span>
-                <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background:${p<50?'#e63946':p<80?'#ffd166':'#2a9d8f'}"></div></div>
-                <span style="font-size:0.75rem; color:#ccc;">${p}%</span>
+                <div class="stat-item-header">
+                    <span>${s+1}弦</span>
+                    <span>${strTotalP}% (${strCorrect}/${strAsked})</span>
+                </div>
+                ${noteBreakdownHtml}
             `;
             noteGrid.appendChild(div);
-        });
+        }
 
         // --- String Stats ---
         const stringGrid = els.stringStatsGrid;
@@ -1277,12 +1400,15 @@
             }
             const p = asked > 0 ? Math.round((correct/asked)*100) : 0;
             
+            // Bar color logic
+            const barColor = p < 50 ? '#e63946' : (p < 80 ? '#ffd166' : '#2a9d8f');
+
             const div = document.createElement('div');
             div.className = 'stat-item';
             div.innerHTML = `
                 <span style="font-weight:bold; display:block;">${s+1}弦</span>
-                <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background:${p<50?'#e63946':p<80?'#ffd166':'#2a9d8f'}"></div></div>
-                <span style="font-size:0.75rem; color:#ccc;">${p}%</span>
+                <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background-color:${barColor};"></div></div>
+                <span style="font-size:0.75rem; color:#ccc;">${p}% (${correct}/${asked})</span>
             `;
             stringGrid.appendChild(div);
         }
