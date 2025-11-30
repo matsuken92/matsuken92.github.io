@@ -41,6 +41,46 @@
             text-align: center;
         }
 
+        /* --- Start Overlay --- */
+        .start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default via JS */
+        }
+        .start-overlay.visible { display: flex; }
+        
+        .start-btn {
+            font-size: 2rem;
+            padding: 15px 50px;
+            background: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(230, 57, 70, 0.8);
+        }
+        .start-btn:active { transform: scale(0.95); }
+
+        .start-message {
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            text-align: center;
+            line-height: 1.5;
+        }
+
         /* --- Mode Tabs --- */
         .mode-tabs {
             display: flex;
@@ -81,7 +121,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 0.85rem;
-            min-height: 75px; /* Increased height for time display */
+            min-height: 60px;
         }
 
         .score-info {
@@ -551,6 +591,12 @@
 
     <h1>🎸 ギター指板トレーニング</h1>
 
+    <!-- Start Overlay (New) -->
+    <div class="start-overlay" id="start-overlay">
+        <div class="start-message" id="start-message">準備ができたらスタートしてください</div>
+        <button class="start-btn" onclick="startGame()">START</button>
+    </div>
+
     <!-- Tabs -->
     <div class="mode-tabs">
         <button class="tab-btn active" id="tab-note" onclick="setMode('note')">音名暗記</button>
@@ -746,13 +792,14 @@
 
     // DOM Elements
     const els = {
+        startOverlay: document.getElementById('start-overlay'), // New
         fretboard: document.getElementById('fretboard'),
         keypad: document.getElementById('keypad'),
         score: document.getElementById('score-display'),
         rate: document.getElementById('rate-display'),
         msg: document.getElementById('message'),
         subMsg: document.getElementById('sub-message'),
-        lastTime: document.getElementById('last-time'), // New element
+        lastTime: document.getElementById('last-time'), 
         nextBtn: document.getElementById('next-btn'), 
         keyboardHint: document.getElementById('keyboard-hint'),
         tabNote: document.getElementById('tab-note'),
@@ -788,7 +835,7 @@
         };
 
         setupKeyboardEvents();
-        setMode('note'); 
+        setMode('note'); // This will now show start screen instead of starting directly
     }
 
     function setupKeyboardEvents() {
@@ -796,6 +843,13 @@
             // Track shift keys
             if (e.code === 'ShiftLeft') activeShift = -1;
             if (e.code === 'ShiftRight') activeShift = 1;
+
+            // Start Game via Enter/Space if overlay is visible
+            if (els.startOverlay.style.display !== 'none' && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                startGame();
+                return;
+            }
 
             if (currentMode !== 'note') return;
             if (e.target.tagName === 'INPUT') return; 
@@ -850,6 +904,18 @@
         }
     }
 
+    // --- Start Game Logic ---
+    window.startGame = function() {
+        els.startOverlay.style.display = 'none'; // Hide overlay
+        if (currentMode === 'note') nextNoteQuestion();
+        else nextIntervalQuestion();
+    };
+
+    function showStartScreen() {
+        els.startOverlay.style.display = 'flex';
+        // Can customize message based on mode if needed
+    }
+
     // --- Mode Switching ---
     window.setMode = function(mode) {
         currentMode = mode;
@@ -872,10 +938,15 @@
             els.panelNoteStats.classList.remove('hidden');
             els.panelStringStats.classList.remove('hidden');
             els.panelNoteSettings.classList.remove('hidden');
-            els.resetArea.classList.remove('hidden'); // Show reset button
+            els.resetArea.classList.remove('hidden'); 
             els.fretboard.classList.remove('interactive');
             renderStats();
-            nextNoteQuestion();
+            
+            // Instead of nextNoteQuestion(), show start screen
+            els.msg.textContent = "準備中...";
+            els.subMsg.textContent = "";
+            renderFretboard(); // Draw empty board
+            showStartScreen();
         } else {
             els.tabNote.classList.remove('active');
             els.tabInterval.classList.add('active');
@@ -885,10 +956,14 @@
             els.panelNoteStats.classList.add('hidden');
             els.panelStringStats.classList.add('hidden');
             els.panelNoteSettings.classList.add('hidden');
-            els.resetArea.classList.add('hidden'); // Hide reset button
+            els.resetArea.classList.add('hidden'); 
             els.fretboard.classList.add('interactive');
             els.subMsg.textContent = "";
-            nextIntervalQuestion();
+            
+            // Instead of nextIntervalQuestion(), show start screen
+            els.intervalText.textContent = "準備中...";
+            renderFretboard(); // Draw empty board
+            showStartScreen();
         }
     };
 
@@ -1029,7 +1104,7 @@
             els.msg.style.color = "#f1faee";
         }
         
-        // Start Timer
+        // Start Timer Here - User sees the dot now
         questionStartTime = Date.now();
         isProcessing = false;
     }
