@@ -660,19 +660,19 @@
             if (currentMode !== 'note') return;
             if (e.target.tagName === 'INPUT') return; 
 
-            // Next Button Shortcut
+            // Next Button Shortcut logic
             if (els.nextBtn.style.display !== 'none') {
+                // Allow Enter or Space to proceed
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     els.nextBtn.click();
+                    return;
                 }
-                return;
+                // Don't return here! Allow flow to proceed to check if the pressed key matches the correct answer.
             }
 
             // Note Answer Shortcuts
             const keyChar = e.key.toUpperCase();
-            // Map C,D,E,F,G,A,B to Base Index (0=C, 2=D, 4=E...)
-            // C=0, D=2, E=4, F=5, G=7, A=9, B=11
             const baseMap = {
                 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11
             };
@@ -681,8 +681,6 @@
                 let index = baseMap[keyChar];
                 
                 // Apply Shift modifier
-                // ShiftLeft = -1 (Flat), ShiftRight = +1 (Sharp)
-                // Normalize index to 0-11
                 index = (index + activeShift + 12) % 12;
 
                 const btn = els.keypad.children[index];
