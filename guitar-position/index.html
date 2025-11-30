@@ -81,7 +81,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 0.85rem;
-            min-height: 60px;
+            min-height: 75px; /* Increased height for time display */
         }
 
         .score-info {
@@ -111,7 +111,15 @@
         .sub-message {
             font-size: 0.8rem;
             color: #ffd166;
+            margin-bottom: 2px;
+        }
+
+        .last-time {
+            font-size: 0.8rem;
+            color: #aaa;
             margin-bottom: 5px;
+            font-family: monospace;
+            min-height: 1.2em;
         }
 
         /* Next Button */
@@ -405,7 +413,7 @@
         .stats-grid-detailed {
             display: grid;
             /* Auto-fit columns, min width 180px */
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Increased min width for details */
             gap: 10px;
         }
 
@@ -432,7 +440,7 @@
             border-bottom: 1px solid #444;
             padding-bottom: 4px;
             margin-bottom: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
         .stat-detail-row {
             display: flex;
@@ -442,7 +450,7 @@
             font-size: 0.75rem;
         }
         .stat-detail-label {
-            width: 40px; /* Increased for Note Names */
+            width: 40px; 
             flex-shrink: 0;
         }
         .stat-detail-bar-bg {
@@ -458,9 +466,16 @@
             background: #2a9d8f;
         }
         .stat-detail-val {
-            width: 60px;
+            width: 50px;
             text-align: right;
             font-family: monospace;
+        }
+        .stat-detail-time {
+            width: 40px;
+            text-align: right;
+            font-family: monospace;
+            color: #aaa;
+            font-size: 0.7rem;
         }
 
         .stat-bar-container {
@@ -551,6 +566,7 @@
         <div class="message-area">
             <span class="main-message" id="message">読み込み中...</span>
             <span class="sub-message" id="sub-message"></span>
+            <span class="last-time" id="last-time"></span>
             <button id="next-btn" class="next-btn">次へ >></button>
         </div>
     </div>
@@ -585,7 +601,7 @@
     <!-- MODE 1: String Stats Panel (New) -->
     <div class="panel" id="panel-string-stats">
         <div class="panel-title">
-            <span>弦ごとの成績</span>
+            <span>弦ごとの成績 (正答数/出題数 - 平均秒数)</span>
         </div>
         <div class="stats-grid-3" id="string-stats-grid"></div>
     </div>
@@ -593,7 +609,8 @@
     <!-- MODE 1: Note Stats Panel (Updated Layout: Strings -> Notes) -->
     <div class="panel" id="panel-note-stats">
         <div class="panel-title">
-            <span>弦ごとの詳細成績</span>
+            <span>弦ごとの詳細成績 (正答数/出題数 - 平均秒数)</span>
+            <button class="btn-small" onclick="resetStats()">成績リセット</button>
         </div>
         <div class="stats-grid-detailed" id="note-stats-grid"></div>
     </div>
@@ -695,12 +712,15 @@
     let score = 0;
     let totalQuestions = 0;
     let isProcessing = false;
+    let questionStartTime = 0; // Timer start
 
     // Shift Key State Tracking
     let activeShift = 0; // -1: Left, 0: None, 1: Right
 
     // Mode 1 State
-    let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0 }));
+    // noteStats: {asked, correct, totalTime}
+    let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0, totalTime: 0 }));
+    // positionStats[s][f]: {asked, correct, totalTime}
     let positionStats = [];
 
     let selectedKeys = [];
@@ -732,6 +752,7 @@
         rate: document.getElementById('rate-display'),
         msg: document.getElementById('message'),
         subMsg: document.getElementById('sub-message'),
+        lastTime: document.getElementById('last-time'), // New element
         nextBtn: document.getElementById('next-btn'), 
         keyboardHint: document.getElementById('keyboard-hint'),
         tabNote: document.getElementById('tab-note'),
@@ -823,7 +844,7 @@
         for(let s=0; s<6; s++) {
             let row = [];
             for(let f=0; f<=MAX_FRET; f++) {
-                row.push({ asked: 0, correct: 0 });
+                row.push({ asked: 0, correct: 0, totalTime: 0 });
             }
             positionStats.push(row);
         }
@@ -839,6 +860,7 @@
         updateScoreDisplay();
         
         els.nextBtn.style.display = 'none';
+        els.lastTime.textContent = ''; // Reset last time display on mode switch
 
         // UI Toggles
         if (mode === 'note') {
@@ -1006,6 +1028,9 @@
             els.msg.textContent = "この音は何？";
             els.msg.style.color = "#f1faee";
         }
+        
+        // Start Timer
+        questionStartTime = Date.now();
         isProcessing = false;
     }
 
@@ -1020,12 +1045,18 @@
 
         if (isProcessing) return;
         isProcessing = true;
+        
+        const timeTaken = (Date.now() - questionStartTime) / 1000;
+        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; // Update last time display
+        
         totalQuestions++;
         
         noteStats[currentNoteQ.ans].asked++;
+        noteStats[currentNoteQ.ans].totalTime += timeTaken;
         
         if (positionStats[currentNoteQ.s] && positionStats[currentNoteQ.s][currentNoteQ.f]) {
             positionStats[currentNoteQ.s][currentNoteQ.f].asked++;
+            positionStats[currentNoteQ.s][currentNoteQ.f].totalTime += timeTaken;
         }
 
         if (idx === currentNoteQ.ans) {
@@ -1119,6 +1150,8 @@
         els.msg.textContent = "位置をクリックして回答";
         els.msg.style.color = "#f1faee";
         
+        // Start Timer
+        questionStartTime = Date.now();
         isProcessing = false;
     }
 
@@ -1135,6 +1168,10 @@
         if (currentMode !== 'interval' || isProcessing) return;
         
         isProcessing = true;
+        
+        const timeTaken = (Date.now() - questionStartTime) / 1000;
+        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; // Update last time display
+
         totalQuestions++;
 
         const clickedPitch = stringOffsets[s] + f;
@@ -1209,10 +1246,11 @@
     window.resetStats = function() {
         if(!confirm("成績をリセットしますか？")) return;
         score = 0; totalQuestions = 0;
-        noteStats = noteStats.map(() => ({ asked: 0, correct: 0 }));
+        noteStats = noteStats.map(() => ({ asked: 0, correct: 0, totalTime: 0 }));
         initPositionStats(); // Reset position stats
         renderStats();
         updateScoreDisplay();
+        els.lastTime.textContent = ''; // Reset last time display
     };
 
     window.handleSettingsChange = function() {
@@ -1339,29 +1377,28 @@
             // Calculate total stats for this string header
             let strAsked = 0;
             let strCorrect = 0;
+            let strTime = 0;
             if (positionStats[s]) {
                 positionStats[s].forEach(p => {
                     strAsked += p.asked;
                     strCorrect += p.correct;
+                    strTime += p.totalTime;
                 });
             }
             const strTotalP = strAsked > 0 ? Math.round((strCorrect/strAsked)*100) : 0;
+            const strAvgTime = strAsked > 0 ? (strTime / strAsked).toFixed(1) + 's' : '-';
 
             // Build note breakdown for this string
             let noteBreakdownHtml = '';
             
             // Loop by Note Name
             currentNoteNames.forEach((n, noteIndex) => {
-                // Find corresponding fret on this string (0-11)
-                // noteIndex = (tuning + f) % 12
-                // f = (noteIndex - tuning + 12) % 12
                 const f = (noteIndex - stringTuning[s] + 12) % 12;
                 
-                // Only process if fret is within current range (though positionStats covers 0-11)
-                // Let's assume we show all notes that map to 0-11
                 const stat = positionStats[s][f];
                 const noteP = stat.asked > 0 ? Math.round((stat.correct/stat.asked)*100) : 0;
                 const barColor = noteP < 50 ? '#e63946' : (noteP < 80 ? '#ffd166' : '#2a9d8f');
+                const noteAvgTime = stat.asked > 0 ? (stat.totalTime / stat.asked).toFixed(1) : '-';
                 
                 noteBreakdownHtml += `
                     <div class="stat-detail-row">
@@ -1370,6 +1407,7 @@
                             <div class="stat-detail-bar" style="width:${noteP}%; background-color:${barColor};"></div>
                         </div>
                         <span class="stat-detail-val">${stat.correct}/${stat.asked}</span>
+                        <span class="stat-detail-time">${noteAvgTime}</span>
                     </div>
                 `;
             });
@@ -1379,7 +1417,7 @@
             div.innerHTML = `
                 <div class="stat-item-header">
                     <span>${s+1}弦</span>
-                    <span>${strTotalP}% (${strCorrect}/${strAsked})</span>
+                    <span>${strTotalP}% (${strCorrect}/${strAsked}) Avg ${strAvgTime}</span>
                 </div>
                 ${noteBreakdownHtml}
             `;
@@ -1392,13 +1430,16 @@
         for(let s=0; s<6; s++) {
             let asked = 0;
             let correct = 0;
+            let time = 0;
             if (positionStats[s]) {
                 positionStats[s].forEach(p => {
                     asked += p.asked;
                     correct += p.correct;
+                    time += p.totalTime;
                 });
             }
             const p = asked > 0 ? Math.round((correct/asked)*100) : 0;
+            const avgTime = asked > 0 ? (time / asked).toFixed(1) + 's' : '-';
             
             // Bar color logic
             const barColor = p < 50 ? '#e63946' : (p < 80 ? '#ffd166' : '#2a9d8f');
@@ -1409,6 +1450,7 @@
                 <span style="font-weight:bold; display:block;">${s+1}弦</span>
                 <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background-color:${barColor};"></div></div>
                 <span style="font-size:0.75rem; color:#ccc;">${p}% (${correct}/${asked})</span>
+                <div style="font-size:0.75rem; color:#aaa;">Avg: ${avgTime}</div>
             `;
             stringGrid.appendChild(div);
         }
