@@ -403,6 +403,18 @@
             width: 50px; margin-left: 8px; background: #333; color: #fff;
             border: 1px solid #555; border-radius: 4px; padding: 3px;
         }
+        
+        /* Radio Button Group for Notation */
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-left: 10px;
+        }
+        .radio-label {
+            display: flex; align-items: center; cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .radio-label input { margin-right: 5px; }
 
         .btn-small {
             background: #555; border: none; color: #fff;
@@ -483,6 +495,18 @@
             <input type="number" id="questionsPerKey" value="10" min="1" max="50" class="setting-input" onchange="handleSettingsChange()">
         </div>
 
+        <div class="setting-row">
+            <label>音名表記:</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="notation" value="kana" checked onchange="handleNotationChange()"> ドレミ
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="notation" value="alphabet" onchange="handleNotationChange()"> CDE
+                </label>
+            </div>
+        </div>
+
         <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題フレット範囲 (0〜11)</div>
         <div class="setting-row">
             <label>Min:</label>
@@ -504,8 +528,13 @@
 <script>
     // --- Configuration ---
     
-    // Notes
-    const noteNames = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+    // Notes Data
+    const NOTE_NAMES_KANA = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+    const NOTE_NAMES_ALPHA = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // Default to Kana
+    let currentNoteNames = NOTE_NAMES_KANA;
+
     const keyLabels = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
     const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
 
@@ -537,7 +566,7 @@
     let targetQuestionsPerKey = 10;
     let currentNoteQ = { s:0, f:0, ans:0 };
     
-    // New Mode 1 Settings
+    // Mode 1 Settings
     let selectedStrings = [0, 1, 2, 3, 4, 5]; // 0=1st(High E) ... 5=6th(Low E)
     let fretRange = { min: 0, max: 11 };
 
@@ -660,10 +689,10 @@
         }
     }
 
-    // Render keypad once
+    // Render keypad based on current notation
     function renderKeypad() {
         els.keypad.innerHTML = '';
-        noteNames.forEach((note, index) => {
+        currentNoteNames.forEach((note, index) => {
             const btn = document.createElement('button');
             btn.className = 'note-btn';
             btn.textContent = note;
@@ -757,7 +786,7 @@
             }, 600);
         } else {
             // WRONG
-            els.msg.textContent = `残念... 正解は「${noteNames[currentNoteQ.ans]}」`;
+            els.msg.textContent = `残念... 正解は「${currentNoteNames[currentNoteQ.ans]}」`;
             els.msg.style.color = "#e63946";
             btn.classList.add('wrong-animation');
             
@@ -924,6 +953,27 @@
         resetKeyProgression();
         if(currentMode === 'note') nextNoteQuestion();
     };
+
+    // Notation Switch
+    window.handleNotationChange = function() {
+        const selected = document.querySelector('input[name="notation"]:checked').value;
+        if (selected === 'alphabet') {
+            currentNoteNames = NOTE_NAMES_ALPHA;
+        } else {
+            currentNoteNames = NOTE_NAMES_KANA;
+        }
+        renderKeypad();
+        renderStats();
+        // If current question is showing correct/wrong, might want to update message, 
+        // but simplest is just to wait for next question or manual interaction.
+        // However, if we just switched, buttons are re-rendered so we lose highlighting.
+        // If "next" button is visible, we should re-highlight.
+        if (els.nextBtn.style.display !== 'none' && currentMode === 'note') {
+             const correctBtn = els.keypad.children[currentNoteQ.ans];
+             if(correctBtn) correctBtn.classList.add('show-answer');
+             els.msg.textContent = `残念... 正解は「${currentNoteNames[currentNoteQ.ans]}」`;
+        }
+    };
     
     // New Handlers
     window.handleFretRangeChange = function() {
@@ -934,7 +984,6 @@
         if (minVal < 0) els.fretMin.value = 0;
         if (maxVal > MAX_FRET) els.fretMax.value = MAX_FRET;
         if (parseInt(els.fretMin.value) > parseInt(els.fretMax.value)) {
-            // Swap if min > max or just warn? Let's auto-correct min
              els.fretMin.value = els.fretMax.value;
         }
 
@@ -953,7 +1002,6 @@
         
         if (selectedStrings.length === 0) {
             alert("少なくとも1本の弦を選択してください");
-            // Auto check all back or wait? Let's re-check all for safety
             els.stringSettings.querySelectorAll('input').forEach(cb => cb.checked = true);
             selectedStrings = [0,1,2,3,4,5];
         }
@@ -964,8 +1012,6 @@
 
     function renderStringSettings() {
         els.stringSettings.innerHTML = '';
-        // 0=HighE ... 5=LowE. 
-        // Label should be "1弦", "2弦"... 
         for(let i=0; i<6; i++) {
             const lbl = document.createElement('label');
             lbl.className = 'string-checkbox';
@@ -1020,7 +1066,7 @@
     function renderStats() {
         const grid = els.noteStatsGrid;
         grid.innerHTML = '';
-        noteNames.forEach((n, i) => {
+        currentNoteNames.forEach((n, i) => {
             const s = noteStats[i];
             const p = s.asked > 0 ? Math.round((s.correct/s.asked)*100) : 0;
             const div = document.createElement('div');
