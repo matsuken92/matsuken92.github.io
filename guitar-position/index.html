@@ -505,6 +505,16 @@
                     <input type="radio" name="notation" value="alphabet" onchange="handleNotationChange()"> CDE
                 </label>
             </div>
+            <!-- Separator or spacing -->
+            <div style="width: 20px;"></div>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="radio" name="accidental" value="flat" checked onchange="handleNotationChange()"> ♭系
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="accidental" value="sharp" onchange="handleNotationChange()"> ♯系
+                </label>
+            </div>
         </div>
 
         <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題フレット範囲 (0〜11)</div>
@@ -529,11 +539,13 @@
     // --- Configuration ---
     
     // Notes Data
-    const NOTE_NAMES_KANA = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
-    const NOTE_NAMES_ALPHA = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const NOTE_NAMES_KANA_SHARP = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+    const NOTE_NAMES_KANA_FLAT = ['ド', 'レ♭', 'レ', 'ミ♭', 'ミ', 'ファ', 'ソ♭', 'ソ', 'ラ♭', 'ラ', 'シ♭', 'シ'];
+    const NOTE_NAMES_ALPHA_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const NOTE_NAMES_ALPHA_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
     
-    // Default to Kana
-    let currentNoteNames = NOTE_NAMES_KANA;
+    // Default to Kana Flat
+    let currentNoteNames = NOTE_NAMES_KANA_FLAT;
 
     const keyLabels = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
     const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
@@ -559,6 +571,9 @@
 
     // Mode 1 State
     let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0 }));
+    // Position Stats (6 strings x 12 frets) - For weighted selection
+    let positionStats = [];
+
     let selectedKeys = [];
     let keyQueue = [];
     let currentKeyIndex = -1;
@@ -586,7 +601,7 @@
         rate: document.getElementById('rate-display'),
         msg: document.getElementById('message'),
         subMsg: document.getElementById('sub-message'),
-        nextBtn: document.getElementById('next-btn'), // Added next button
+        nextBtn: document.getElementById('next-btn'), 
         tabNote: document.getElementById('tab-note'),
         tabInterval: document.getElementById('tab-interval'),
         panelNoteStats: document.getElementById('panel-note-stats'),
@@ -604,18 +619,29 @@
 
     // --- Initialization ---
     function init() {
+        initPositionStats();
         renderKeypad();
         renderKeySettings();
         renderStringSettings();
         
-        // Setup Next Button
         els.nextBtn.onclick = () => {
             els.nextBtn.style.display = 'none';
             if(currentMode === 'note') nextNoteQuestion();
             else nextIntervalQuestion();
         };
 
-        setMode('note'); // Default
+        setMode('note'); 
+    }
+
+    function initPositionStats() {
+        positionStats = [];
+        for(let s=0; s<6; s++) {
+            let row = [];
+            for(let f=0; f<=MAX_FRET; f++) {
+                row.push({ asked: 0, correct: 0 });
+            }
+            positionStats.push(row);
+        }
     }
 
     // --- Mode Switching ---
@@ -623,12 +649,11 @@
         currentMode = mode;
         isProcessing = false;
         
-        // Reset Score
         score = 0;
         totalQuestions = 0;
         updateScoreDisplay();
         
-        els.nextBtn.style.display = 'none'; // Hide next button on switch
+        els.nextBtn.style.display = 'none';
 
         // UI Toggles
         if (mode === 'note') {
@@ -689,7 +714,6 @@
         }
     }
 
-    // Render keypad based on current notation
     function renderKeypad() {
         els.keypad.innerHTML = '';
         currentNoteNames.forEach((note, index) => {
@@ -703,11 +727,9 @@
 
     // --- Core Logic: Note Mode ---
     function nextNoteQuestion() {
-        // Clear previous state
         renderFretboard(); 
         removeDots();
         
-        // Reset keypad highlighting
         const btns = els.keypad.querySelectorAll('.note-btn');
         btns.forEach(b => {
             b.classList.remove('wrong-animation', 'show-answer');
@@ -738,11 +760,9 @@
 
         let candidates = [];
         for (let s = 0; s < 6; s++) {
-            // Check String Filter
             if (!selectedStrings.includes(s)) continue;
 
             for (let f = 0; f <= MAX_FRET; f++) {
-                // Check Fret Filter
                 if (f < fretRange.min || f > fretRange.max) continue;
 
                 const note = (stringTuning[s] + f) % 12;
@@ -755,7 +775,32 @@
             return;
         }
 
-        const q = candidates[Math.floor(Math.random() * candidates.length)];
+        // WEIGHTED SELECTION LOGIC
+        let totalWeight = 0;
+        const weights = candidates.map(c => {
+            const stat = positionStats[c.s][c.f];
+            if (stat.asked === 0) return 50; // High priority for unasked
+            const rate = stat.correct / stat.asked;
+            // Lower rate -> Higher weight. 
+            // Min weight 1 (for 100% correct), Max weight 21 (for 0% correct)
+            return 1 + (1 - rate) * 20; 
+        });
+
+        weights.forEach(w => totalWeight += w);
+        
+        let randomVal = Math.random() * totalWeight;
+        let selectedIndex = -1;
+        
+        for (let i = 0; i < weights.length; i++) {
+            randomVal -= weights[i];
+            if (randomVal <= 0) {
+                selectedIndex = i;
+                break;
+            }
+        }
+        if (selectedIndex === -1) selectedIndex = weights.length - 1;
+
+        const q = candidates[selectedIndex];
         currentNoteQ = q;
 
         placeDot(q.s, q.f, 'question-dot');
@@ -771,11 +816,22 @@
         if (isProcessing) return;
         isProcessing = true;
         totalQuestions++;
+        
+        // Update general stats
         noteStats[currentNoteQ.ans].asked++;
+        
+        // Update position stats
+        if (positionStats[currentNoteQ.s] && positionStats[currentNoteQ.s][currentNoteQ.f]) {
+            positionStats[currentNoteQ.s][currentNoteQ.f].asked++;
+        }
 
         if (idx === currentNoteQ.ans) {
             score++;
             noteStats[currentNoteQ.ans].correct++;
+            if (positionStats[currentNoteQ.s][currentNoteQ.f]) {
+                positionStats[currentNoteQ.s][currentNoteQ.f].correct++;
+            }
+
             els.msg.textContent = "正解！";
             els.msg.style.color = "#4cc9f0";
             btn.classList.add('correct-animation');
@@ -790,13 +846,11 @@
             els.msg.style.color = "#e63946";
             btn.classList.add('wrong-animation');
             
-            // Highlight the correct button
             const correctBtn = els.keypad.children[currentNoteQ.ans];
             if(correctBtn) correctBtn.classList.add('show-answer');
 
             renderStats();
             
-            // Show Next Button instead of auto-advance
             els.nextBtn.style.display = 'inline-block';
         }
         updateScoreDisplay();
@@ -943,6 +997,7 @@
         if(!confirm("成績をリセットしますか？")) return;
         score = 0; totalQuestions = 0;
         noteStats = noteStats.map(() => ({ asked: 0, correct: 0 }));
+        initPositionStats(); // Reset position stats
         renderStats();
         updateScoreDisplay();
     };
@@ -956,18 +1011,16 @@
 
     // Notation Switch
     window.handleNotationChange = function() {
-        const selected = document.querySelector('input[name="notation"]:checked').value;
-        if (selected === 'alphabet') {
-            currentNoteNames = NOTE_NAMES_ALPHA;
+        const notationType = document.querySelector('input[name="notation"]:checked').value; // 'kana' or 'alphabet'
+        const accidentalType = document.querySelector('input[name="accidental"]:checked').value; // 'sharp' or 'flat'
+
+        if (notationType === 'alphabet') {
+            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_ALPHA_SHARP : NOTE_NAMES_ALPHA_FLAT;
         } else {
-            currentNoteNames = NOTE_NAMES_KANA;
+            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_KANA_SHARP : NOTE_NAMES_KANA_FLAT;
         }
         renderKeypad();
         renderStats();
-        // If current question is showing correct/wrong, might want to update message, 
-        // but simplest is just to wait for next question or manual interaction.
-        // However, if we just switched, buttons are re-rendered so we lose highlighting.
-        // If "next" button is visible, we should re-highlight.
         if (els.nextBtn.style.display !== 'none' && currentMode === 'note') {
              const correctBtn = els.keypad.children[currentNoteQ.ans];
              if(correctBtn) correctBtn.classList.add('show-answer');
