@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ギター指板トレーニング</title>
+    <style>
+        :root {
+            --fret-color: #d4a373;
+            --fret-dark: #a9845b;
+            --string-color: #c0c0c0;
+            --bg-color: #222;
+            --text-color: #fff;
+            --highlight: #e63946; /* Red for question */
+            --answer-color: #2a9d8f; /* Green for correct answer */
+            --btn-bg: #457b9d;
+            --btn-hover: #1d3557;
+            --panel-bg: rgba(255,255,255,0.05);
+            --active-tab: #457b9d;
+            --inactive-tab: #333;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 5px 0 10px;
+            text-align: center;
+        }
+
+        /* --- Mode Tabs --- */
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            background: #111;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .tab-btn {
+            background: var(--inactive-tab);
+            color: #aaa;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--active-tab);
+            color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        /* --- Status Bar --- */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Changed for button placement */
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+            min-height: 60px; /* Increased height for button */
+        }
+
+        .score-info {
+            display: flex;
+            flex-direction: column;
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .message-area {
+            flex-grow: 1;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .main-message {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #f1faee;
+            margin-bottom: 2px;
+        }
+
+        .sub-message {
+            font-size: 0.8rem;
+            color: #ffd166;
+            margin-bottom: 5px;
+        }
+
+        /* Next Button */
+        .next-btn {
+            background-color: #ffd166;
+            color: #222;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+            animation: bounceIn 0.3s;
+            display: none; /* Hidden by default */
+        }
+        .next-btn:hover {
+            background-color: #ffca3a;
+            transform: scale(1.05);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- Fretboard --- */
+        .fretboard-wrapper {
+            width: 100%;
+            max-width: 800px;
+            overflow-x: auto; 
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .fretboard {
+            display: grid;
+            grid-template-columns: 35px repeat(11, 1fr); 
+            grid-template-rows: repeat(6, 35px);
+            border: 3px solid #111;
+            border-radius: 4px;
+            background-color: var(--fret-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: relative;
+            width: 100%;
+            min-width: 320px; 
+            /* Prevent text selection on click */
+            user-select: none; 
+        }
+
+        /* Clickable cursor for Interval Mode */
+        .fretboard.interactive .fret {
+            cursor: pointer;
+        }
+        .fretboard.interactive .fret:hover {
+            filter: brightness(1.1);
+        }
+
+        .fret {
+            border-right: 2px solid silver;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .fret.fret-0 {
+            background-color: #333; 
+            border-right: 4px solid #ddd;
+            color: #fff;
+        }
+        .fret.fret-11 { border-right: none; }
+
+        .string-line {
+            position: absolute;
+            left: 0; right: 0; top: 50%;
+            background-color: var(--string-color);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Updated CSS Selectors to match data-string attribute */
+        .fret[data-string="0"] .string-line { height: 1px; transform: translateY(-0.5px); }
+        .fret[data-string="1"] .string-line { height: 1.5px; transform: translateY(-0.75px); }
+        .fret[data-string="2"] .string-line { height: 2px; transform: translateY(-1px); }
+        .fret[data-string="3"] .string-line { height: 2.5px; transform: translateY(-1.25px); }
+        .fret[data-string="4"] .string-line { height: 3px; transform: translateY(-1.5px); }
+        .fret[data-string="5"] .string-line { height: 3.5px; transform: translateY(-1.75px); }
+
+        .fret-number {
+            position: absolute;
+            bottom: -18px;
+            font-size: 0.7rem;
+            color: #aaa;
+            width: 100%;
+            text-align: center;
+        }
+
+        .marker {
+            position: absolute;
+            width: 12px; height: 12px;
+            background-color: rgba(0,0,0,0.25);
+            border-radius: 50%;
+            z-index: 1;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            top: 35px; 
+        }
+
+        /* Question Dot (Red) */
+        .question-dot {
+            width: 18px; height: 18px;
+            background-color: var(--highlight);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 0 8px var(--highlight);
+            animation: pulse 1.5s infinite;
+            pointer-events: none; /* Allow clicking through */
+        }
+
+        /* Answer Marker (Green) - For feedback in Interval Mode */
+        .answer-marker {
+            width: 18px; height: 18px;
+            background-color: var(--answer-color);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 9;
+            box-shadow: 0 0 8px var(--answer-color);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        /* Click Feedback Marker (Temporary) */
+        .click-marker {
+            width: 100%; height: 100%;
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.3);
+            z-index: 5;
+            animation: fadeOut 0.5s forwards;
+        }
+        .click-marker.wrong { background-color: rgba(230, 57, 70, 0.5); }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 4px var(--highlight); }
+            50% { transform: scale(1.3); box-shadow: 0 0 10px var(--highlight); }
+            100% { transform: scale(1); box-shadow: 0 0 4px var(--highlight); }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        /* --- Controls (Note Mode) --- */
+        .controls-note {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 15px;
+        }
+        .controls-note.hidden { display: none; }
+
+        .note-btn {
+            background-color: var(--btn-bg);
+            color: white;
+            border: none;
+            padding: 10px 2px;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .note-btn:hover { background-color: var(--btn-hover); }
+        .note-btn:active { transform: translateY(2px); }
+        .note-btn.show-answer { background-color: #2a9d8f !important; transform: scale(1.05); }
+
+        .correct-animation { background-color: #2a9d8f !important; transform: scale(1.05); }
+        .wrong-animation { background-color: #e63946 !important; animation: shake 0.4s; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- Question Display (Interval Mode) --- */
+        .interval-question {
+            display: none; /* Shown in interval mode */
+            background: var(--panel-bg);
+            border: 1px solid #457b9d;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        .interval-question.visible { display: block; }
+        
+        .interval-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .interval-hint {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* --- Panels --- */
+        .panel {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--panel-bg);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid #444;
+        }
+        .panel.hidden { display: none; }
+
+        .panel-title {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #ddd;
+            border-bottom: 1px solid #555;
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .stat-item {
+            background: rgba(0,0,0,0.3);
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .stat-bar-container {
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            width: 100%;
+            margin: 4px 0;
+            overflow: hidden;
+        }
+
+        .stat-bar {
+            height: 100%;
+            background: #2a9d8f;
+            width: 0%;
+        }
+
+        /* Settings CSS */
+        .key-grid, .string-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .key-checkbox, .string-checkbox {
+            display: flex; align-items: center; cursor: pointer;
+            background: rgba(0,0,0,0.3); padding: 6px; border-radius: 4px;
+            font-size: 0.85rem; user-select: none;
+        }
+        .key-checkbox:hover, .string-checkbox:hover { background: rgba(255,255,255,0.1); }
+        .key-checkbox input, .string-checkbox input { margin-right: 5px; }
+
+        .setting-row {
+            display: flex; align-items: center; margin-bottom: 8px; font-size: 0.9rem; color: #ccc;
+        }
+        .setting-input {
+            width: 50px; margin-left: 8px; background: #333; color: #fff;
+            border: 1px solid #555; border-radius: 4px; padding: 3px;
+        }
+
+        .btn-small {
+            background: #555; border: none; color: #fff;
+            padding: 3px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer;
+        }
+        .btn-small:hover { background: #777; }
+
+        @media (max-width: 500px) {
+            .fretboard { grid-template-rows: repeat(6, 30px); }
+            .marker { top: 30px; }
+            .note-btn { font-size: 0.8rem; padding: 8px 0; }
+            .key-grid, .string-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            h1 { font-size: 1.1rem; }
+            .interval-text { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎸 ギター指板トレーニング</h1>
+
+    <!-- Tabs -->
+    <div class="mode-tabs">
+        <button class="tab-btn active" id="tab-note" onclick="setMode('note')">音名暗記</button>
+        <button class="tab-btn" id="tab-interval" onclick="setMode('interval')">相対位置 (度数)</button>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="score-info">
+            <span id="score-display">正解: 0 / 0</span>
+            <span id="rate-display">率: 0%</span>
+        </div>
+        <div class="message-area">
+            <span class="main-message" id="message">読み込み中...</span>
+            <span class="sub-message" id="sub-message"></span>
+            <button id="next-btn" class="next-btn">次へ >></button>
+        </div>
+    </div>
+
+    <!-- Fretboard -->
+    <div class="fretboard-wrapper" id="fretboard-scroller">
+        <div class="fretboard" id="fretboard">
+            <!-- JS injects grid -->
+        </div>
+    </div>
+
+    <!-- MODE 1: Note Quiz Controls -->
+    <div class="controls-note" id="keypad">
+        <!-- JS injects buttons -->
+    </div>
+
+    <!-- MODE 2: Interval Question Display -->
+    <div class="interval-question" id="interval-display">
+        <div class="interval-text" id="interval-question-text"></div>
+        <div class="interval-hint">指板上の正解の位置をクリックしてください</div>
+    </div>
+
+    <!-- MODE 1: Note Stats Panel -->
+    <div class="panel" id="panel-note-stats">
+        <div class="panel-title">
+            <span>音名ごとの成績</span>
+            <button class="btn-small" onclick="resetStats()">成績リセット</button>
+        </div>
+        <div class="stats-grid" id="note-stats-grid"></div>
+    </div>
+
+    <!-- MODE 1: Settings Panel -->
+    <div class="panel" id="panel-note-settings">
+        <div class="panel-title">
+            <span>音名モード出題設定</span>
+            <button class="btn-small" onclick="clearAllKeys()">キー選択リセット</button>
+        </div>
+        
+        <div class="setting-row">
+            <label>1キーあたりの出題数:</label>
+            <input type="number" id="questionsPerKey" value="10" min="1" max="50" class="setting-input" onchange="handleSettingsChange()">
+        </div>
+
+        <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題フレット範囲 (0〜11)</div>
+        <div class="setting-row">
+            <label>Min:</label>
+            <input type="number" id="fretMin" value="0" min="0" max="11" class="setting-input" style="width:40px;" onchange="handleFretRangeChange()">
+            <label style="margin-left:15px;">Max:</label>
+            <input type="number" id="fretMax" value="11" min="0" max="11" class="setting-input" style="width:40px;" onchange="handleFretRangeChange()">
+        </div>
+
+        <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題する弦 (デフォルト全選択)</div>
+        <div class="string-grid" id="string-settings"></div>
+
+        <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題キー選択 (メジャー)</div>
+        <div class="key-grid" id="key-settings"></div>
+        <div style="font-size:0.8rem; color:#aaa; margin-top:8px; font-style:italic;" id="mode-desc">
+            ※チェックなし時は全音がランダム出題
+        </div>
+    </div>
+
+<script>
+    // --- Configuration ---
+    
+    // Notes
+    const noteNames = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+    const keyLabels = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+    const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
+
+    const intervals = [
+        { semi: 1, name: "短2度" }, { semi: 2, name: "長2度" },
+        { semi: 3, name: "短3度" }, { semi: 4, name: "長3度" },
+        { semi: 5, name: "完全4度" }, { semi: 6, name: "増4度 / 減5度" },
+        { semi: 7, name: "完全5度" }, { semi: 8, name: "短6度" },
+        { semi: 9, name: "長6度" }, { semi: 10, name: "短7度" },
+        { semi: 11, name: "長7度" }, { semi: 12, name: "オクターブ" }
+    ];
+
+    const stringOffsets = [24, 19, 15, 10, 5, 0]; 
+    const stringTuning = [4, 11, 7, 2, 9, 4]; 
+    const MAX_FRET = 11;
+
+    // State
+    let currentMode = 'note'; 
+    let score = 0;
+    let totalQuestions = 0;
+    let isProcessing = false;
+
+    // Mode 1 State
+    let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0 }));
+    let selectedKeys = [];
+    let keyQueue = [];
+    let currentKeyIndex = -1;
+    let questionsServedInCurrentKey = 0;
+    let targetQuestionsPerKey = 10;
+    let currentNoteQ = { s:0, f:0, ans:0 };
+    
+    // New Mode 1 Settings
+    let selectedStrings = [0, 1, 2, 3, 4, 5]; // 0=1st(High E) ... 5=6th(Low E)
+    let fretRange = { min: 0, max: 11 };
+
+    // Mode 2 State
+    let currentIntervalQ = { 
+        baseS: 0, baseF: 0, 
+        targetPitch: 0, 
+        intervalName: "", 
+        direction: 1 // 1=Up, -1=Down 
+    };
+
+    // DOM Elements
+    const els = {
+        fretboard: document.getElementById('fretboard'),
+        keypad: document.getElementById('keypad'),
+        score: document.getElementById('score-display'),
+        rate: document.getElementById('rate-display'),
+        msg: document.getElementById('message'),
+        subMsg: document.getElementById('sub-message'),
+        nextBtn: document.getElementById('next-btn'), // Added next button
+        tabNote: document.getElementById('tab-note'),
+        tabInterval: document.getElementById('tab-interval'),
+        panelNoteStats: document.getElementById('panel-note-stats'),
+        panelNoteSettings: document.getElementById('panel-note-settings'),
+        intervalDisplay: document.getElementById('interval-display'),
+        intervalText: document.getElementById('interval-question-text'),
+        noteStatsGrid: document.getElementById('note-stats-grid'),
+        keySettings: document.getElementById('key-settings'),
+        stringSettings: document.getElementById('string-settings'),
+        modeDesc: document.getElementById('mode-desc'),
+        qPerKey: document.getElementById('questionsPerKey'),
+        fretMin: document.getElementById('fretMin'),
+        fretMax: document.getElementById('fretMax')
+    };
+
+    // --- Initialization ---
+    function init() {
+        renderKeypad();
+        renderKeySettings();
+        renderStringSettings();
+        
+        // Setup Next Button
+        els.nextBtn.onclick = () => {
+            els.nextBtn.style.display = 'none';
+            if(currentMode === 'note') nextNoteQuestion();
+            else nextIntervalQuestion();
+        };
+
+        setMode('note'); // Default
+    }
+
+    // --- Mode Switching ---
+    window.setMode = function(mode) {
+        currentMode = mode;
+        isProcessing = false;
+        
+        // Reset Score
+        score = 0;
+        totalQuestions = 0;
+        updateScoreDisplay();
+        
+        els.nextBtn.style.display = 'none'; // Hide next button on switch
+
+        // UI Toggles
+        if (mode === 'note') {
+            els.tabNote.classList.add('active');
+            els.tabInterval.classList.remove('active');
+            els.keypad.classList.remove('hidden');
+            els.intervalDisplay.classList.remove('visible');
+            els.panelNoteStats.classList.remove('hidden');
+            els.panelNoteSettings.classList.remove('hidden');
+            els.fretboard.classList.remove('interactive');
+            renderStats();
+            nextNoteQuestion();
+        } else {
+            els.tabNote.classList.remove('active');
+            els.tabInterval.classList.add('active');
+            els.keypad.classList.add('hidden');
+            els.intervalDisplay.classList.add('visible');
+            els.panelNoteStats.classList.add('hidden');
+            els.panelNoteSettings.classList.add('hidden');
+            els.fretboard.classList.add('interactive');
+            els.subMsg.textContent = "";
+            nextIntervalQuestion();
+        }
+    };
+
+    // --- Rendering Fretboard ---
+    function renderFretboard() {
+        const fb = els.fretboard;
+        fb.innerHTML = '';
+        
+        for (let s = 0; s < 6; s++) {
+            for (let f = 0; f <= MAX_FRET; f++) {
+                const cell = document.createElement('div');
+                cell.className = `fret fret-${f}`;
+                cell.dataset.string = s; 
+                cell.dataset.fret = f;
+                
+                cell.onclick = (e) => handleFretClick(s, f, cell, e);
+
+                const line = document.createElement('div');
+                line.className = 'string-line';
+                cell.appendChild(line);
+
+                if (s === 2 && [3, 5, 7, 9].includes(f)) {
+                    const marker = document.createElement('div');
+                    marker.className = 'marker';
+                    cell.appendChild(marker);
+                }
+
+                if (s === 5 && f > 0) {
+                    const num = document.createElement('div');
+                    num.className = 'fret-number';
+                    num.innerText = f;
+                    cell.appendChild(num);
+                }
+                fb.appendChild(cell);
+            }
+        }
+    }
+
+    // Render keypad once
+    function renderKeypad() {
+        els.keypad.innerHTML = '';
+        noteNames.forEach((note, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'note-btn';
+            btn.textContent = note;
+            btn.onclick = () => handleNoteAnswer(index, btn);
+            els.keypad.appendChild(btn);
+        });
+    }
+
+    // --- Core Logic: Note Mode ---
+    function nextNoteQuestion() {
+        // Clear previous state
+        renderFretboard(); 
+        removeDots();
+        
+        // Reset keypad highlighting
+        const btns = els.keypad.querySelectorAll('.note-btn');
+        btns.forEach(b => {
+            b.classList.remove('wrong-animation', 'show-answer');
+            b.style.backgroundColor = ''; 
+        });
+
+        els.nextBtn.style.display = 'none';
+
+        let activeKey = -1;
+        if (selectedKeys.length > 0) {
+            if (currentKeyIndex === -1 || questionsServedInCurrentKey >= targetQuestionsPerKey) {
+                if (keyQueue.length === 0) keyQueue = shuffleArray([...selectedKeys]);
+                currentKeyIndex = keyQueue.pop();
+                questionsServedInCurrentKey = 0;
+                els.msg.textContent = `Key: ${keyLabels[currentKeyIndex]} に変わりました`;
+                els.msg.style.color = "#ffd166";
+            }
+            activeKey = currentKeyIndex;
+            questionsServedInCurrentKey++;
+            els.subMsg.textContent = `Key: ${keyLabels[activeKey]} (${questionsServedInCurrentKey}/${targetQuestionsPerKey})`;
+        } else {
+            els.subMsg.textContent = "全音ランダム";
+        }
+
+        let validIndices = new Set();
+        if (activeKey === -1) for(let i=0; i<12; i++) validIndices.add(i);
+        else getNotesInKey(activeKey).forEach(n => validIndices.add(n));
+
+        let candidates = [];
+        for (let s = 0; s < 6; s++) {
+            // Check String Filter
+            if (!selectedStrings.includes(s)) continue;
+
+            for (let f = 0; f <= MAX_FRET; f++) {
+                // Check Fret Filter
+                if (f < fretRange.min || f > fretRange.max) continue;
+
+                const note = (stringTuning[s] + f) % 12;
+                if (validIndices.has(note)) candidates.push({s, f, ans: note});
+            }
+        }
+
+        if (candidates.length === 0) {
+            alert("条件に一致する出題候補がありません。設定を見直してください。");
+            return;
+        }
+
+        const q = candidates[Math.floor(Math.random() * candidates.length)];
+        currentNoteQ = q;
+
+        placeDot(q.s, q.f, 'question-dot');
+        
+        if (questionsServedInCurrentKey !== 1) {
+            els.msg.textContent = "この音は何？";
+            els.msg.style.color = "#f1faee";
+        }
+        isProcessing = false;
+    }
+
+    function handleNoteAnswer(idx, btn) {
+        if (isProcessing) return;
+        isProcessing = true;
+        totalQuestions++;
+        noteStats[currentNoteQ.ans].asked++;
+
+        if (idx === currentNoteQ.ans) {
+            score++;
+            noteStats[currentNoteQ.ans].correct++;
+            els.msg.textContent = "正解！";
+            els.msg.style.color = "#4cc9f0";
+            btn.classList.add('correct-animation');
+            renderStats();
+            setTimeout(() => {
+                btn.classList.remove('correct-animation');
+                nextNoteQuestion();
+            }, 600);
+        } else {
+            // WRONG
+            els.msg.textContent = `残念... 正解は「${noteNames[currentNoteQ.ans]}」`;
+            els.msg.style.color = "#e63946";
+            btn.classList.add('wrong-animation');
+            
+            // Highlight the correct button
+            const correctBtn = els.keypad.children[currentNoteQ.ans];
+            if(correctBtn) correctBtn.classList.add('show-answer');
+
+            renderStats();
+            
+            // Show Next Button instead of auto-advance
+            els.nextBtn.style.display = 'inline-block';
+        }
+        updateScoreDisplay();
+    }
+
+    // --- Core Logic: Interval Mode ---
+
+    function nextIntervalQuestion() {
+        renderFretboard(); 
+        els.nextBtn.style.display = 'none';
+        
+        const s = Math.floor(Math.random() * 6);
+        const f = Math.floor(Math.random() * (MAX_FRET + 1));
+        const basePitch = stringOffsets[s] + f;
+        
+        let validQ = null;
+        for(let i=0; i<30; i++) {
+            const intObj = intervals[Math.floor(Math.random() * intervals.length)];
+            const dir = Math.random() < 0.5 ? 1 : -1; 
+            
+            let shift = 0;
+            if (dir === 1) {
+                shift = intObj.semi;
+            } else {
+                if (intObj.semi === 12) {
+                    shift = -12;
+                } else {
+                    shift = -(12 - intObj.semi);
+                }
+            }
+
+            const targetPitch = basePitch + shift;
+            
+            if (targetExistsOnBoard(targetPitch)) {
+                validQ = {
+                    baseS: s, baseF: f,
+                    targetPitch: targetPitch,
+                    intervalName: intObj.name,
+                    direction: dir
+                };
+                break;
+            }
+        }
+
+        if (!validQ) { nextIntervalQuestion(); return; }
+
+        currentIntervalQ = validQ;
+
+        placeDot(currentIntervalQ.baseS, currentIntervalQ.baseF, 'question-dot');
+
+        const dirText = currentIntervalQ.direction === 1 ? "上" : "下";
+        els.intervalText.textContent = `赤い音の【 ${dirText}の ${currentIntervalQ.intervalName} 】はどこ？`;
+        els.msg.textContent = "位置をクリックして回答";
+        els.msg.style.color = "#f1faee";
+        
+        isProcessing = false;
+    }
+
+    function targetExistsOnBoard(targetAbsPitch) {
+        for (let s = 0; s < 6; s++) {
+            const base = stringOffsets[s];
+            const reqFret = targetAbsPitch - base;
+            if (reqFret >= 0 && reqFret <= MAX_FRET) return true;
+        }
+        return false;
+    }
+
+    function handleFretClick(s, f, cell, e) {
+        if (currentMode !== 'interval' || isProcessing) return;
+        
+        isProcessing = true;
+        totalQuestions++;
+
+        const clickedPitch = stringOffsets[s] + f;
+        const isCorrect = (clickedPitch === currentIntervalQ.targetPitch);
+
+        const feedback = document.createElement('div');
+        feedback.className = `click-marker ${isCorrect ? '' : 'wrong'}`;
+        cell.appendChild(feedback);
+
+        if (isCorrect) {
+            score++;
+            els.msg.textContent = "正解！";
+            els.msg.style.color = "#2a9d8f";
+            showAllCorrectSpots(currentIntervalQ.targetPitch);
+            setTimeout(nextIntervalQuestion, 1500);
+        } else {
+            // WRONG
+            els.msg.textContent = "不正解... 正解は緑の場所です";
+            els.msg.style.color = "#e63946";
+            
+            // Show Answer
+            showAllCorrectSpots(currentIntervalQ.targetPitch);
+            
+            // Show Next Button instead of auto-advance
+            els.nextBtn.style.display = 'inline-block';
+        }
+        updateScoreDisplay();
+    }
+
+    function showAllCorrectSpots(targetPitch) {
+        for (let s = 0; s < 6; s++) {
+            const reqFret = targetPitch - stringOffsets[s];
+            if (reqFret >= 0 && reqFret <= MAX_FRET) {
+                placeDot(s, reqFret, 'answer-marker');
+            }
+        }
+    }
+
+    // --- Common Utils ---
+
+    function placeDot(s, f, className) {
+        const cols = MAX_FRET + 1;
+        const idx = (s * cols) + f;
+        const cell = els.fretboard.children[idx];
+        if (cell) {
+            const dot = document.createElement('div');
+            dot.className = className;
+            cell.appendChild(dot);
+        }
+    }
+
+    function removeDots() {
+        document.querySelectorAll('.question-dot, .answer-marker').forEach(el => el.remove());
+    }
+
+    function updateScoreDisplay() {
+        els.score.textContent = `正解: ${score} / ${totalQuestions}`;
+        const rate = totalQuestions > 0 ? Math.round((score/totalQuestions)*100) : 0;
+        els.rate.textContent = `率: ${rate}%`;
+    }
+
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // --- Settings / Stats Logic ---
+
+    window.resetStats = function() {
+        if(!confirm("成績をリセットしますか？")) return;
+        score = 0; totalQuestions = 0;
+        noteStats = noteStats.map(() => ({ asked: 0, correct: 0 }));
+        renderStats();
+        updateScoreDisplay();
+    };
+
+    window.handleSettingsChange = function() {
+        const val = parseInt(els.qPerKey.value);
+        if (val > 0) targetQuestionsPerKey = val;
+        resetKeyProgression();
+        if(currentMode === 'note') nextNoteQuestion();
+    };
+    
+    // New Handlers
+    window.handleFretRangeChange = function() {
+        const minVal = parseInt(els.fretMin.value);
+        const maxVal = parseInt(els.fretMax.value);
+        
+        // Simple Validation
+        if (minVal < 0) els.fretMin.value = 0;
+        if (maxVal > MAX_FRET) els.fretMax.value = MAX_FRET;
+        if (parseInt(els.fretMin.value) > parseInt(els.fretMax.value)) {
+            // Swap if min > max or just warn? Let's auto-correct min
+             els.fretMin.value = els.fretMax.value;
+        }
+
+        fretRange.min = parseInt(els.fretMin.value);
+        fretRange.max = parseInt(els.fretMax.value);
+        
+        resetKeyProgression();
+        if(currentMode === 'note') nextNoteQuestion();
+    };
+
+    window.handleStringSelectionChange = function() {
+        selectedStrings = [];
+        els.stringSettings.querySelectorAll('input:checked').forEach(cb => {
+            selectedStrings.push(parseInt(cb.value));
+        });
+        
+        if (selectedStrings.length === 0) {
+            alert("少なくとも1本の弦を選択してください");
+            // Auto check all back or wait? Let's re-check all for safety
+            els.stringSettings.querySelectorAll('input').forEach(cb => cb.checked = true);
+            selectedStrings = [0,1,2,3,4,5];
+        }
+
+        resetKeyProgression();
+        if(currentMode === 'note') nextNoteQuestion();
+    };
+
+    function renderStringSettings() {
+        els.stringSettings.innerHTML = '';
+        // 0=HighE ... 5=LowE. 
+        // Label should be "1弦", "2弦"... 
+        for(let i=0; i<6; i++) {
+            const lbl = document.createElement('label');
+            lbl.className = 'string-checkbox';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = i;
+            cb.checked = true; // Default all checked
+            cb.onchange = handleStringSelectionChange;
+            lbl.append(cb, `${i+1}弦`);
+            els.stringSettings.appendChild(lbl);
+        }
+    }
+
+    window.clearAllKeys = function() {
+        els.keySettings.querySelectorAll('input').forEach(cb => cb.checked = false);
+        handleKeySelectionChange();
+    };
+
+    function renderKeySettings() {
+        els.keySettings.innerHTML = '';
+        keyLabels.forEach((label, index) => {
+            const lbl = document.createElement('label');
+            lbl.className = 'key-checkbox';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = index;
+            cb.onchange = handleKeySelectionChange;
+            lbl.append(cb, label);
+            els.keySettings.appendChild(lbl);
+        });
+    }
+
+    function handleKeySelectionChange() {
+        selectedKeys = [];
+        els.keySettings.querySelectorAll('input:checked').forEach(cb => selectedKeys.push(parseInt(cb.value)));
+        
+        if (selectedKeys.length === 0) els.modeDesc.textContent = "※チェックなし時は全音がランダム出題";
+        else els.modeDesc.textContent = `選択中: ${selectedKeys.map(k=>keyLabels[k]).join(', ')}`;
+        
+        resetKeyProgression();
+        if(currentMode === 'note') nextNoteQuestion();
+    }
+
+    function resetKeyProgression() {
+        keyQueue = []; currentKeyIndex = -1; questionsServedInCurrentKey = 0;
+    }
+
+    function getNotesInKey(keyIdx) {
+        return MAJOR_SCALE_INTERVALS.map(iv => (keyIdx + iv) % 12);
+    }
+
+    function renderStats() {
+        const grid = els.noteStatsGrid;
+        grid.innerHTML = '';
+        noteNames.forEach((n, i) => {
+            const s = noteStats[i];
+            const p = s.asked > 0 ? Math.round((s.correct/s.asked)*100) : 0;
+            const div = document.createElement('div');
+            div.className = 'stat-item';
+            div.innerHTML = `
+                <span style="font-weight:bold; display:block;">${n}</span>
+                <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background:${p<50?'#e63946':p<80?'#ffd166':'#2a9d8f'}"></div></div>
+                <span style="font-size:0.75rem; color:#ccc;">${p}%</span>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    init();
+
+</script>
+</body>
+</html>
