@@ -18,6 +18,9 @@
             --panel-bg: rgba(255,255,255,0.05);
             --active-tab: #457b9d;
             --inactive-tab: #333;
+            
+            /* Visual Settings */
+            --row-height: 22px; /* Default string spacing (narrower) */
         }
 
         body {
@@ -140,7 +143,7 @@
             max-width: 800px;
             overflow-x: auto; 
             margin-bottom: 15px;
-            padding-bottom: 30px; /* Increased from 5px to prevent fret numbers from being cut off */
+            padding-bottom: 30px; 
             display: flex;
             justify-content: center;
         }
@@ -148,7 +151,8 @@
         .fretboard {
             display: grid;
             grid-template-columns: 35px repeat(11, 1fr); 
-            grid-template-rows: repeat(6, 35px);
+            /* Use CSS Variable for row height */
+            grid-template-rows: repeat(6, var(--row-height));
             border: 3px solid #111;
             border-radius: 4px;
             background-color: var(--fret-color);
@@ -214,7 +218,8 @@
             z-index: 1;
             left: 50%;
             transform: translate(-50%, -50%);
-            top: 35px; 
+            /* Marker sits at the bottom of the cell (between strings visually) */
+            top: var(--row-height); 
         }
 
         .question-dot {
@@ -367,6 +372,13 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
+        
+        /* 3-column grid for strings (6 items) */
+        .stats-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
 
         .stat-item {
             background: rgba(0,0,0,0.3);
@@ -433,11 +445,12 @@
         .btn-small:hover { background: #777; }
 
         @media (max-width: 500px) {
-            .fretboard { grid-template-rows: repeat(6, 30px); }
-            .marker { top: 30px; }
+            .fretboard { grid-template-rows: repeat(6, var(--row-height)); } /* Maintain variable logic */
+            .marker { top: var(--row-height); }
             .note-btn { font-size: 0.8rem; padding: 8px 0; }
             .key-grid, .string-grid { grid-template-columns: repeat(3, 1fr); }
             .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .stats-grid-3 { grid-template-columns: repeat(3, 1fr); }
             h1 { font-size: 1.1rem; }
             .interval-text { font-size: 1rem; }
         }
@@ -486,6 +499,14 @@
     <div class="interval-question" id="interval-display">
         <div class="interval-text" id="interval-question-text"></div>
         <div class="interval-hint">指板上の正解の位置をクリックしてください</div>
+    </div>
+
+    <!-- MODE 1: String Stats Panel (New) -->
+    <div class="panel" id="panel-string-stats">
+        <div class="panel-title">
+            <span>弦ごとの成績</span>
+        </div>
+        <div class="stats-grid-3" id="string-stats-grid"></div>
     </div>
 
     <!-- MODE 1: Note Stats Panel -->
@@ -549,6 +570,18 @@
         </div>
     </div>
 
+    <!-- Visual Settings (Always visible) -->
+    <div class="panel" id="panel-display-settings">
+        <div class="panel-title">
+            <span>表示設定</span>
+        </div>
+        <div class="setting-row">
+            <label>弦の間隔 (px):</label>
+            <input type="number" id="rowHeightInput" value="22" min="20" max="60" class="setting-input" onchange="handleRowHeightChange()">
+            <span style="font-size:0.8rem; color:#888; margin-left:10px;">(デフォルト: 22)</span>
+        </div>
+    </div>
+
 <script>
     // --- Configuration ---
     
@@ -596,6 +629,7 @@
     let questionsServedInCurrentKey = 0;
     let targetQuestionsPerKey = 10;
     let currentNoteQ = { s:0, f:0, ans:0 };
+    let previousNoteQ = null; 
     
     // Mode 1 Settings
     let selectedStrings = [0, 1, 2, 3, 4, 5]; 
@@ -608,6 +642,7 @@
         intervalName: "", 
         direction: 1 
     };
+    let previousIntervalQ = null;
 
     // DOM Elements
     const els = {
@@ -622,6 +657,8 @@
         tabNote: document.getElementById('tab-note'),
         tabInterval: document.getElementById('tab-interval'),
         panelNoteStats: document.getElementById('panel-note-stats'),
+        panelStringStats: document.getElementById('panel-string-stats'), // New
+        stringStatsGrid: document.getElementById('string-stats-grid'), // New
         panelNoteSettings: document.getElementById('panel-note-settings'),
         intervalDisplay: document.getElementById('interval-display'),
         intervalText: document.getElementById('interval-question-text'),
@@ -631,7 +668,8 @@
         modeDesc: document.getElementById('mode-desc'),
         qPerKey: document.getElementById('questionsPerKey'),
         fretMin: document.getElementById('fretMin'),
-        fretMax: document.getElementById('fretMax')
+        fretMax: document.getElementById('fretMax'),
+        rowHeightInput: document.getElementById('rowHeightInput')
     };
 
     // --- Initialization ---
@@ -729,6 +767,7 @@
             els.keyboardHint.style.display = 'block';
             els.intervalDisplay.classList.remove('visible');
             els.panelNoteStats.classList.remove('hidden');
+            els.panelStringStats.classList.remove('hidden');
             els.panelNoteSettings.classList.remove('hidden');
             els.fretboard.classList.remove('interactive');
             renderStats();
@@ -740,6 +779,7 @@
             els.keyboardHint.style.display = 'none';
             els.intervalDisplay.classList.add('visible');
             els.panelNoteStats.classList.add('hidden');
+            els.panelStringStats.classList.add('hidden');
             els.panelNoteSettings.classList.add('hidden');
             els.fretboard.classList.add('interactive');
             els.subMsg.textContent = "";
@@ -843,8 +883,16 @@
             return;
         }
 
+        let availableCandidates = candidates;
+        if (previousNoteQ && candidates.length > 1) {
+            const filtered = candidates.filter(c => c.s !== previousNoteQ.s || c.f !== previousNoteQ.f);
+            if (filtered.length > 0) {
+                availableCandidates = filtered;
+            }
+        }
+
         let totalWeight = 0;
-        const weights = candidates.map(c => {
+        const weights = availableCandidates.map(c => {
             const stat = positionStats[c.s][c.f];
             if (stat.asked === 0) return 50; 
             const rate = stat.correct / stat.asked;
@@ -865,7 +913,8 @@
         }
         if (selectedIndex === -1) selectedIndex = weights.length - 1;
 
-        const q = candidates[selectedIndex];
+        const q = availableCandidates[selectedIndex];
+        previousNoteQ = q; 
         currentNoteQ = q;
 
         placeDot(q.s, q.f, 'question-dot');
@@ -935,9 +984,16 @@
         renderFretboard(); 
         els.nextBtn.style.display = 'none';
         
-        const s = Math.floor(Math.random() * 6);
-        const f = Math.floor(Math.random() * (MAX_FRET + 1));
-        const basePitch = stringOffsets[s] + f;
+        let s, f, basePitch;
+        let retryCount = 0;
+        
+        do {
+            s = Math.floor(Math.random() * 6);
+            f = Math.floor(Math.random() * (MAX_FRET + 1));
+            retryCount++;
+        } while (previousIntervalQ && s === previousIntervalQ.baseS && f === previousIntervalQ.baseF && retryCount < 5);
+
+        basePitch = stringOffsets[s] + f;
         
         let validQ = null;
         for(let i=0; i<30; i++) {
@@ -970,6 +1026,7 @@
 
         if (!validQ) { nextIntervalQuestion(); return; }
 
+        previousIntervalQ = validQ; 
         currentIntervalQ = validQ;
 
         placeDot(currentIntervalQ.baseS, currentIntervalQ.baseF, 'question-dot');
@@ -1190,8 +1247,9 @@
     }
 
     function renderStats() {
-        const grid = els.noteStatsGrid;
-        grid.innerHTML = '';
+        // --- Note Stats ---
+        const noteGrid = els.noteStatsGrid;
+        noteGrid.innerHTML = '';
         currentNoteNames.forEach((n, i) => {
             const s = noteStats[i];
             const p = s.asked > 0 ? Math.round((s.correct/s.asked)*100) : 0;
@@ -1202,9 +1260,40 @@
                 <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background:${p<50?'#e63946':p<80?'#ffd166':'#2a9d8f'}"></div></div>
                 <span style="font-size:0.75rem; color:#ccc;">${p}%</span>
             `;
-            grid.appendChild(div);
+            noteGrid.appendChild(div);
         });
+
+        // --- String Stats ---
+        const stringGrid = els.stringStatsGrid;
+        stringGrid.innerHTML = '';
+        for(let s=0; s<6; s++) {
+            let asked = 0;
+            let correct = 0;
+            if (positionStats[s]) {
+                positionStats[s].forEach(p => {
+                    asked += p.asked;
+                    correct += p.correct;
+                });
+            }
+            const p = asked > 0 ? Math.round((correct/asked)*100) : 0;
+            
+            const div = document.createElement('div');
+            div.className = 'stat-item';
+            div.innerHTML = `
+                <span style="font-weight:bold; display:block;">${s+1}弦</span>
+                <div class="stat-bar-container"><div class="stat-bar" style="width:${p}%; background:${p<50?'#e63946':p<80?'#ffd166':'#2a9d8f'}"></div></div>
+                <span style="font-size:0.75rem; color:#ccc;">${p}%</span>
+            `;
+            stringGrid.appendChild(div);
+        }
     }
+    
+    window.handleRowHeightChange = function() {
+        const val = els.rowHeightInput.value;
+        if(val >= 20 && val <= 60) {
+            document.documentElement.style.setProperty('--row-height', val + 'px');
+        }
+    };
 
     init();
 
