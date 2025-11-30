@@ -880,6 +880,14 @@
     }
 
     function handleNoteAnswer(idx, btn) {
+        // Check if waiting for "Next" - If so, check if correct answer button pressed
+        if (els.nextBtn.style.display !== 'none') {
+            if (idx === currentNoteQ.ans) {
+                els.nextBtn.click();
+            }
+            return;
+        }
+
         if (isProcessing) return;
         isProcessing = true;
         totalQuestions++;
@@ -916,6 +924,9 @@
             renderStats();
             
             els.nextBtn.style.display = 'inline-block';
+            
+            // Allow processing new clicks (specifically on correct answer to advance)
+            isProcessing = false;
         }
         updateScoreDisplay();
     }
