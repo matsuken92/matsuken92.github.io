@@ -20,7 +20,7 @@
             --inactive-tab: #333;
             
             /* Visual Settings */
-            --row-height: 22px; /* Default string spacing (narrower) */
+            --row-height: 22px; /* Default string spacing */
         }
 
         body {
@@ -51,7 +51,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            display: none; /* Hidden by default via JS */
+            display: none; 
         }
         .start-overlay.visible { display: flex; }
         
@@ -411,6 +411,19 @@
             transition: background 0.2s;
         }
         .btn-reset:hover { background: #777; }
+        .btn-apply {
+            background: #2a9d8f;
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn-apply:hover { background: #21867a; }
 
         /* --- Panels --- */
         .panel {
@@ -453,7 +466,7 @@
         .stats-grid-detailed {
             display: grid;
             /* Auto-fit columns, min width 180px */
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* Increased min width for details */
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 10px;
         }
 
@@ -556,7 +569,7 @@
             border: 1px solid #555; border-radius: 4px; padding: 3px;
         }
         
-        /* Radio Button Group for Notation */
+        /* Radio Button Group */
         .radio-group {
             display: flex;
             gap: 15px;
@@ -575,7 +588,7 @@
         .btn-small:hover { background: #777; }
 
         @media (max-width: 500px) {
-            .fretboard { grid-template-rows: repeat(6, var(--row-height)); } /* Maintain variable logic */
+            .fretboard { grid-template-rows: repeat(6, var(--row-height)); } 
             .marker { top: var(--row-height); }
             .note-btn { font-size: 0.8rem; padding: 8px 0; }
             .key-grid, .string-grid { grid-template-columns: repeat(3, 1fr); }
@@ -591,7 +604,7 @@
 
     <h1>🎸 ギター指板トレーニング</h1>
 
-    <!-- Start Overlay (New) -->
+    <!-- Start Overlay -->
     <div class="start-overlay" id="start-overlay">
         <div class="start-message" id="start-message">準備ができたらスタートしてください</div>
         <button class="start-btn" onclick="startGame()">START</button>
@@ -639,12 +652,12 @@
         <div class="interval-hint">指板上の正解の位置をクリックしてください</div>
     </div>
 
-    <!-- Reset Button Area (New) -->
+    <!-- Reset Button Area -->
     <div class="reset-area" id="reset-area">
         <button class="btn-reset" onclick="resetStats()">全成績リセット</button>
     </div>
 
-    <!-- MODE 1: String Stats Panel (New) -->
+    <!-- MODE 1: String Stats Panel -->
     <div class="panel" id="panel-string-stats">
         <div class="panel-title">
             <span>弦ごとの成績 (正答数/出題数 - 平均秒数)</span>
@@ -652,16 +665,42 @@
         <div class="stats-grid-3" id="string-stats-grid"></div>
     </div>
 
-    <!-- MODE 1: Note Stats Panel (Updated Layout: Strings -> Notes) -->
+    <!-- MODE 1: Note Stats Panel -->
     <div class="panel" id="panel-note-stats">
         <div class="panel-title">
             <span>弦ごとの詳細成績 (正答数/出題数 - 平均秒数)</span>
-            <button class="btn-small" onclick="resetStats()">成績リセット</button>
         </div>
         <div class="stats-grid-detailed" id="note-stats-grid"></div>
     </div>
 
-    <!-- MODE 1: Settings Panel -->
+    <!-- MODE 2: Interval Stats Panel -->
+    <div class="panel hidden" id="panel-interval-stats">
+        <div class="panel-title">
+            <span>度数ごとの成績 (正答数/出題数 - 平均秒数)</span>
+        </div>
+        <div class="stats-grid-detailed" id="interval-stats-grid"></div>
+    </div>
+
+    <!-- MODE 2: Interval Settings Panel -->
+    <div class="panel hidden" id="panel-interval-settings">
+        <div class="panel-title">
+            <span>相対位置モード出題設定</span>
+        </div>
+        <div class="setting-row">
+            <label>出題方向:</label>
+            <div class="radio-group">
+                <label class="radio-label">
+                    <input type="checkbox" id="int-dir-up" checked> 上
+                </label>
+                <label class="radio-label">
+                    <input type="checkbox" id="int-dir-down" checked> 下
+                </label>
+            </div>
+        </div>
+        <button class="btn-apply" onclick="applySettings()">設定を適用してリセット</button>
+    </div>
+
+    <!-- MODE 1: Note Settings Panel -->
     <div class="panel" id="panel-note-settings">
         <div class="panel-title">
             <span>音名モード出題設定</span>
@@ -670,27 +709,26 @@
         
         <div class="setting-row">
             <label>1キーあたりの出題数:</label>
-            <input type="number" id="questionsPerKey" value="10" min="1" max="50" class="setting-input" onchange="handleSettingsChange()">
+            <input type="number" id="questionsPerKey" value="10" min="1" max="50" class="setting-input">
         </div>
 
         <div class="setting-row">
             <label>音名表記:</label>
             <div class="radio-group">
                 <label class="radio-label">
-                    <input type="radio" name="notation" value="kana" checked onchange="handleNotationChange()"> ドレミ
+                    <input type="radio" name="notation" value="kana" checked> ドレミ
                 </label>
                 <label class="radio-label">
-                    <input type="radio" name="notation" value="alphabet" onchange="handleNotationChange()"> CDE
+                    <input type="radio" name="notation" value="alphabet"> CDE
                 </label>
             </div>
-            <!-- Separator -->
             <div style="width: 20px;"></div>
             <div class="radio-group">
                 <label class="radio-label">
-                    <input type="radio" name="accidental" value="flat" checked onchange="handleNotationChange()"> ♭系
+                    <input type="radio" name="accidental" value="flat" checked> ♭系
                 </label>
                 <label class="radio-label">
-                    <input type="radio" name="accidental" value="sharp" onchange="handleNotationChange()"> ♯系
+                    <input type="radio" name="accidental" value="sharp"> ♯系
                 </label>
             </div>
         </div>
@@ -698,9 +736,9 @@
         <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題フレット範囲 (0〜11)</div>
         <div class="setting-row">
             <label>Min:</label>
-            <input type="number" id="fretMin" value="0" min="0" max="11" class="setting-input" style="width:40px;" onchange="handleFretRangeChange()">
+            <input type="number" id="fretMin" value="0" min="0" max="11" class="setting-input" style="width:40px;">
             <label style="margin-left:15px;">Max:</label>
-            <input type="number" id="fretMax" value="11" min="0" max="11" class="setting-input" style="width:40px;" onchange="handleFretRangeChange()">
+            <input type="number" id="fretMax" value="11" min="0" max="11" class="setting-input" style="width:40px;">
         </div>
 
         <div style="font-size:0.85rem; color:#aaa; margin-top:10px; margin-bottom:5px;">出題する弦 (デフォルト全選択)</div>
@@ -711,6 +749,8 @@
         <div style="font-size:0.8rem; color:#aaa; margin-top:8px; font-style:italic;" id="mode-desc">
             ※チェックなし時は全音がランダム出題
         </div>
+        
+        <button class="btn-apply" onclick="applySettings()">設定を適用してリセット</button>
     </div>
 
     <!-- Visual Settings (Always visible) -->
@@ -728,13 +768,11 @@
 <script>
     // --- Configuration ---
     
-    // Notes Data
     const NOTE_NAMES_KANA_SHARP = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
     const NOTE_NAMES_KANA_FLAT = ['ド', 'レ♭', 'レ', 'ミ♭', 'ミ', 'ファ', 'ソ♭', 'ソ', 'ラ♭', 'ラ', 'シ♭', 'シ'];
     const NOTE_NAMES_ALPHA_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
     const NOTE_NAMES_ALPHA_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
     
-    // Default to Kana Flat
     let currentNoteNames = NOTE_NAMES_KANA_FLAT;
 
     const keyLabels = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
@@ -758,16 +796,19 @@
     let score = 0;
     let totalQuestions = 0;
     let isProcessing = false;
-    let questionStartTime = 0; // Timer start
+    let questionStartTime = 0;
+    let waitTimeoutId = null;
 
-    // Shift Key State Tracking
-    let activeShift = 0; // -1: Left, 0: None, 1: Right
+    let activeShift = 0; 
 
-    // Mode 1 State
-    // noteStats: {asked, correct, totalTime}
+    // Stats
     let noteStats = Array(12).fill(null).map(() => ({ asked: 0, correct: 0, totalTime: 0 }));
-    // positionStats[s][f]: {asked, correct, totalTime}
     let positionStats = [];
+    
+    let intervalStats = Array(12).fill(null).map(() => ({
+        up: { asked: 0, correct: 0, totalTime: 0 },
+        down: { asked: 0, correct: 0, totalTime: 0 }
+    }));
 
     let selectedKeys = [];
     let keyQueue = [];
@@ -777,22 +818,25 @@
     let currentNoteQ = { s:0, f:0, ans:0 };
     let previousNoteQ = null; 
     
-    // Mode 1 Settings
     let selectedStrings = [0, 1, 2, 3, 4, 5]; 
     let fretRange = { min: 0, max: 11 };
 
-    // Mode 2 State
+    // Interval Mode State
     let currentIntervalQ = { 
         baseS: 0, baseF: 0, 
         targetPitch: 0, 
         intervalName: "", 
-        direction: 1 
+        direction: 1,
+        intervalIndex: 0 
     };
     let previousIntervalQ = null;
+    let intervalDirections = { up: true, down: true };
+    // Queue for fair shuffling
+    let intervalQuestionQueue = [];
 
     // DOM Elements
     const els = {
-        startOverlay: document.getElementById('start-overlay'), // New
+        startOverlay: document.getElementById('start-overlay'),
         fretboard: document.getElementById('fretboard'),
         keypad: document.getElementById('keypad'),
         score: document.getElementById('score-display'),
@@ -808,6 +852,9 @@
         panelStringStats: document.getElementById('panel-string-stats'), 
         stringStatsGrid: document.getElementById('string-stats-grid'), 
         panelNoteSettings: document.getElementById('panel-note-settings'),
+        panelIntervalSettings: document.getElementById('panel-interval-settings'),
+        panelIntervalStats: document.getElementById('panel-interval-stats'),
+        intervalStatsGrid: document.getElementById('interval-stats-grid'),
         intervalDisplay: document.getElementById('interval-display'),
         intervalText: document.getElementById('interval-question-text'),
         noteStatsGrid: document.getElementById('note-stats-grid'),
@@ -827,45 +874,55 @@
         renderKeypad();
         renderKeySettings();
         renderStringSettings();
+        applySettingsInternal(); // Load initial settings
         
         els.nextBtn.onclick = () => {
+            clearTimeout(waitTimeoutId); 
             els.nextBtn.style.display = 'none';
             if(currentMode === 'note') nextNoteQuestion();
             else nextIntervalQuestion();
         };
 
         setupKeyboardEvents();
-        setMode('note'); // This will now show start screen instead of starting directly
+        setMode('note');
     }
 
     function setupKeyboardEvents() {
         document.addEventListener('keydown', (e) => {
-            // Track shift keys
             if (e.code === 'ShiftLeft') activeShift = -1;
             if (e.code === 'ShiftRight') activeShift = 1;
 
-            // Start Game via Enter/Space if overlay is visible
             if (els.startOverlay.style.display !== 'none' && (e.key === 'Enter' || e.key === ' ')) {
                 e.preventDefault();
                 startGame();
                 return;
             }
 
+            if (currentMode === 'interval') {
+                if ((e.key === 'Enter' || e.key === ' ') && isProcessing) {
+                    if (els.nextBtn.style.display !== 'none') {
+                        e.preventDefault();
+                        els.nextBtn.click();
+                        return;
+                    }
+                    e.preventDefault();
+                    clearTimeout(waitTimeoutId);
+                    nextIntervalQuestion();
+                    return;
+                }
+            }
+
             if (currentMode !== 'note') return;
             if (e.target.tagName === 'INPUT') return; 
 
-            // Next Button Shortcut logic
             if (els.nextBtn.style.display !== 'none') {
-                // Allow Enter or Space to proceed
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     els.nextBtn.click();
                     return;
                 }
-                // Don't return here! Allow flow to proceed to check if the pressed key matches the correct answer.
             }
 
-            // Note Answer Shortcuts
             const keyChar = e.key.toUpperCase();
             const baseMap = {
                 'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11
@@ -873,8 +930,6 @@
 
             if (baseMap.hasOwnProperty(keyChar)) {
                 let index = baseMap[keyChar];
-                
-                // Apply Shift modifier
                 index = (index + activeShift + 12) % 12;
 
                 const btn = els.keypad.children[index];
@@ -887,7 +942,6 @@
         });
 
         document.addEventListener('keyup', (e) => {
-            // Reset shift state only if the specific shift key that was active is released
             if (e.code === 'ShiftLeft' && activeShift === -1) activeShift = 0;
             if (e.code === 'ShiftRight' && activeShift === 1) activeShift = 0;
         });
@@ -906,29 +960,28 @@
 
     // --- Start Game Logic ---
     window.startGame = function() {
-        els.startOverlay.style.display = 'none'; // Hide overlay
+        els.startOverlay.style.display = 'none'; 
         if (currentMode === 'note') nextNoteQuestion();
         else nextIntervalQuestion();
     };
 
     function showStartScreen() {
         els.startOverlay.style.display = 'flex';
-        // Can customize message based on mode if needed
     }
 
     // --- Mode Switching ---
     window.setMode = function(mode) {
         currentMode = mode;
         isProcessing = false;
+        clearTimeout(waitTimeoutId);
         
         score = 0;
         totalQuestions = 0;
         updateScoreDisplay();
         
         els.nextBtn.style.display = 'none';
-        els.lastTime.textContent = ''; // Reset last time display on mode switch
+        els.lastTime.textContent = ''; 
 
-        // UI Toggles
         if (mode === 'note') {
             els.tabNote.classList.add('active');
             els.tabInterval.classList.remove('active');
@@ -938,14 +991,15 @@
             els.panelNoteStats.classList.remove('hidden');
             els.panelStringStats.classList.remove('hidden');
             els.panelNoteSettings.classList.remove('hidden');
+            els.panelIntervalSettings.classList.add('hidden');
+            els.panelIntervalStats.classList.add('hidden');
             els.resetArea.classList.remove('hidden'); 
             els.fretboard.classList.remove('interactive');
             renderStats();
             
-            // Instead of nextNoteQuestion(), show start screen
             els.msg.textContent = "準備中...";
             els.subMsg.textContent = "";
-            renderFretboard(); // Draw empty board
+            renderFretboard(); 
             showStartScreen();
         } else {
             els.tabNote.classList.remove('active');
@@ -956,16 +1010,129 @@
             els.panelNoteStats.classList.add('hidden');
             els.panelStringStats.classList.add('hidden');
             els.panelNoteSettings.classList.add('hidden');
-            els.resetArea.classList.add('hidden'); 
+            els.panelIntervalSettings.classList.remove('hidden');
+            els.panelIntervalStats.classList.remove('hidden');
+            els.resetArea.classList.remove('hidden'); 
             els.fretboard.classList.add('interactive');
             els.subMsg.textContent = "";
+            renderIntervalStats();
             
-            // Instead of nextIntervalQuestion(), show start screen
             els.intervalText.textContent = "準備中...";
-            renderFretboard(); // Draw empty board
+            renderFretboard(); 
             showStartScreen();
         }
     };
+
+    // --- Apply Settings ---
+    window.applySettings = function() {
+        applySettingsInternal();
+        resetStats(); // This calls renderStats/renderIntervalStats and updates score
+        // After resetStats, the mode is reset but we need to show start screen
+        showStartScreen();
+    };
+
+    function applySettingsInternal() {
+        // Note Mode Settings
+        const pKey = parseInt(els.qPerKey.value);
+        if (pKey > 0) targetQuestionsPerKey = pKey;
+
+        const notationType = document.querySelector('input[name="notation"]:checked').value; 
+        const accidentalType = document.querySelector('input[name="accidental"]:checked').value; 
+        if (notationType === 'alphabet') {
+            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_ALPHA_SHARP : NOTE_NAMES_ALPHA_FLAT;
+        } else {
+            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_KANA_SHARP : NOTE_NAMES_KANA_FLAT;
+        }
+        renderKeypad();
+
+        const minVal = parseInt(els.fretMin.value);
+        const maxVal = parseInt(els.fretMax.value);
+        // Basic validation
+        let safeMin = Math.max(0, Math.min(minVal, MAX_FRET));
+        let safeMax = Math.max(0, Math.min(maxVal, MAX_FRET));
+        if (safeMin > safeMax) safeMin = safeMax;
+        fretRange.min = safeMin; fretRange.max = safeMax;
+        els.fretMin.value = safeMin; els.fretMax.value = safeMax;
+
+        selectedStrings = [];
+        els.stringSettings.querySelectorAll('input:checked').forEach(cb => {
+            selectedStrings.push(parseInt(cb.value));
+        });
+        if (selectedStrings.length === 0) {
+            alert("少なくとも1本の弦を選択してください");
+            els.stringSettings.querySelectorAll('input').forEach(cb => cb.checked = true);
+            selectedStrings = [0,1,2,3,4,5];
+        }
+
+        selectedKeys = [];
+        els.keySettings.querySelectorAll('input:checked').forEach(cb => selectedKeys.push(parseInt(cb.value)));
+        resetKeyProgression();
+
+        // Interval Mode Settings
+        const up = document.getElementById('int-dir-up').checked;
+        const down = document.getElementById('int-dir-down').checked;
+        if (!up && !down) {
+            alert("方向を選択してください");
+            document.getElementById('int-dir-up').checked = true;
+            intervalDirections.up = true;
+            intervalDirections.down = false;
+        } else {
+            intervalDirections.up = up;
+            intervalDirections.down = down;
+        }
+        
+        // Reset Interval Queue
+        intervalQuestionQueue = [];
+    }
+
+    // --- Settings UI Handlers (Removed logic, now just UI helpers if needed, but logic moved to applySettings) ---
+    // Kept empty or minimal to avoid errors if referenced in HTML
+    window.handleSettingsChange = function() {};
+    window.handleNotationChange = function() {};
+    window.handleFretRangeChange = function() {};
+    window.handleStringSelectionChange = function() {};
+    window.handleKeySelectionChange = function() {};
+    window.handleIntervalDirChange = function() {};
+
+    function resetKeyProgression() {
+        keyQueue = []; currentKeyIndex = -1; questionsServedInCurrentKey = 0;
+    }
+
+    function renderStringSettings() {
+        els.stringSettings.innerHTML = '';
+        for(let i=0; i<6; i++) {
+            const lbl = document.createElement('label');
+            lbl.className = 'string-checkbox';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = i;
+            cb.checked = true; 
+            // No logic on change needed for Apply workflow, but keeping handler for potential UI feedback if needed later
+            // cb.onchange = handleStringSelectionChange; 
+            lbl.append(cb, `${i+1}弦`);
+            els.stringSettings.appendChild(lbl);
+        }
+    }
+
+    function renderKeySettings() {
+        els.keySettings.innerHTML = '';
+        keyLabels.forEach((label, index) => {
+            const lbl = document.createElement('label');
+            lbl.className = 'key-checkbox';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.value = index;
+            // cb.onchange = handleKeySelectionChange; 
+            lbl.append(cb, label);
+            els.keySettings.appendChild(lbl);
+        });
+    }
+
+    window.clearAllKeys = function() {
+        els.keySettings.querySelectorAll('input').forEach(cb => cb.checked = false);
+        // handleKeySelectionChange(); // No-op now
+    };
+
 
     // --- Rendering Fretboard ---
     function renderFretboard() {
@@ -1104,13 +1271,11 @@
             els.msg.style.color = "#f1faee";
         }
         
-        // Start Timer Here - User sees the dot now
         questionStartTime = Date.now();
         isProcessing = false;
     }
 
     function handleNoteAnswer(idx, btn) {
-        // Check if waiting for "Next" - If so, check if correct answer button pressed
         if (els.nextBtn.style.display !== 'none') {
             if (idx === currentNoteQ.ans) {
                 els.nextBtn.click();
@@ -1122,7 +1287,7 @@
         isProcessing = true;
         
         const timeTaken = (Date.now() - questionStartTime) / 1000;
-        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; // Update last time display
+        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; 
         
         totalQuestions++;
         
@@ -1145,7 +1310,7 @@
             els.msg.style.color = "#4cc9f0";
             btn.classList.add('correct-animation');
             renderStats();
-            setTimeout(() => {
+            waitTimeoutId = setTimeout(() => {
                 btn.classList.remove('correct-animation');
                 nextNoteQuestion();
             }, 600);
@@ -1161,7 +1326,6 @@
             
             els.nextBtn.style.display = 'inline-block';
             
-            // Allow processing new clicks (specifically on correct answer to advance)
             isProcessing = false;
         }
         updateScoreDisplay();
@@ -1169,51 +1333,81 @@
 
     // --- Core Logic: Interval Mode ---
 
+    function fillIntervalQueue() {
+        intervalQuestionQueue = [];
+        // Generate 24 pairs or 12 depending on settings
+        intervals.forEach((iv, idx) => {
+            if (intervalDirections.up) intervalQuestionQueue.push({ idx: idx, dir: 1, ...iv });
+            if (intervalDirections.down) intervalQuestionQueue.push({ idx: idx, dir: -1, ...iv });
+        });
+        shuffleArray(intervalQuestionQueue);
+    }
+
     function nextIntervalQuestion() {
         renderFretboard(); 
         els.nextBtn.style.display = 'none';
         
-        let s, f, basePitch;
-        let retryCount = 0;
-        
-        do {
-            s = Math.floor(Math.random() * 6);
-            f = Math.floor(Math.random() * (MAX_FRET + 1));
-            retryCount++;
-        } while (previousIntervalQ && s === previousIntervalQ.baseS && f === previousIntervalQ.baseF && retryCount < 5);
-
-        basePitch = stringOffsets[s] + f;
-        
-        let validQ = null;
-        for(let i=0; i<30; i++) {
-            const intObj = intervals[Math.floor(Math.random() * intervals.length)];
-            const dir = Math.random() < 0.5 ? 1 : -1; 
-            
-            let shift = 0;
-            if (dir === 1) {
-                shift = intObj.semi;
-            } else {
-                if (intObj.semi === 12) {
-                    shift = -12;
-                } else {
-                    shift = -(12 - intObj.semi);
-                }
-            }
-
-            const targetPitch = basePitch + shift;
-            
-            if (targetExistsOnBoard(targetPitch)) {
-                validQ = {
-                    baseS: s, baseF: f,
-                    targetPitch: targetPitch,
-                    intervalName: intObj.name,
-                    direction: dir
-                };
-                break;
-            }
+        if (intervalQuestionQueue.length === 0) {
+            fillIntervalQueue();
         }
 
-        if (!validQ) { nextIntervalQuestion(); return; }
+        let validQ = null;
+        let attempts = 0;
+        
+        while (!validQ && attempts < 50) {
+            if (intervalQuestionQueue.length === 0) fillIntervalQueue();
+            
+            // Pick next from queue
+            const q = intervalQuestionQueue.pop();
+            
+            // Try to find a valid base position for this interval
+            // Try random base positions
+            for (let k = 0; k < 10; k++) {
+                const s = Math.floor(Math.random() * 6);
+                const f = Math.floor(Math.random() * (MAX_FRET + 1));
+                
+                // Avoid previous position if possible
+                if (previousIntervalQ && s === previousIntervalQ.baseS && f === previousIntervalQ.baseF) continue;
+
+                const basePitch = stringOffsets[s] + f;
+                
+                // Calculate target pitch
+                let shift = 0;
+                if (q.dir === 1) {
+                    shift = q.semi;
+                } else {
+                    if (q.semi === 12) {
+                        shift = -12;
+                    } else {
+                        shift = -(12 - q.semi);
+                    }
+                }
+                const targetPitch = basePitch + shift;
+
+                if (targetExistsOnBoard(targetPitch)) {
+                    validQ = {
+                        baseS: s, baseF: f,
+                        targetPitch: targetPitch,
+                        intervalName: q.name,
+                        direction: q.dir,
+                        intervalIndex: q.idx
+                    };
+                    break;
+                }
+            }
+            attempts++;
+        }
+
+        if (!validQ) {
+            // Fallback safe question if all else fails
+            validQ = {
+                baseS: 5, baseF: 0,
+                targetPitch: 7, // E -> B (Perf 5th)
+                intervalName: "完全5度",
+                direction: 1,
+                intervalIndex: 6
+            };
+        }
 
         previousIntervalQ = validQ; 
         currentIntervalQ = validQ;
@@ -1225,7 +1419,6 @@
         els.msg.textContent = "位置をクリックして回答";
         els.msg.style.color = "#f1faee";
         
-        // Start Timer
         questionStartTime = Date.now();
         isProcessing = false;
     }
@@ -1245,7 +1438,7 @@
         isProcessing = true;
         
         const timeTaken = (Date.now() - questionStartTime) / 1000;
-        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; // Update last time display
+        els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; 
 
         totalQuestions++;
 
@@ -1256,21 +1449,30 @@
         feedback.className = `click-marker ${isCorrect ? '' : 'wrong'}`;
         cell.appendChild(feedback);
 
+        // Update Interval Stats
+        const statEntry = intervalStats[currentIntervalQ.intervalIndex];
+        const dirKey = currentIntervalQ.direction === 1 ? 'up' : 'down';
+        statEntry[dirKey].asked++;
+        statEntry[dirKey].totalTime += timeTaken;
+
         if (isCorrect) {
             score++;
+            statEntry[dirKey].correct++;
+            
             els.msg.textContent = "正解！";
             els.msg.style.color = "#2a9d8f";
             showAllCorrectSpots(currentIntervalQ.targetPitch);
-            setTimeout(nextIntervalQuestion, 1500);
+            renderIntervalStats();
+            
+            waitTimeoutId = setTimeout(nextIntervalQuestion, 1500);
         } else {
             // WRONG
             els.msg.textContent = "不正解... 正解は緑の場所です";
             els.msg.style.color = "#e63946";
             
-            // Show Answer
             showAllCorrectSpots(currentIntervalQ.targetPitch);
+            renderIntervalStats();
             
-            // Show Next Button instead of auto-advance
             els.nextBtn.style.display = 'inline-block';
         }
         updateScoreDisplay();
@@ -1316,140 +1518,37 @@
         return arr;
     }
 
+    function getNotesInKey(keyIdx) {
+        return MAJOR_SCALE_INTERVALS.map(iv => (keyIdx + iv) % 12);
+    }
+
     // --- Settings / Stats Logic ---
 
     window.resetStats = function() {
         if(!confirm("成績をリセットしますか？")) return;
         score = 0; totalQuestions = 0;
         noteStats = noteStats.map(() => ({ asked: 0, correct: 0, totalTime: 0 }));
-        initPositionStats(); // Reset position stats
-        renderStats();
+        initPositionStats(); 
+        
+        intervalStats = Array(12).fill(null).map(() => ({
+            up: { asked: 0, correct: 0, totalTime: 0 },
+            down: { asked: 0, correct: 0, totalTime: 0 }
+        }));
+        
+        if (currentMode === 'note') renderStats();
+        else renderIntervalStats();
+        
         updateScoreDisplay();
-        els.lastTime.textContent = ''; // Reset last time display
-    };
-
-    window.handleSettingsChange = function() {
-        const val = parseInt(els.qPerKey.value);
-        if (val > 0) targetQuestionsPerKey = val;
-        resetKeyProgression();
-        if(currentMode === 'note') nextNoteQuestion();
-    };
-
-    // Notation Switch
-    window.handleNotationChange = function() {
-        const notationType = document.querySelector('input[name="notation"]:checked').value; // 'kana' or 'alphabet'
-        const accidentalType = document.querySelector('input[name="accidental"]:checked').value; // 'sharp' or 'flat'
-
-        if (notationType === 'alphabet') {
-            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_ALPHA_SHARP : NOTE_NAMES_ALPHA_FLAT;
-        } else {
-            currentNoteNames = (accidentalType === 'sharp') ? NOTE_NAMES_KANA_SHARP : NOTE_NAMES_KANA_FLAT;
-        }
-        renderKeypad();
-        renderStats();
-        if (els.nextBtn.style.display !== 'none' && currentMode === 'note') {
-             const correctBtn = els.keypad.children[currentNoteQ.ans];
-             if(correctBtn) correctBtn.classList.add('show-answer');
-             els.msg.textContent = `残念... 正解は「${currentNoteNames[currentNoteQ.ans]}」`;
-        }
-    };
-    
-    // New Handlers
-    window.handleFretRangeChange = function() {
-        const minVal = parseInt(els.fretMin.value);
-        const maxVal = parseInt(els.fretMax.value);
+        els.lastTime.textContent = ''; 
         
-        // Simple Validation
-        if (minVal < 0) els.fretMin.value = 0;
-        if (maxVal > MAX_FRET) els.fretMax.value = MAX_FRET;
-        if (parseInt(els.fretMin.value) > parseInt(els.fretMax.value)) {
-             els.fretMin.value = els.fretMax.value;
-        }
-
-        fretRange.min = parseInt(els.fretMin.value);
-        fretRange.max = parseInt(els.fretMax.value);
-        
-        resetKeyProgression();
-        if(currentMode === 'note') nextNoteQuestion();
+        showStartScreen();
     };
-
-    window.handleStringSelectionChange = function() {
-        selectedStrings = [];
-        els.stringSettings.querySelectorAll('input:checked').forEach(cb => {
-            selectedStrings.push(parseInt(cb.value));
-        });
-        
-        if (selectedStrings.length === 0) {
-            alert("少なくとも1本の弦を選択してください");
-            els.stringSettings.querySelectorAll('input').forEach(cb => cb.checked = true);
-            selectedStrings = [0,1,2,3,4,5];
-        }
-
-        resetKeyProgression();
-        if(currentMode === 'note') nextNoteQuestion();
-    };
-
-    function renderStringSettings() {
-        els.stringSettings.innerHTML = '';
-        for(let i=0; i<6; i++) {
-            const lbl = document.createElement('label');
-            lbl.className = 'string-checkbox';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.value = i;
-            cb.checked = true; // Default all checked
-            cb.onchange = handleStringSelectionChange;
-            lbl.append(cb, `${i+1}弦`);
-            els.stringSettings.appendChild(lbl);
-        }
-    }
-
-    window.clearAllKeys = function() {
-        els.keySettings.querySelectorAll('input').forEach(cb => cb.checked = false);
-        handleKeySelectionChange();
-    };
-
-    function renderKeySettings() {
-        els.keySettings.innerHTML = '';
-        keyLabels.forEach((label, index) => {
-            const lbl = document.createElement('label');
-            lbl.className = 'key-checkbox';
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.value = index;
-            cb.onchange = handleKeySelectionChange;
-            lbl.append(cb, label);
-            els.keySettings.appendChild(lbl);
-        });
-    }
-
-    function handleKeySelectionChange() {
-        selectedKeys = [];
-        els.keySettings.querySelectorAll('input:checked').forEach(cb => selectedKeys.push(parseInt(cb.value)));
-        
-        if (selectedKeys.length === 0) els.modeDesc.textContent = "※チェックなし時は全音がランダム出題";
-        else els.modeDesc.textContent = `選択中: ${selectedKeys.map(k=>keyLabels[k]).join(', ')}`;
-        
-        resetKeyProgression();
-        if(currentMode === 'note') nextNoteQuestion();
-    }
-
-    function resetKeyProgression() {
-        keyQueue = []; currentKeyIndex = -1; questionsServedInCurrentKey = 0;
-    }
-
-    function getNotesInKey(keyIdx) {
-        return MAJOR_SCALE_INTERVALS.map(iv => (keyIdx + iv) % 12);
-    }
 
     function renderStats() {
-        // --- Note Stats (Detailed: Organized by String) ---
         const noteGrid = els.noteStatsGrid;
         noteGrid.innerHTML = '';
         
-        // Loop by String (0 to 5)
         for(let s=0; s<6; s++) {
-            // Calculate total stats for this string header
             let strAsked = 0;
             let strCorrect = 0;
             let strTime = 0;
@@ -1463,10 +1562,8 @@
             const strTotalP = strAsked > 0 ? Math.round((strCorrect/strAsked)*100) : 0;
             const strAvgTime = strAsked > 0 ? (strTime / strAsked).toFixed(1) + 's' : '-';
 
-            // Build note breakdown for this string
             let noteBreakdownHtml = '';
             
-            // Loop by Note Name
             currentNoteNames.forEach((n, noteIndex) => {
                 const f = (noteIndex - stringTuning[s] + 12) % 12;
                 
@@ -1499,7 +1596,6 @@
             noteGrid.appendChild(div);
         }
 
-        // --- String Stats ---
         const stringGrid = els.stringStatsGrid;
         stringGrid.innerHTML = '';
         for(let s=0; s<6; s++) {
@@ -1516,7 +1612,6 @@
             const p = asked > 0 ? Math.round((correct/asked)*100) : 0;
             const avgTime = asked > 0 ? (time / asked).toFixed(1) + 's' : '-';
             
-            // Bar color logic
             const barColor = p < 50 ? '#e63946' : (p < 80 ? '#ffd166' : '#2a9d8f');
 
             const div = document.createElement('div');
@@ -1529,6 +1624,48 @@
             `;
             stringGrid.appendChild(div);
         }
+    }
+
+    function renderIntervalStats() {
+        const grid = els.intervalStatsGrid;
+        grid.innerHTML = '';
+        
+        intervals.forEach((iv, idx) => {
+            const stat = intervalStats[idx];
+            
+            const upP = stat.up.asked > 0 ? Math.round((stat.up.correct/stat.up.asked)*100) : 0;
+            const upTime = stat.up.asked > 0 ? (stat.up.totalTime/stat.up.asked).toFixed(1) : '-';
+            const upColor = upP < 50 ? '#e63946' : (upP < 80 ? '#ffd166' : '#2a9d8f');
+
+            const downP = stat.down.asked > 0 ? Math.round((stat.down.correct/stat.down.asked)*100) : 0;
+            const downTime = stat.down.asked > 0 ? (stat.down.totalTime/stat.down.asked).toFixed(1) : '-';
+            const downColor = downP < 50 ? '#e63946' : (downP < 80 ? '#ffd166' : '#2a9d8f');
+
+            const div = document.createElement('div');
+            div.className = 'stat-item-detailed';
+            div.innerHTML = `
+                <div class="stat-item-header">
+                    <span>${iv.name}</span>
+                </div>
+                <div class="stat-detail-row">
+                    <span class="stat-detail-label">上</span>
+                    <div class="stat-detail-bar-bg">
+                        <div class="stat-detail-bar" style="width:${upP}%; background-color:${upColor};"></div>
+                    </div>
+                    <span class="stat-detail-val">${stat.up.correct}/${stat.up.asked}</span>
+                    <span class="stat-detail-time">${upTime}s</span>
+                </div>
+                <div class="stat-detail-row">
+                    <span class="stat-detail-label">下</span>
+                    <div class="stat-detail-bar-bg">
+                        <div class="stat-detail-bar" style="width:${downP}%; background-color:${downColor};"></div>
+                    </div>
+                    <span class="stat-detail-val">${stat.down.correct}/${stat.down.asked}</span>
+                    <span class="stat-detail-time">${downTime}s</span>
+                </div>
+            `;
+            grid.appendChild(div);
+        });
     }
     
     window.handleRowHeightChange = function() {
