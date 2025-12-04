@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>五度圏クイズ</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --bg: #f0f4f8;
+            --circle-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        header {
+            padding: 5px 10px;
+            text-align: center;
+            background: var(--circle-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        h1 { font-size: 1rem; margin: 3px 0; }
+        
+        .header-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .control-label {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            font-weight: bold;
+            margin-right: 2px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 20px;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .stats { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; }
+
+        /* メインエリア */
+        #game-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            overflow: hidden;
+            padding: 5px 0;
+        }
+
+        /* 五度圏の円コンテナ */
+        #circle-container {
+            position: relative;
+            width: 85vmin;
+            height: 85vmin;
+            max-width: 450px;
+            max-height: 450px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* 中心円（装飾） */
+        #center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24%;
+            height: 24%;
+            background: var(--bg);
+            border-radius: 50%;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            padding: 5px;
+            font-weight: bold;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            pointer-events: none;
+        }
+
+        /* 各キーの配置グループ */
+        .key-group {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        /* ラベル共通スタイル */
+        .label-box {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        /* 配置調整 */
+        .label-major {
+            width: 44px;
+            height: 44px;
+            font-size: 1.3rem;
+            color: var(--primary);
+            transform: translate(-50%, -50%) translateY(-155px); 
+            z-index: 20;
+        }
+
+        .label-minor {
+            width: 40px;
+            height: 24px;
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            transform: translate(-50%, -50%) translateY(-115px);
+            z-index: 19;
+        }
+
+        .label-sig {
+            width: 34px;
+            height: 22px;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            background: #ecf0f1;
+            border-radius: 12px;
+            transform: translate(-50%, -50%) translateY(-80px);
+            z-index: 30;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* スマホ用レイアウト調整 */
+        @media (max-width: 400px) {
+            #circle-container { width: 80vmin; height: 80vmin; }
+            #center-circle { font-size: 0.7rem; width: 22%; height: 22%; }
+            
+            .label-major { 
+                transform: translate(-50%, -50%) translateY(-125px); 
+                font-size: 1.1rem;
+            }
+            .label-minor { 
+                transform: translate(-50%, -50%) translateY(-90px); 
+                font-size: 0.8rem;
+            }
+            .label-sig { 
+                transform: translate(-50%, -50%) translateY(-62px); 
+                font-size: 0.65rem;
+            }
+        }
+
+        /* ドロップゾーン */
+        .drop-target {
+            background-color: #dfe6e9;
+            border: 2px dashed #bdc3c7;
+            border-radius: 50%;
+            color: transparent !important;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            background-image: none !important;
+        }
+        
+        .drop-target.hover {
+            background-color: #d1ecf1;
+            border-color: var(--accent);
+            z-index: 100;
+        }
+        
+        .label-major.drop-target.hover { transform: translate(-50%, -50%) translateY(-155px) scale(1.2); }
+        .label-minor.drop-target.hover { transform: translate(-50%, -50%) translateY(-115px) scale(1.2); }
+        .label-sig.drop-target.hover   { transform: translate(-50%, -50%) translateY(-80px) scale(1.2); }
+
+        @media (max-width: 400px) {
+            .label-major.drop-target.hover { transform: translate(-50%, -50%) translateY(-125px) scale(1.2); }
+            .label-minor.drop-target.hover { transform: translate(-50%, -50%) translateY(-90px) scale(1.2); }
+            .label-sig.drop-target.hover   { transform: translate(-50%, -50%) translateY(-62px) scale(1.2); }
+        }
+
+        .drop-target.correct {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white !important;
+            border-style: solid;
+        }
+        .drop-target.wrong {
+            background-color: var(--error);
+            border-color: var(--error);
+            color: white !important;
+            border-style: solid;
+            animation: shake 0.4s;
+        }
+
+        /* 選択肢エリア: 2行構成に変更 */
+        #options-area {
+            flex-shrink: 0;
+            width: 100%;
+            min-height: 80px;
+            max-height: 40vh;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column; /* 縦並び */
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            padding: 8px;
+            z-index: 40;
+            overflow-y: auto;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; /* 画面幅が足りない場合は折り返す */
+            gap: 6px;
+            width: 100%;
+        }
+
+        .draggable-item {
+            width: 38px; /* サイズ微調整 */
+            height: 38px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            touch-action: none;
+            flex-shrink: 0;
+            transition: opacity 0.2s;
+            border: 2px solid white;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .dragging {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.9;
+            width: 50px;
+            height: 50px;
+            font-size: 1rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .invisible { opacity: 0; pointer-events: none; }
+
+        #next-btn {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 30px; /* パディング少し調整 */
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: none; /* JSで制御 */
+            z-index: 60;
+            cursor: pointer;
+            font-size: 1rem;
+            /* Flexboxで縦並びにする */
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+        }
+
+        .btn-sub-text {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: normal;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) translateX(0); } 
+        }
+        
+        @media (max-height: 600px) {
+            #circle-container { width: 70vmin; height: 70vmin; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>五度圏クイズ</h1>
+    <div class="header-controls">
+        <div class="control-row">
+            <span class="control-label">Lvl:</span>
+            <button class="toggle-btn active" id="btn-lvl1" onclick="setLevel(1)">1</button>
+            <button class="toggle-btn" id="btn-lvl2" onclick="setLevel(2)">2</button>
+            <button class="toggle-btn" id="btn-lvl3" onclick="setLevel(3)">3</button>
+            <button class="toggle-btn" id="btn-lvl4" onclick="setLevel(4)">4</button>
+            <button class="toggle-btn" id="btn-lvl5" onclick="setLevel(5)">Max</button>
+        </div>
+        <div class="control-row">
+            <span class="control-label">Mode:</span>
+            <button class="toggle-btn active" id="btn-mode-maj" onclick="toggleMode('maj')">Maj</button>
+            <button class="toggle-btn active" id="btn-mode-min" onclick="toggleMode('min')">Min</button>
+        </div>
+    </div>
+    <div class="stats">Score: <span id="score">0</span></div>
+</header>
+
+<div id="game-area">
+    <div id="circle-container">
+        <div id="center-circle">
+            Circle<br>of<br>Fifths
+        </div>
+        <!-- JSで円の要素を生成します -->
+        <!-- 次へボタン: 初期はdisplay:none、Flexで表示 -->
+        <button id="next-btn" onclick="nextQuestion()">
+            次の問題へ
+            <span class="btn-sub-text">(space)</span>
+        </button>
+    </div>
+</div>
+
+<div id="options-area">
+    <!-- 選択肢チップ -->
+</div>
+
+<script>
+    // データ: 四度圏順 (時計回り)
+    const circleData = [
+        { major: 'C',  minor: 'Am',  sig: '0' },
+        { major: 'F',  minor: 'Dm',  sig: 'b1' },
+        { major: 'Bb', minor: 'Gm',  sig: 'b2' },
+        { major: 'Eb', minor: 'Cm',  sig: 'b3' },
+        { major: 'Ab', minor: 'Fm',  sig: 'b4' },
+        { major: 'Db', minor: 'Bbm', sig: 'b5' },
+        { major: 'Gb', minor: 'Ebm', sig: 'b6' },
+        { major: 'B',  minor: 'G#m', sig: '#5' },
+        { major: 'E',  minor: 'C#m', sig: '#4' },
+        { major: 'A',  minor: 'F#m', sig: '#3' },
+        { major: 'D',  minor: 'Bm',  sig: '#2' },
+        { major: 'G',  minor: 'Em',  sig: '#1' }
+    ];
+
+    // ダミー用の拡張候補（異名同音や存在しないキー）
+    const extraDummies = ["C#", "D#", "F#", "G#", "A#", "A#m", "D#m", "E#m", "Cb", "Fb"];
+
+    let currentLevel = 1;
+    let modeMajor = true;
+    let modeMinor = true;
+    let score = 0;
+    let isLocked = false;
+    let itemsToSolve = 0;
+
+    // ★視覚補正角度: 7度
+    const VISUAL_OFFSET = 7; 
+    
+    window.onload = () => {
+        renderCircle();
+        nextQuestion();
+        setupKeyboardControls();
+    };
+
+    function setupKeyboardControls() {
+        document.addEventListener('keydown', (e) => {
+            const btn = document.getElementById('next-btn');
+            // ボタンが表示されている(display:flex)時のみ反応
+            if (e.code === 'Space' && getComputedStyle(btn).display !== 'none') {
+                e.preventDefault(); // スクロール防止
+                nextQuestion();
+            }
+        });
+    }
+
+    function setLevel(lvl) {
+        if (currentLevel === lvl) return;
+        currentLevel = lvl;
+        for(let i=1; i<=5; i++) {
+            document.getElementById(`btn-lvl${i}`).classList.toggle('active', lvl === i);
+        }
+        
+        renderCircle();
+        nextQuestion();
+    }
+
+    function toggleMode(type) {
+        if (type === 'maj') {
+            if (modeMajor && !modeMinor) return;
+            modeMajor = !modeMajor;
+        } else {
+            if (modeMinor && !modeMajor) return;
+            modeMinor = !modeMinor;
+        }
+        
+        document.getElementById('btn-mode-maj').classList.toggle('active', modeMajor);
+        document.getElementById('btn-mode-min').classList.toggle('active', modeMinor);
+
+        renderCircle();
+        nextQuestion();
+    }
+
+    function renderCircle() {
+        const container = document.getElementById('circle-container');
+        const existingGroups = document.querySelectorAll('.key-group');
+        existingGroups.forEach(g => g.remove());
+
+        circleData.forEach((data, index) => {
+            const angle = (index * 30) + VISUAL_OFFSET;
+            
+            const group = document.createElement('div');
+            group.className = 'key-group';
+            group.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+            
+            const reverseRot = `rotate(-${angle}deg)`;
+
+            // Major Label
+            const majDiv = document.createElement('div');
+            majDiv.className = 'label-box label-major';
+            majDiv.id = `maj-${index}`;
+            majDiv.dataset.type = 'maj';
+            majDiv.dataset.index = index;
+            majDiv.innerHTML = `<span style="transform: ${reverseRot}">${data.major}</span>`;
+            group.appendChild(majDiv);
+
+            // Minor Label
+            const minDiv = document.createElement('div');
+            minDiv.className = 'label-box label-minor';
+            minDiv.id = `min-${index}`;
+            minDiv.dataset.type = 'min';
+            minDiv.dataset.index = index;
+            minDiv.innerHTML = `<span style="transform: ${reverseRot}">${data.minor}</span>`;
+            group.appendChild(minDiv);
+
+            // Signature Label
+            const sigDiv = document.createElement('div');
+            sigDiv.className = 'label-box label-sig';
+            sigDiv.id = `sig-${index}`;
+            sigDiv.dataset.type = 'sig';
+            sigDiv.dataset.index = index;
+            sigDiv.innerHTML = `<span style="transform: ${reverseRot}">${data.sig}</span>`;
+            group.appendChild(sigDiv);
+
+            container.appendChild(group);
+        });
+    }
+
+    function nextQuestion() {
+        isLocked = false;
+        itemsToSolve = 0;
+        document.getElementById('next-btn').style.display = 'none';
+        
+        // ラベルリセット
+        document.querySelectorAll('.label-box').forEach(el => {
+            el.classList.remove('drop-target', 'correct', 'wrong', 'active-target', 'hover');
+            el.dataset.answer = ''; 
+            el.style.opacity = '1';
+            
+            const idx = parseInt(el.dataset.index);
+            const type = el.dataset.type;
+            const angle = (idx * 30) + VISUAL_OFFSET;
+            const rot = `rotate(-${angle}deg)`;
+            
+            let text = '';
+            if(type === 'maj') text = circleData[idx].major;
+            if(type === 'min') text = circleData[idx].minor;
+            if(type === 'sig') text = circleData[idx].sig;
+            el.innerHTML = `<span style="transform: ${rot}">${text}</span>`;
+        });
+
+        const targets = [];
+        let optionValues = [];
+        const indices = Array.from({length: 12}, (_, i) => i);
+        indices.sort(() => Math.random() - 0.5);
+
+        // --- Level 5 (Max) は特別処理: 全部穴埋め ---
+        if (currentLevel === 5) {
+            itemsToSolve = 24; // 12 Major + 12 Minor
+            
+            indices.forEach(idx => {
+                // Major
+                const majAns = circleData[idx].major;
+                targets.push({ index: idx, answer: majAns, type: 'maj' });
+                optionValues.push(majAns);
+                
+                // Minor
+                const minAns = circleData[idx].minor;
+                targets.push({ index: idx, answer: minAns, type: 'min' });
+                optionValues.push(minAns);
+            });
+
+        } else {
+            // Level 1~4 はMode設定に従う
+            const availableTypes = [];
+            if (modeMajor) availableTypes.push('maj');
+            if (modeMinor) availableTypes.push('min');
+            if (availableTypes.length === 0) availableTypes.push('maj');
+
+            // アイテム数決定
+            if (currentLevel === 1) itemsToSolve = 1;
+            else if (currentLevel === 2) itemsToSolve = 4;
+            else if (currentLevel === 3) itemsToSolve = 8;
+            else if (currentLevel === 4) itemsToSolve = 12; // Level 4は各場所1つずつ
+
+            // 隠すインデックスを選択
+            const selectedIndices = indices.slice(0, itemsToSolve);
+
+            selectedIndices.forEach(idx => {
+                const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                const answerText = type === 'maj' ? circleData[idx].major : circleData[idx].minor;
+                
+                targets.push({ index: idx, answer: answerText, type: type });
+                optionValues.push(answerText);
+            });
+        }
+
+        // --- ターゲットDOMを更新 ---
+        targets.forEach(t => {
+            const elId = `${t.type}-${t.index}`;
+            const targetEl = document.getElementById(elId);
+            targetEl.classList.add('drop-target', 'active-target'); 
+            targetEl.dataset.answer = t.answer; 
+            targetEl.innerHTML = ''; 
+        });
+
+        // --- ダミー候補の追加 (全レベル共通) ---
+        const DUMMY_COUNT = 4;
+        const correctSet = new Set(optionValues);
+        
+        // 通常の候補（正解以外）
+        const allCandidates = [];
+        circleData.forEach(d => {
+            allCandidates.push(d.major);
+            allCandidates.push(d.minor);
+        });
+        const normalDummies = allCandidates.filter(val => !correctSet.has(val));
+        
+        // ダミーリストの作成
+        // まずは通常候補から選ぶ
+        normalDummies.sort(() => Math.random() - 0.5);
+        let dummiesNeeded = DUMMY_COUNT;
+        let dummiesToAdd = normalDummies.slice(0, dummiesNeeded);
+        dummiesNeeded -= dummiesToAdd.length;
+
+        // 足りなければ（Level Maxなど）拡張ダミーから選ぶ
+        if (dummiesNeeded > 0) {
+            extraDummies.sort(() => Math.random() - 0.5);
+            dummiesToAdd.push(...extraDummies.slice(0, dummiesNeeded));
+        }
+
+        optionValues.push(...dummiesToAdd);
+
+        // 選択肢のソート (C->B, Cm->Bm)
+        optionValues = sortOptions(optionValues);
+        generateOptions(optionValues);
+
+        // 中心テキスト更新
+        const centerText = document.getElementById('center-circle');
+        let lvlText = currentLevel === 5 ? "Max" : currentLevel;
+        let modeLabel = "";
+        
+        if (currentLevel === 5) {
+            modeLabel = "All";
+        } else {
+            if (modeMajor && modeMinor) modeLabel = "Mixed";
+            else modeLabel = modeMajor ? "Major" : "Minor";
+        }
+
+        centerText.innerHTML = `Lvl ${lvlText}<br>${modeLabel}`;
+    }
+
+    function sortOptions(values) {
+        // 表示順序の定義 (Major -> Minor, 各ルート音は C から半音階順)
+        // データ上のキー名に加え、ダミー候補もリストに含める
+        const order = [
+            // Major Keys
+            'C', 'Db', 'C#', 'D', 'Eb', 'D#', 'E', 'F', 'Gb', 'F#', 'G', 'Ab', 'G#', 'A', 'Bb', 'A#', 'B', 'Cb',
+            // Minor Keys
+            'Cm', 'C#m', 'Dm', 'D#m', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'Bbm', 'A#m', 'Bm', 'E#m', 'Fb'
+        ];
+        
+        return values.sort((a, b) => {
+            let idxA = order.indexOf(a);
+            let idxB = order.indexOf(b);
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            return idxA - idxB;
+        });
+    }
+
+    function generateOptions(values) {
+        const container = document.getElementById('options-area');
+        container.innerHTML = '';
+        
+        // 配列を半分に分割
+        const half = Math.ceil(values.length / 2);
+        const firstHalf = values.slice(0, half);
+        const secondHalf = values.slice(half);
+
+        const row1 = document.createElement('div');
+        row1.className = 'options-row';
+        const row2 = document.createElement('div');
+        row2.className = 'options-row';
+
+        firstHalf.forEach(val => createItem(val, row1));
+        secondHalf.forEach(val => createItem(val, row2));
+
+        container.appendChild(row1);
+        container.appendChild(row2);
+    }
+
+    function createItem(val, parent) {
+        const el = document.createElement('div');
+        el.className = 'draggable-item';
+        el.innerText = val;
+        el.dataset.value = val;
+        setupDragEvents(el);
+        parent.appendChild(el);
+    }
+
+    // --- Drag & Drop Logic ---
+    let draggedEl = null;
+    let cloneEl = null;
+    let touchOffsetX = 0, touchOffsetY = 0;
+
+    function setupDragEvents(el) {
+        el.addEventListener('mousedown', dragStart);
+        el.addEventListener('touchstart', dragStart, {passive: false});
+    }
+
+    function dragStart(e) {
+        if (e.target.classList.contains('invisible')) return;
+
+        const evt = e.type === 'touchstart' ? e.touches[0] : e;
+        if(e.type === 'touchstart') e.preventDefault();
+
+        draggedEl = e.target;
+        const rect = draggedEl.getBoundingClientRect();
+
+        cloneEl = draggedEl.cloneNode(true);
+        cloneEl.classList.add('dragging');
+        cloneEl.style.left = rect.left + 'px';
+        cloneEl.style.top = rect.top + 'px';
+        document.body.appendChild(cloneEl);
+
+        touchOffsetX = evt.clientX - rect.left;
+        touchOffsetY = evt.clientY - rect.top;
+
+        draggedEl.classList.add('invisible');
+
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('touchmove', dragMove, {passive: false});
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
+    }
+
+    function dragMove(e) {
+        if (!cloneEl) return;
+        const evt = e.type === 'touchmove' ? e.touches[0] : e;
+        if(e.type === 'touchmove') e.preventDefault();
+
+        cloneEl.style.left = (evt.clientX - touchOffsetX) + 'px';
+        cloneEl.style.top = (evt.clientY - touchOffsetY) + 'px';
+
+        const targets = document.querySelectorAll('.active-target:not(.correct)'); 
+        let hovering = false;
+
+        targets.forEach(targetEl => {
+            if (checkOverlap(cloneEl, targetEl)) {
+                targetEl.classList.add('hover');
+                hovering = true;
+            } else {
+                targetEl.classList.remove('hover');
+            }
+        });
+    }
+
+    function dragEnd(e) {
+        if (!cloneEl) return;
+
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('touchmove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchend', dragEnd);
+
+        const targets = document.querySelectorAll('.active-target:not(.correct)');
+        let hitTarget = null;
+        
+        targets.forEach(targetEl => {
+            if (checkOverlap(cloneEl, targetEl)) {
+                hitTarget = targetEl;
+            }
+            targetEl.classList.remove('hover');
+        });
+
+        if (hitTarget) {
+            checkAnswer(draggedEl, hitTarget);
+            cloneEl.remove();
+        } else {
+            cloneEl.remove();
+            draggedEl.classList.remove('invisible');
+        }
+        
+        cloneEl = null;
+        draggedEl = null;
+    }
+
+    function checkOverlap(dragEl, targetEl) {
+        const r1 = dragEl.getBoundingClientRect();
+        const r2 = targetEl.getBoundingClientRect();
+        
+        const c1x = r1.left + r1.width/2;
+        const c1y = r1.top + r1.height/2;
+        const c2x = r2.left + r2.width/2;
+        const c2y = r2.top + r2.height/2;
+        
+        const dist = Math.hypot(c1x - c2x, c1y - c2y);
+        return dist < 50; 
+    }
+
+    function checkAnswer(chipEl, targetEl) {
+        const val = chipEl.dataset.value;
+        const correctAns = targetEl.dataset.answer;
+        const idx = parseInt(targetEl.dataset.index);
+        
+        const angle = (idx * 30) + VISUAL_OFFSET;
+        const rot = `rotate(-${angle}deg)`;
+
+        if (val === correctAns) {
+            targetEl.innerHTML = `<span style="transform: ${rot}">${val}</span>`;
+            targetEl.classList.remove('drop-target');
+            targetEl.classList.add('correct');
+            
+            itemsToSolve--;
+            
+            if (itemsToSolve <= 0) {
+                // スコア加算
+                if(currentLevel === 1) score += 1;
+                else if(currentLevel === 2) score += 4;
+                else if(currentLevel === 3) score += 8;
+                else if(currentLevel === 4) score += 12;
+                else if(currentLevel === 5) score += 24;
+                
+                document.getElementById('score').innerText = score;
+                // ボタンをFlexで表示して中央揃えを有効にする
+                document.getElementById('next-btn').style.display = 'flex';
+            }
+        } else {
+            targetEl.innerHTML = `<span style="transform: ${rot}">${val}</span>`; 
+            targetEl.classList.add('wrong');
+            
+            setTimeout(() => {
+                targetEl.innerHTML = ''; 
+                targetEl.classList.remove('wrong');
+                chipEl.classList.remove('invisible'); 
+            }, 600);
+        }
+    }
+</script>
+</body>
+</html>
