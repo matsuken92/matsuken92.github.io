@@ -41,7 +41,7 @@
             text-align: center;
         }
 
-        /* --- Start Overlay --- */
+        /* --- Start/Pause Overlay --- */
         .start-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -66,19 +66,24 @@
             font-weight: bold;
             box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
             transition: transform 0.1s, box-shadow 0.1s;
+            margin-top: 20px;
+        }
+        .start-btn.resume {
+            background: #457b9d;
+            box-shadow: 0 0 20px rgba(69, 123, 157, 0.5);
         }
         .start-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(230, 57, 70, 0.8);
         }
         .start-btn:active { transform: scale(0.95); }
 
         .start-message {
             color: #fff;
-            margin-bottom: 30px;
-            font-size: 1.2rem;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
             text-align: center;
             line-height: 1.5;
+            font-weight: bold;
         }
 
         /* --- Mode Tabs --- */
@@ -112,7 +117,7 @@
         .status-bar {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             width: 100%;
             max-width: 800px;
             margin-bottom: 10px;
@@ -121,7 +126,7 @@
             border-radius: 8px;
             box-sizing: border-box;
             font-size: 0.85rem;
-            min-height: 60px;
+            min-height: 70px;
         }
 
         .score-info {
@@ -129,7 +134,44 @@
             flex-direction: column;
             font-weight: bold;
             font-size: 0.8rem;
-            margin-top: 5px;
+            width: 30%;
+        }
+
+        .pause-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 20%;
+        }
+
+        .btn-pause {
+            background: transparent;
+            border: 2px solid #aaa;
+            color: #aaa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .pause-text {
+            display: block;
+            font-size: 0.65rem;
+            color: #aaa;
+            margin-top: 4px;
+            line-height: 1;
+        }
+        .btn-pause:hover + .pause-text, .btn-pause:hover {
+            color: #fff;
+            border-color: #fff;
+        }
+        .btn-pause:hover {
+            background: rgba(255,255,255,0.1);
         }
 
         .message-area {
@@ -139,6 +181,7 @@
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
+            width: 50%;
         }
 
         .main-message {
@@ -607,7 +650,8 @@
     <!-- Start Overlay -->
     <div class="start-overlay" id="start-overlay">
         <div class="start-message" id="start-message">準備ができたらスタートしてください</div>
-        <button class="start-btn" onclick="startGame()">START</button>
+        <button class="start-btn" id="btn-start-game" onclick="startGame()">START</button>
+        <button class="start-btn resume" id="btn-resume-game" onclick="togglePause()" style="display:none;">再開</button>
     </div>
 
     <!-- Tabs -->
@@ -621,6 +665,10 @@
         <div class="score-info">
             <span id="score-display">正解: 0 / 0</span>
             <span id="rate-display">率: 0%</span>
+        </div>
+        <div class="pause-area">
+            <button class="btn-pause" id="pause-btn" onclick="togglePause()" title="一時停止">⏸</button>
+            <span class="pause-text">一時停止</span>
         </div>
         <div class="message-area">
             <span class="main-message" id="message">読み込み中...</span>
@@ -799,6 +847,11 @@
     let questionStartTime = 0;
     let waitTimeoutId = null;
 
+    // Pause State
+    let isPaused = false;
+    let pauseStartTime = 0;
+    let currentQuestionPausedTime = 0;
+
     let activeShift = 0; 
 
     // Stats
@@ -837,6 +890,10 @@
     // DOM Elements
     const els = {
         startOverlay: document.getElementById('start-overlay'),
+        startMessage: document.getElementById('start-message'),
+        btnStartGame: document.getElementById('btn-start-game'),
+        btnResumeGame: document.getElementById('btn-resume-game'),
+        pauseBtn: document.getElementById('pause-btn'),
         fretboard: document.getElementById('fretboard'),
         keypad: document.getElementById('keypad'),
         score: document.getElementById('score-display'),
@@ -892,11 +949,17 @@
             if (e.code === 'ShiftLeft') activeShift = -1;
             if (e.code === 'ShiftRight') activeShift = 1;
 
-            if (els.startOverlay.style.display !== 'none' && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                startGame();
+            // Start/Resume logic
+            if (els.startOverlay.style.display !== 'none') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (isPaused) togglePause();
+                    else startGame();
+                }
                 return;
             }
+
+            if (isPaused) return; // Block inputs if paused
 
             if (currentMode === 'interval') {
                 if ((e.key === 'Enter' || e.key === ' ') && isProcessing) {
@@ -958,15 +1021,45 @@
         }
     }
 
-    // --- Start Game Logic ---
+    // --- Start/Pause Game Logic ---
     window.startGame = function() {
         els.startOverlay.style.display = 'none'; 
+        isPaused = false;
         if (currentMode === 'note') nextNoteQuestion();
         else nextIntervalQuestion();
     };
 
+    window.togglePause = function() {
+        if (isPaused) {
+            // Resume
+            isPaused = false;
+            els.startOverlay.style.display = 'none';
+            // Add paused duration to accumulator
+            currentQuestionPausedTime += (Date.now() - pauseStartTime);
+            els.pauseBtn.textContent = '⏸';
+            document.querySelector('.pause-text').textContent = '一時停止';
+        } else {
+            // Pause
+            isPaused = true;
+            pauseStartTime = Date.now();
+            
+            els.startMessage.textContent = "一時停止中";
+            els.btnStartGame.style.display = 'none';
+            els.btnResumeGame.style.display = 'block';
+            els.startOverlay.style.display = 'flex';
+            els.pauseBtn.textContent = '▶';
+            document.querySelector('.pause-text').textContent = '再開';
+        }
+    };
+
     function showStartScreen() {
+        els.startMessage.textContent = "準備ができたらスタートしてください";
+        els.btnStartGame.style.display = 'block';
+        els.btnResumeGame.style.display = 'none';
         els.startOverlay.style.display = 'flex';
+        isPaused = false; // Not strictly paused, just waiting start
+        els.pauseBtn.textContent = '⏸';
+        document.querySelector('.pause-text').textContent = '一時停止';
     }
 
     // --- Mode Switching ---
@@ -1026,13 +1119,11 @@
     // --- Apply Settings ---
     window.applySettings = function() {
         applySettingsInternal();
-        resetStats(); // This calls renderStats/renderIntervalStats and updates score
-        // After resetStats, the mode is reset but we need to show start screen
+        resetStats(); 
         showStartScreen();
     };
 
     function applySettingsInternal() {
-        // Note Mode Settings
         const pKey = parseInt(els.qPerKey.value);
         if (pKey > 0) targetQuestionsPerKey = pKey;
 
@@ -1047,7 +1138,6 @@
 
         const minVal = parseInt(els.fretMin.value);
         const maxVal = parseInt(els.fretMax.value);
-        // Basic validation
         let safeMin = Math.max(0, Math.min(minVal, MAX_FRET));
         let safeMax = Math.max(0, Math.min(maxVal, MAX_FRET));
         if (safeMin > safeMax) safeMin = safeMax;
@@ -1068,7 +1158,6 @@
         els.keySettings.querySelectorAll('input:checked').forEach(cb => selectedKeys.push(parseInt(cb.value)));
         resetKeyProgression();
 
-        // Interval Mode Settings
         const up = document.getElementById('int-dir-up').checked;
         const down = document.getElementById('int-dir-down').checked;
         if (!up && !down) {
@@ -1081,12 +1170,10 @@
             intervalDirections.down = down;
         }
         
-        // Reset Interval Queue
         intervalQuestionQueue = [];
     }
 
-    // --- Settings UI Handlers (Removed logic, now just UI helpers if needed, but logic moved to applySettings) ---
-    // Kept empty or minimal to avoid errors if referenced in HTML
+    // UI Handlers
     window.handleSettingsChange = function() {};
     window.handleNotationChange = function() {};
     window.handleFretRangeChange = function() {};
@@ -1107,8 +1194,6 @@
             cb.type = 'checkbox';
             cb.value = i;
             cb.checked = true; 
-            // No logic on change needed for Apply workflow, but keeping handler for potential UI feedback if needed later
-            // cb.onchange = handleStringSelectionChange; 
             lbl.append(cb, `${i+1}弦`);
             els.stringSettings.appendChild(lbl);
         }
@@ -1122,7 +1207,6 @@
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.value = index;
-            // cb.onchange = handleKeySelectionChange; 
             lbl.append(cb, label);
             els.keySettings.appendChild(lbl);
         });
@@ -1130,7 +1214,6 @@
 
     window.clearAllKeys = function() {
         els.keySettings.querySelectorAll('input').forEach(cb => cb.checked = false);
-        // handleKeySelectionChange(); // No-op now
     };
 
 
@@ -1272,10 +1355,13 @@
         }
         
         questionStartTime = Date.now();
+        currentQuestionPausedTime = 0; // Reset pause accumulation
         isProcessing = false;
     }
 
     function handleNoteAnswer(idx, btn) {
+        if (isPaused) return; // Block if paused
+
         if (els.nextBtn.style.display !== 'none') {
             if (idx === currentNoteQ.ans) {
                 els.nextBtn.click();
@@ -1286,7 +1372,7 @@
         if (isProcessing) return;
         isProcessing = true;
         
-        const timeTaken = (Date.now() - questionStartTime) / 1000;
+        const timeTaken = (Date.now() - questionStartTime - currentQuestionPausedTime) / 1000;
         els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; 
         
         totalQuestions++;
@@ -1357,21 +1443,16 @@
         while (!validQ && attempts < 50) {
             if (intervalQuestionQueue.length === 0) fillIntervalQueue();
             
-            // Pick next from queue
             const q = intervalQuestionQueue.pop();
             
-            // Try to find a valid base position for this interval
-            // Try random base positions
             for (let k = 0; k < 10; k++) {
                 const s = Math.floor(Math.random() * 6);
                 const f = Math.floor(Math.random() * (MAX_FRET + 1));
                 
-                // Avoid previous position if possible
                 if (previousIntervalQ && s === previousIntervalQ.baseS && f === previousIntervalQ.baseF) continue;
 
                 const basePitch = stringOffsets[s] + f;
                 
-                // Calculate target pitch
                 let shift = 0;
                 if (q.dir === 1) {
                     shift = q.semi;
@@ -1399,10 +1480,9 @@
         }
 
         if (!validQ) {
-            // Fallback safe question if all else fails
             validQ = {
                 baseS: 5, baseF: 0,
-                targetPitch: 7, // E -> B (Perf 5th)
+                targetPitch: 7, 
                 intervalName: "完全5度",
                 direction: 1,
                 intervalIndex: 6
@@ -1420,6 +1500,7 @@
         els.msg.style.color = "#f1faee";
         
         questionStartTime = Date.now();
+        currentQuestionPausedTime = 0; // Reset pause accumulation
         isProcessing = false;
     }
 
@@ -1433,11 +1514,13 @@
     }
 
     function handleFretClick(s, f, cell, e) {
+        if (isPaused) return; // Block if paused
+
         if (currentMode !== 'interval' || isProcessing) return;
         
         isProcessing = true;
         
-        const timeTaken = (Date.now() - questionStartTime) / 1000;
+        const timeTaken = (Date.now() - questionStartTime - currentQuestionPausedTime) / 1000;
         els.lastTime.textContent = `所要時間: ${timeTaken.toFixed(2)}秒`; 
 
         totalQuestions++;
