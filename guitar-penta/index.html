@@ -598,26 +598,20 @@
             // Config change -> Queue reset
             useEffect(() => {
                 patternQueue.current = [];
-            }, [trainingConfig.type, trainingConfig.scaleType, trainingConfig.key]);
-
-            // Add space key shortcut for "Next"
-            useEffect(() => {
-                if (trainingStatus !== 'cleared') return;
-                
-                const handleKeyDown = (e) => {
-                    if (e.code === 'Space') {
-                        e.preventDefault();
-                        startTraining();
-                    }
-                };
-                window.addEventListener('keydown', handleKeyDown);
-                return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [trainingStatus, startTraining]);
+            }, [trainingConfig.type]);
 
             const getHintText = () => {
                 if (!currentQuestion) return "";
-                if (currentQuestion.blockConfig) return "ヒント: 低音弦2音 + 高音弦2音 の4音ブロックだよ";
                 
+                // Block Quiz Hint: Show contained degrees
+                if (currentQuestion.blockConfig) {
+                    const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig);
+                    // notes are generated in order: LowString[0], LowString[1], HighString[0], HighString[1]
+                    const degrees = notes.map(n => n.degree).join('、');
+                    return `ヒント: 含まれる度数は ${degrees} だよ`;
+                }
+                
+                // Normal Hint
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 const rootStrings = [...new Set(notes.filter(n => n.type === 'root').map(n => n.s))].sort((a,b) => a-b);
                 return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあるよ`;
