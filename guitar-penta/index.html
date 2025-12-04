@@ -73,7 +73,7 @@
         // 各弦の開放弦における、6弦(E)からの半音差オフセット
         const STRING_OFFSETS = { 6: 0, 5: 5, 4: 10, 3: 15, 2: 19, 1: 24 };
 
-        // パターン定義 (マイナー基準)
+        // パターン定義
         const PATTERN_DEFS = {
             vertical1: {
                 name: 'Box 1',
@@ -305,7 +305,8 @@
             const [activePatternKey, setActivePatternKey] = useState('vertical1');
             const [displayMode, setDisplayMode] = useState('note');
 
-            const [trainingConfig, setTrainingConfig] = useState({ key: 'C', scaleType: 'Major', type: 'vertical', level: 1 }); // Default to C Major
+            // Training State: Type 'block' added
+            const [trainingConfig, setTrainingConfig] = useState({ key: 'C', scaleType: 'Major', type: 'vertical', level: 1 }); 
             const [trainingStatus, setTrainingStatus] = useState('idle');
             const [currentQuestion, setCurrentQuestion] = useState(null); 
             
@@ -338,42 +339,134 @@
                 const verticalOrder = ['vertical1', 'vertical2', 'vertical3', 'vertical4', 'vertical5'];
                 const idx = verticalOrder.indexOf(patternKey);
                 if (idx !== -1) {
-                    // Box 1 (Minor) shape becomes Box 5 shape for Major (if we want same root position)
-                    // But generally: Major Box 1 = Minor Box 2 shape.
-                    // If user selects "Box 1" in Major mode, we show Major Box 1.
-                    // Major Box 1 uses the shape of Minor Box 2.
-                    // So we shift index + 1.
                     const newIdx = (idx + 1) % 5;
                     return verticalOrder[newIdx];
                 }
-                // Horizontal patterns are kept as is (just root changes interpretation)
                 return patternKey;
             };
 
+            // Helper: Generate Block Notes
+            // Generates 4 notes forming a block based on string pair and start degree
+            const generateBlockNotes = (key, scaleType, lowString, startDegree, rootFret) => {
+                // 1. Define Degrees based on ScaleType
+                const minorDegrees = ['R', 'b3', '4', '5', 'b7'];
+                const majorDegrees = ['R', '2', '3', '5', '6'];
+                const degrees = scaleType === 'Major' ? majorDegrees : minorDegrees;
+                
+                // 2. Find index of start degree
+                const startIndex = degrees.indexOf(startDegree);
+                if (startIndex === -1) return [];
+
+                // 3. Get 4 consecutive degrees (cycling)
+                const targetDegrees = [];
+                for (let i = 0; i < 4; i++) {
+                    targetDegrees.push(degrees[(startIndex + i) % degrees.length]);
+                }
+
+                // 4. Find frets for these degrees on LowString and HighString (LowString - 1)
+                const highString = lowString - 1;
+                const generatedNotes = [];
+                
+                // Helper to get degree of a fret on a string
+                const getDegreeAt = (s, f) => {
+                    const noteVal = (STRING_OFFSETS[s] + f) % 12;
+                    const rootVal = (STRING_OFFSETS[6] + rootFret) % 12;
+                    let semitones = (noteVal - rootVal + 12) % 12;
+                    
+                    // Map semitones to degrees (Minor base)
+                    const semitoneToMinorDegree = {
+                        0: 'R', 3: 'b3', 5: '4', 7: '5', 10: 'b7'
+                    };
+                    let deg = semitoneToMinorDegree[semitones];
+                    
+                    if (scaleType === 'Major') {
+                        const minRelToMajDeg = {
+                            3: 'R', 5: '2', 7: '3', 10: '5', 0: '6'
+                        };
+                        deg = minRelToMajDeg[semitones];
+                    }
+                    return deg;
+                };
+
+                // Search for the pattern
+                for (let f = 0; f <= 15; f++) {
+                    if (getDegreeAt(lowString, f) === targetDegrees[0]) {
+                        let f2 = -1;
+                        for (let k = 1; k <= 4; k++) { 
+                            if (getDegreeAt(lowString, f + k) === targetDegrees[1]) {
+                                f2 = f + k;
+                                break;
+                            }
+                        }
+                        
+                        if (f2 !== -1) {
+                            let f3 = -1;
+                            for (let k = -1; k <= 4; k++) {
+                                if (getDegreeAt(highString, f + k) === targetDegrees[2]) {
+                                    f3 = f + k;
+                                    break;
+                                }
+                            }
+                            
+                            if (f3 !== -1) {
+                                let f4 = -1;
+                                for (let k = 1; k <= 4; k++) {
+                                    if (getDegreeAt(highString, f3 + k) === targetDegrees[3]) {
+                                        f4 = f3 + k;
+                                        break;
+                                    }
+                                }
+                                
+                                if (f4 !== -1) {
+                                    generatedNotes.push(
+                                        { s: lowString, fret: f, degree: targetDegrees[0], type: targetDegrees[0]==='R'?'root':'scale' },
+                                        { s: lowString, fret: f2, degree: targetDegrees[1], type: targetDegrees[1]==='R'?'root':'scale' },
+                                        { s: highString, fret: f3, degree: targetDegrees[2], type: targetDegrees[2]==='R'?'root':'scale' },
+                                        { s: highString, fret: f4, degree: targetDegrees[3], type: targetDegrees[3]==='R'?'root':'scale' }
+                                    );
+                                    return generatedNotes;
+                                }
+                            }
+                        }
+                    }
+                }
+                return [];
+            };
+
             // Note Calculation with robust shift logic
-            const calculatePatternNotes = useCallback((key, scaleType, patternKey) => {
+            const calculatePatternNotes = useCallback((key, scaleType, patternKey, specificBlockConfig = null) => {
                 let calcKey = key;
                 let calcPatternKey = patternKey;
 
                 // Major Mode Logic
                 if (scaleType === 'Major') {
-                    // 1. Key: Use relative minor
                     calcKey = getRelativeMinorKey(key);
-                    // 2. Pattern: Shift box shape (Major Box 1 = Minor Box 2 shape)
-                    calcPatternKey = shiftPatternKeyForMajor(patternKey);
+                    if (patternKey && patternKey.startsWith('vertical') && !specificBlockConfig) {
+                         calcPatternKey = shiftPatternKeyForMajor(patternKey);
+                    }
                 }
 
                 const rootFret = ROOT_FRETS_ON_6[calcKey];
+
+                // Special handling for Block Quiz
+                if (specificBlockConfig) {
+                    const blockNotes = generateBlockNotes(key, scaleType, specificBlockConfig.lowString, specificBlockConfig.startDegree, rootFret);
+                    return blockNotes.map((n, idx) => ({
+                        ...n,
+                        id: `block-${n.s}-${n.fret}-${idx}`,
+                        isVisible: true 
+                    }));
+                }
+
+                // Normal Pattern Logic
                 const def = PATTERN_DEFS[calcPatternKey];
                 
                 let notes = def.notes.map((n, idx) => {
                     let degree = n.degree;
                     let type = n.type;
 
-                    // Major Mode: Degree Conversion
                     if (scaleType === 'Major') {
                         degree = convertToMajorDegree(n.degree);
-                        // Update root type flag
                         type = (degree === 'R') ? 'root' : 'scale'; 
                     }
 
@@ -412,8 +505,19 @@
                 let candidates = [];
                 if (type === 'vertical') {
                     candidates = Object.keys(PATTERN_DEFS).filter(k => PATTERN_DEFS[k].group === 'vertical');
-                } else {
+                } else if (type === 'horizontal') {
                     candidates = Object.keys(PATTERN_DEFS).filter(k => PATTERN_DEFS[k].group === 'horizontal');
+                } else if (type === 'block') {
+                    const lowStrings = [6, 5, 4, 3, 2];
+                    const degrees = trainingConfig.scaleType === 'Major' 
+                        ? ['R', '2', '3', '5', '6'] 
+                        : ['R', 'b3', '4', '5', 'b7'];
+                    
+                    for (let s of lowStrings) {
+                        for (let d of degrees) {
+                            candidates.push({ lowString: s, startDegree: d, isBlock: true });
+                        }
+                    }
                 }
                 
                 for (let i = candidates.length - 1; i > 0; i--) {
@@ -423,51 +527,64 @@
                 patternQueue.current = candidates;
             };
 
-            // NEW: Get next random degree that still has hidden notes
             const getNextTargetDegree = (notes, revealedSet) => {
-                // Filter notes that are NOT revealed yet
                 const hiddenNotes = notes.filter(n => !revealedSet.has(n.id));
-                if (hiddenNotes.length === 0) return null; // Completed
-
-                // Get unique degrees from hidden notes
+                if (hiddenNotes.length === 0) return null; 
                 const availableDegrees = [...new Set(hiddenNotes.map(n => n.degree))];
-                
-                // Pick random
                 const randomIndex = Math.floor(Math.random() * availableDegrees.length);
                 return availableDegrees[randomIndex];
             };
 
-            const startTraining = () => {
+            const startTraining = useCallback(() => {
                 if (patternQueue.current.length === 0) {
                     refillQueue(trainingConfig.type);
                 }
                 
-                const nextPatternKey = patternQueue.current.pop();
-                const nextPatternName = PATTERN_DEFS[nextPatternKey].name;
-
-                let initialRevealed = new Set();
-                let initialTarget = 'R'; 
+                const nextItem = patternQueue.current.pop();
+                
+                let notes = [];
+                let patternName = "";
                 let message = "";
+                let initialRevealed = new Set();
+                let initialTarget = 'R';
 
-                const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, nextPatternKey);
+                if (nextItem.isBlock) {
+                    // Block Quiz Setup
+                    patternName = `Block (${nextItem.lowString}-${nextItem.lowString-1}弦)`;
+                    notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, nextItem);
+                    
+                    if (notes.length > 0) {
+                        initialRevealed.add(notes[0].id);
+                    }
+                    
+                    initialTarget = 'ANY_BLOCK'; 
+                    message = `先頭は "${nextItem.startDegree}" だよ。残りのブロック音をなぞろう！`;
 
-                if (trainingConfig.level === 1) {
-                    message = "Root (R) をすべて探そう！";
-                } else if (trainingConfig.level === 2) {
-                    initialTarget = 'ANY'; 
-                    message = "スケールの形をすべてなぞって表示させよう。";
-                } else if (trainingConfig.level === 3) {
-                    notes.forEach(n => {
-                        if (n.type === 'root') initialRevealed.add(n.id);
-                    });
-                    initialTarget = getNextTargetDegree(notes, initialRevealed);
-                    if (!initialTarget) initialTarget = 'R'; 
-                    message = `度数 "${initialTarget}" を探そう！`;
+                } else {
+                    // Normal Pattern Quiz Setup
+                    const nextPatternKey = nextItem;
+                    patternName = PATTERN_DEFS[nextPatternKey].name;
+                    notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, nextPatternKey);
+
+                    if (trainingConfig.level === 1) {
+                        message = "Root (R) をすべて探そう！";
+                    } else if (trainingConfig.level === 2) {
+                        initialTarget = 'ANY'; 
+                        message = "スケールの形をすべてなぞって表示させよう。";
+                    } else if (trainingConfig.level === 3) {
+                        notes.forEach(n => {
+                            if (n.type === 'root') initialRevealed.add(n.id);
+                        });
+                        initialTarget = getNextTargetDegree(notes, initialRevealed);
+                        if (!initialTarget) initialTarget = 'R'; 
+                        message = `度数 "${initialTarget}" を探そう！`;
+                    }
                 }
 
                 setCurrentQuestion({
-                    patternKey: nextPatternKey,
-                    patternName: nextPatternName,
+                    patternKey: nextItem.isBlock ? null : nextItem,
+                    blockConfig: nextItem.isBlock ? nextItem : null,
+                    patternName: patternName,
                     revealedNoteIds: initialRevealed,
                     targetDegree: initialTarget,
                     message: message,
@@ -476,14 +593,31 @@
                 });
                 setTrainingStatus('playing');
                 setFeedback(null);
-            };
+            }, [trainingConfig, calculatePatternNotes]);
 
+            // Config change -> Queue reset
             useEffect(() => {
                 patternQueue.current = [];
-            }, [trainingConfig.type]);
+            }, [trainingConfig.type, trainingConfig.scaleType, trainingConfig.key]);
+
+            // Add space key shortcut for "Next"
+            useEffect(() => {
+                if (trainingStatus !== 'cleared') return;
+                
+                const handleKeyDown = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        startTraining();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [trainingStatus, startTraining]);
 
             const getHintText = () => {
                 if (!currentQuestion) return "";
+                if (currentQuestion.blockConfig) return "ヒント: 低音弦2音 + 高音弦2音 の4音ブロックだよ";
+                
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 const rootStrings = [...new Set(notes.filter(n => n.type === 'root').map(n => n.s))].sort((a,b) => a-b);
                 return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあるよ`;
@@ -491,7 +625,10 @@
 
             const handleGiveUp = () => {
                 if (!currentQuestion) return;
-                const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
+                const notes = currentQuestion.blockConfig 
+                    ? calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig)
+                    : calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
+                
                 const allNoteIds = new Set(notes.map(n => n.id));
                 
                 setCurrentQuestion(prev => ({
@@ -506,7 +643,11 @@
             const handleTrainingClick = (stringNum, fretNum) => {
                 if (trainingStatus !== 'playing' || !currentQuestion) return;
 
-                const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
+                // Recalculate notes to check against
+                const notes = currentQuestion.blockConfig 
+                    ? calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig)
+                    : calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
+
                 const clickedNote = notes.find(n => n.s === stringNum && n.fret === fretNum);
 
                 if (!clickedNote) {
@@ -518,10 +659,13 @@
                     return;
                 }
 
-                // Check logic based on level
+                // Check logic based on level / mode
                 let isCorrect = false;
 
-                if (trainingConfig.level === 1) {
+                if (currentQuestion.blockConfig) {
+                    // Block Quiz: Any note in the generated block is correct
+                    isCorrect = true;
+                } else if (trainingConfig.level === 1) {
                     isCorrect = (clickedNote.degree === 'R');
                 } else if (trainingConfig.level === 2) {
                     isCorrect = true;
@@ -542,7 +686,10 @@
                         return;
                     }
 
-                    if (trainingConfig.level === 1) {
+                    // Partial correct feedback
+                    if (currentQuestion.blockConfig) {
+                        setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, mistake: false }));
+                    } else if (trainingConfig.level === 1) {
                         const allRoots = notes.filter(n => n.degree === 'R');
                         const foundRoots = allRoots.filter(n => newRevealed.has(n.id));
                         if (foundRoots.length === allRoots.length) {
@@ -600,6 +747,15 @@
 
             const getTrainingNotes = () => {
                 if (!currentQuestion) return [];
+                // For Block, recalculate to get specific block notes
+                if (currentQuestion.blockConfig) {
+                     const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig);
+                     return notes.map(n => ({
+                        ...n,
+                        isVisible: currentQuestion.revealedNoteIds.has(n.id)
+                    }));
+                }
+                // Normal
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 return notes.map(n => ({
                     ...n,
@@ -680,6 +836,9 @@
                                 </div>
                             </div>
 
+                            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded mb-4 max-w-2xl w-full text-center">
+                                {PATTERN_DEFS[activePatternKey].description}
+                            </div>
                             <FretboardUI 
                                 notes={viewerNotes} 
                                 displayMode={displayMode}
@@ -717,45 +876,53 @@
 
                                         <div className="flex justify-between items-center">
                                             <label className="font-bold text-gray-600">Type</label>
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-1">
                                                 <button 
                                                     onClick={() => setTrainingConfig({...trainingConfig, type: 'vertical'})}
-                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.type === 'vertical' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.type === 'vertical' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
                                                 >
                                                     縦ペンタ
                                                 </button>
                                                 <button 
                                                     onClick={() => setTrainingConfig({...trainingConfig, type: 'horizontal'})}
-                                                    className={`px-3 py-2 rounded text-sm font-bold border ${trainingConfig.type === 'horizontal' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.type === 'horizontal' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
                                                 >
                                                     横ペンタ
+                                                </button>
+                                                 <button 
+                                                    onClick={() => setTrainingConfig({...trainingConfig, type: 'block'})}
+                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.type === 'block' ? 'bg-pink-500 text-white' : 'bg-gray-100'}`}
+                                                >
+                                                    Block
                                                 </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex justify-between items-center">
-                                            <label className="font-bold text-gray-600">Level</label>
-                                            <div className="flex gap-1">
-                                                <button 
-                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 1})}
-                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 1 ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
-                                                >
-                                                    Lv.1 (Root)
-                                                </button>
-                                                <button 
-                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 2})}
-                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 2 ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}
-                                                >
-                                                    Lv.2 (全音)
-                                                </button>
-                                                <button 
-                                                    onClick={() => setTrainingConfig({...trainingConfig, level: 3})}
-                                                    className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 3 ? 'bg-orange-600 text-white' : 'bg-gray-100'}`}
-                                                >
-                                                    Lv.3 (度数)
-                                                </button>
+                                        {!trainingConfig.type.includes('block') && (
+                                            <div className="flex justify-between items-center">
+                                                <label className="font-bold text-gray-600">Level</label>
+                                                <div className="flex gap-1">
+                                                    <button 
+                                                        onClick={() => setTrainingConfig({...trainingConfig, level: 1})}
+                                                        className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 1 ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
+                                                    >
+                                                        Lv.1 (Root)
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setTrainingConfig({...trainingConfig, level: 2})}
+                                                        className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 2 ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}
+                                                    >
+                                                        Lv.2 (全音)
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setTrainingConfig({...trainingConfig, level: 3})}
+                                                        className={`px-2 py-2 rounded text-xs font-bold border ${trainingConfig.level === 3 ? 'bg-orange-600 text-white' : 'bg-gray-100'}`}
+                                                    >
+                                                        Lv.3 (度数)
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
 
                                     <button 
@@ -824,7 +991,7 @@
                                                 onClick={startTraining}
                                                 className="bg-green-600 text-white px-6 py-1 rounded-full font-bold shadow hover:bg-green-700"
                                             >
-                                                次へ進む ▶
+                                                次へ進む ▶ (Space)
                                             </button>
                                         </div>
                                     )}
