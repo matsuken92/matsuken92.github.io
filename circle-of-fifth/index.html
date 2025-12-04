@@ -246,7 +246,7 @@
             animation: shake 0.4s;
         }
 
-        /* 選択肢エリア: 2行構成に変更 */
+        /* 選択肢エリア */
         #options-area {
             flex-shrink: 0;
             width: 100%;
@@ -255,7 +255,7 @@
             background: white;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
             display: flex;
-            flex-direction: column; /* 縦並び */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 5px;
@@ -268,13 +268,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-wrap: wrap; /* 画面幅が足りない場合は折り返す */
+            flex-wrap: wrap;
             gap: 6px;
             width: 100%;
         }
 
         .draggable-item {
-            width: 38px; /* サイズ微調整 */
+            width: 38px;
             height: 38px;
             background: var(--primary);
             color: white;
@@ -325,14 +325,13 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 8px 30px; /* パディング少し調整 */
+            padding: 8px 30px;
             border-radius: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            display: none; /* JSで制御 */
+            display: none;
             z-index: 60;
             cursor: pointer;
             font-size: 1rem;
-            /* Flexboxで縦並びにする */
             flex-direction: column;
             align-items: center;
             line-height: 1.2;
@@ -381,7 +380,7 @@
             Circle<br>of<br>Fifths
         </div>
         <!-- JSで円の要素を生成します -->
-        <!-- 次へボタン: 初期はdisplay:none、Flexで表示 -->
+        <!-- 次へボタン -->
         <button id="next-btn" onclick="nextQuestion()">
             次の問題へ
             <span class="btn-sub-text">(space)</span>
@@ -410,7 +409,7 @@
         { major: 'G',  minor: 'Em',  sig: '#1' }
     ];
 
-    // ダミー用の拡張候補（異名同音や存在しないキー）
+    // ダミー用の拡張候補
     const extraDummies = ["C#", "D#", "F#", "G#", "A#", "A#m", "D#m", "E#m", "Cb", "Fb"];
 
     let currentLevel = 1;
@@ -419,6 +418,9 @@
     let score = 0;
     let isLocked = false;
     let itemsToSolve = 0;
+    
+    // 直前の問題パターンを記録する変数
+    let lastQuestionSignature = "";
 
     // ★視覚補正角度: 7度
     const VISUAL_OFFSET = 7; 
@@ -432,9 +434,8 @@
     function setupKeyboardControls() {
         document.addEventListener('keydown', (e) => {
             const btn = document.getElementById('next-btn');
-            // ボタンが表示されている(display:flex)時のみ反応
             if (e.code === 'Space' && getComputedStyle(btn).display !== 'none') {
-                e.preventDefault(); // スクロール防止
+                e.preventDefault();
                 nextQuestion();
             }
         });
@@ -447,6 +448,8 @@
             document.getElementById(`btn-lvl${i}`).classList.toggle('active', lvl === i);
         }
         
+        // レベル変更時は即リセット
+        lastQuestionSignature = ""; // レベルが変わったら履歴リセット
         renderCircle();
         nextQuestion();
     }
@@ -463,6 +466,7 @@
         document.getElementById('btn-mode-maj').classList.toggle('active', modeMajor);
         document.getElementById('btn-mode-min').classList.toggle('active', modeMinor);
 
+        lastQuestionSignature = ""; // モードが変わったら履歴リセット
         renderCircle();
         nextQuestion();
     }
@@ -481,7 +485,6 @@
             
             const reverseRot = `rotate(-${angle}deg)`;
 
-            // Major Label
             const majDiv = document.createElement('div');
             majDiv.className = 'label-box label-major';
             majDiv.id = `maj-${index}`;
@@ -490,7 +493,6 @@
             majDiv.innerHTML = `<span style="transform: ${reverseRot}">${data.major}</span>`;
             group.appendChild(majDiv);
 
-            // Minor Label
             const minDiv = document.createElement('div');
             minDiv.className = 'label-box label-minor';
             minDiv.id = `min-${index}`;
@@ -499,7 +501,6 @@
             minDiv.innerHTML = `<span style="transform: ${reverseRot}">${data.minor}</span>`;
             group.appendChild(minDiv);
 
-            // Signature Label
             const sigDiv = document.createElement('div');
             sigDiv.className = 'label-box label-sig';
             sigDiv.id = `sig-${index}`;
@@ -517,7 +518,7 @@
         itemsToSolve = 0;
         document.getElementById('next-btn').style.display = 'none';
         
-        // ラベルリセット
+        // UIリセット
         document.querySelectorAll('.label-box').forEach(el => {
             el.classList.remove('drop-target', 'correct', 'wrong', 'active-target', 'hover');
             el.dataset.answer = ''; 
@@ -535,53 +536,83 @@
             el.innerHTML = `<span style="transform: ${rot}">${text}</span>`;
         });
 
-        const targets = [];
+        // モード判定
+        const availableTypes = [];
+        if (modeMajor) availableTypes.push('maj');
+        if (modeMinor) availableTypes.push('min');
+        if (availableTypes.length === 0) availableTypes.push('maj');
+
+        // 問題数決定
+        if (currentLevel === 1) itemsToSolve = 1;
+        else if (currentLevel === 2) itemsToSolve = 4;
+        else if (currentLevel === 3) itemsToSolve = 8;
+        else if (currentLevel === 4) itemsToSolve = 12;
+        else if (currentLevel === 5) itemsToSolve = 24;
+
+        let targets = [];
         let optionValues = [];
-        const indices = Array.from({length: 12}, (_, i) => i);
-        indices.sort(() => Math.random() - 0.5);
-
-        // --- Level 5 (Max) は特別処理: 全部穴埋め ---
-        if (currentLevel === 5) {
-            itemsToSolve = 24; // 12 Major + 12 Minor
+        
+        // --- 連続出題防止のためのループ ---
+        let attempts = 0;
+        let isUnique = false;
+        
+        while (!isUnique && attempts < 20) {
+            targets = [];
+            optionValues = [];
             
-            indices.forEach(idx => {
-                // Major
-                const majAns = circleData[idx].major;
-                targets.push({ index: idx, answer: majAns, type: 'maj' });
-                optionValues.push(majAns);
-                
-                // Minor
-                const minAns = circleData[idx].minor;
-                targets.push({ index: idx, answer: minAns, type: 'min' });
-                optionValues.push(minAns);
-            });
+            const indices = Array.from({length: 12}, (_, i) => i);
+            indices.sort(() => Math.random() - 0.5);
 
-        } else {
-            // Level 1~4 はMode設定に従う
-            const availableTypes = [];
-            if (modeMajor) availableTypes.push('maj');
-            if (modeMinor) availableTypes.push('min');
-            if (availableTypes.length === 0) availableTypes.push('maj');
+            // Level 5 (Max) 
+            if (currentLevel === 5) {
+                // Level 5は常に全開放なので「配置」の違いはないが、
+                // 問題作成ロジックとしては固定。連続チェックは実質不要だが処理を通す。
+                indices.forEach(idx => {
+                    const majAns = circleData[idx].major;
+                    targets.push({ index: idx, answer: majAns, type: 'maj' });
+                    optionValues.push(majAns);
+                    
+                    const minAns = circleData[idx].minor;
+                    targets.push({ index: idx, answer: minAns, type: 'min' });
+                    optionValues.push(minAns);
+                });
+                isUnique = true; // Level 5は常にユニーク扱い（あるいは常に同じ）
 
-            // アイテム数決定
-            if (currentLevel === 1) itemsToSolve = 1;
-            else if (currentLevel === 2) itemsToSolve = 4;
-            else if (currentLevel === 3) itemsToSolve = 8;
-            else if (currentLevel === 4) itemsToSolve = 12; // Level 4は各場所1つずつ
+            } else {
+                // Level 1-4
+                const selectedIndices = indices.slice(0, itemsToSolve);
 
-            // 隠すインデックスを選択
-            const selectedIndices = indices.slice(0, itemsToSolve);
+                selectedIndices.forEach(idx => {
+                    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+                    const answerText = type === 'maj' ? circleData[idx].major : circleData[idx].minor;
+                    
+                    targets.push({ index: idx, answer: answerText, type: type });
+                    optionValues.push(answerText);
 
-            selectedIndices.forEach(idx => {
-                const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-                const answerText = type === 'maj' ? circleData[idx].major : circleData[idx].minor;
-                
-                targets.push({ index: idx, answer: answerText, type: type });
-                optionValues.push(answerText);
-            });
+                    // Level 1 のダミーはここで追加
+                    if (currentLevel === 1) {
+                        let pool = circleData.map(d => type === 'maj' ? d.major : d.minor);
+                        pool = pool.filter(t => t !== answerText);
+                        pool.sort(() => Math.random() - 0.5);
+                        optionValues.push(pool[0], pool[1], pool[2]);
+                    }
+                });
+
+                // シグネチャ生成（ターゲットのIDをソートして結合）
+                const sigParts = targets.map(t => `${t.type}${t.index}`);
+                sigParts.sort();
+                const currentSig = sigParts.join('|');
+
+                // 前回と違えばOK
+                if (currentSig !== lastQuestionSignature) {
+                    lastQuestionSignature = currentSig;
+                    isUnique = true;
+                }
+            }
+            attempts++;
         }
 
-        // --- ターゲットDOMを更新 ---
+        // --- ターゲットDOM更新 ---
         targets.forEach(t => {
             const elId = `${t.type}-${t.index}`;
             const targetEl = document.getElementById(elId);
@@ -590,38 +621,35 @@
             targetEl.innerHTML = ''; 
         });
 
-        // --- ダミー候補の追加 (全レベル共通) ---
-        const DUMMY_COUNT = 4;
-        const correctSet = new Set(optionValues);
-        
-        // 通常の候補（正解以外）
-        const allCandidates = [];
-        circleData.forEach(d => {
-            allCandidates.push(d.major);
-            allCandidates.push(d.minor);
-        });
-        const normalDummies = allCandidates.filter(val => !correctSet.has(val));
-        
-        // ダミーリストの作成
-        // まずは通常候補から選ぶ
-        normalDummies.sort(() => Math.random() - 0.5);
-        let dummiesNeeded = DUMMY_COUNT;
-        let dummiesToAdd = normalDummies.slice(0, dummiesNeeded);
-        dummiesNeeded -= dummiesToAdd.length;
+        // --- ダミー候補 (Level 1以外はここで追加) ---
+        if (currentLevel !== 1) {
+            const DUMMY_COUNT = 4;
+            const correctSet = new Set(optionValues);
+            
+            const allCandidates = [];
+            circleData.forEach(d => {
+                allCandidates.push(d.major);
+                allCandidates.push(d.minor);
+            });
+            const normalDummies = allCandidates.filter(val => !correctSet.has(val));
+            
+            normalDummies.sort(() => Math.random() - 0.5);
+            let dummiesNeeded = DUMMY_COUNT;
+            let dummiesToAdd = normalDummies.slice(0, dummiesNeeded);
+            dummiesNeeded -= dummiesToAdd.length;
 
-        // 足りなければ（Level Maxなど）拡張ダミーから選ぶ
-        if (dummiesNeeded > 0) {
-            extraDummies.sort(() => Math.random() - 0.5);
-            dummiesToAdd.push(...extraDummies.slice(0, dummiesNeeded));
+            if (dummiesNeeded > 0) {
+                extraDummies.sort(() => Math.random() - 0.5);
+                dummiesToAdd.push(...extraDummies.slice(0, dummiesNeeded));
+            }
+            optionValues.push(...dummiesToAdd);
         }
 
-        optionValues.push(...dummiesToAdd);
-
-        // 選択肢のソート (C->B, Cm->Bm)
+        // 選択肢ソート
         optionValues = sortOptions(optionValues);
         generateOptions(optionValues);
 
-        // 中心テキスト更新
+        // 中心テキスト
         const centerText = document.getElementById('center-circle');
         let lvlText = currentLevel === 5 ? "Max" : currentLevel;
         let modeLabel = "";
@@ -637,12 +665,8 @@
     }
 
     function sortOptions(values) {
-        // 表示順序の定義 (Major -> Minor, 各ルート音は C から半音階順)
-        // データ上のキー名に加え、ダミー候補もリストに含める
         const order = [
-            // Major Keys
             'C', 'Db', 'C#', 'D', 'Eb', 'D#', 'E', 'F', 'Gb', 'F#', 'G', 'Ab', 'G#', 'A', 'Bb', 'A#', 'B', 'Cb',
-            // Minor Keys
             'Cm', 'C#m', 'Dm', 'D#m', 'Ebm', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'Bbm', 'A#m', 'Bm', 'E#m', 'Fb'
         ];
         
@@ -659,7 +683,6 @@
         const container = document.getElementById('options-area');
         container.innerHTML = '';
         
-        // 配列を半分に分割
         const half = Math.ceil(values.length / 2);
         const firstHalf = values.slice(0, half);
         const secondHalf = values.slice(half);
@@ -685,7 +708,7 @@
         parent.appendChild(el);
     }
 
-    // --- Drag & Drop Logic ---
+    // --- Drag & Drop ---
     let draggedEl = null;
     let cloneEl = null;
     let touchOffsetX = 0, touchOffsetY = 0;
@@ -801,7 +824,6 @@
             itemsToSolve--;
             
             if (itemsToSolve <= 0) {
-                // スコア加算
                 if(currentLevel === 1) score += 1;
                 else if(currentLevel === 2) score += 4;
                 else if(currentLevel === 3) score += 8;
@@ -809,7 +831,6 @@
                 else if(currentLevel === 5) score += 24;
                 
                 document.getElementById('score').innerText = score;
-                // ボタンをFlexで表示して中央揃えを有効にする
                 document.getElementById('next-btn').style.display = 'flex';
             }
         } else {
