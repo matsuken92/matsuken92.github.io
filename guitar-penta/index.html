@@ -73,7 +73,7 @@
         // 各弦の開放弦における、6弦(E)からの半音差オフセット
         const STRING_OFFSETS = { 6: 0, 5: 5, 4: 10, 3: 15, 2: 19, 1: 24 };
 
-        // パターン定義
+        // パターン定義 (マイナー基準)
         const PATTERN_DEFS = {
             vertical1: {
                 name: 'Box 1',
@@ -299,13 +299,13 @@
 
         // Main App Component
         const App = () => {
-            const [appMode, setAppMode] = useState('viewer'); // 'viewer' | 'training'
+            const [appMode, setAppMode] = useState('training'); // Default to training
             const [selectedKey, setSelectedKey] = useState('C'); // Default to C
             const [selectedScaleType, setSelectedScaleType] = useState('Major'); // Default to Major
             const [activePatternKey, setActivePatternKey] = useState('vertical1');
             const [displayMode, setDisplayMode] = useState('note');
 
-            // Training State: Type 'block' added
+            // Training State
             const [trainingConfig, setTrainingConfig] = useState({ key: 'C', scaleType: 'Major', type: 'vertical', level: 1 }); 
             const [trainingStatus, setTrainingStatus] = useState('idle');
             const [currentQuestion, setCurrentQuestion] = useState(null); 
@@ -346,34 +346,27 @@
             };
 
             // Helper: Generate Block Notes
-            // Generates 4 notes forming a block based on string pair and start degree
             const generateBlockNotes = (key, scaleType, lowString, startDegree, rootFret) => {
-                // 1. Define Degrees based on ScaleType
                 const minorDegrees = ['R', 'b3', '4', '5', 'b7'];
                 const majorDegrees = ['R', '2', '3', '5', '6'];
                 const degrees = scaleType === 'Major' ? majorDegrees : minorDegrees;
                 
-                // 2. Find index of start degree
                 const startIndex = degrees.indexOf(startDegree);
                 if (startIndex === -1) return [];
 
-                // 3. Get 4 consecutive degrees (cycling)
                 const targetDegrees = [];
                 for (let i = 0; i < 4; i++) {
                     targetDegrees.push(degrees[(startIndex + i) % degrees.length]);
                 }
 
-                // 4. Find frets for these degrees on LowString and HighString (LowString - 1)
                 const highString = lowString - 1;
                 const generatedNotes = [];
                 
-                // Helper to get degree of a fret on a string
                 const getDegreeAt = (s, f) => {
                     const noteVal = (STRING_OFFSETS[s] + f) % 12;
                     const rootVal = (STRING_OFFSETS[6] + rootFret) % 12;
                     let semitones = (noteVal - rootVal + 12) % 12;
                     
-                    // Map semitones to degrees (Minor base)
                     const semitoneToMinorDegree = {
                         0: 'R', 3: 'b3', 5: '4', 7: '5', 10: 'b7'
                     };
@@ -388,7 +381,6 @@
                     return deg;
                 };
 
-                // Search for the pattern
                 for (let f = 0; f <= 15; f++) {
                     if (getDegreeAt(lowString, f) === targetDegrees[0]) {
                         let f2 = -1;
@@ -438,7 +430,6 @@
                 let calcKey = key;
                 let calcPatternKey = patternKey;
 
-                // Major Mode Logic
                 if (scaleType === 'Major') {
                     calcKey = getRelativeMinorKey(key);
                     if (patternKey && patternKey.startsWith('vertical') && !specificBlockConfig) {
@@ -448,7 +439,6 @@
 
                 const rootFret = ROOT_FRETS_ON_6[calcKey];
 
-                // Special handling for Block Quiz
                 if (specificBlockConfig) {
                     const blockNotes = generateBlockNotes(key, scaleType, specificBlockConfig.lowString, specificBlockConfig.startDegree, rootFret);
                     return blockNotes.map((n, idx) => ({
@@ -458,7 +448,6 @@
                     }));
                 }
 
-                // Normal Pattern Logic
                 const def = PATTERN_DEFS[calcPatternKey];
                 
                 let notes = def.notes.map((n, idx) => {
@@ -501,7 +490,7 @@
 
             // --- Training Logic ---
 
-            const refillQueue = (type) => {
+            const refillQueue = useCallback((type) => {
                 let candidates = [];
                 if (type === 'vertical') {
                     candidates = Object.keys(PATTERN_DEFS).filter(k => PATTERN_DEFS[k].group === 'vertical');
@@ -525,7 +514,7 @@
                     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
                 }
                 patternQueue.current = candidates;
-            };
+            }, [trainingConfig.scaleType]);
 
             const getNextTargetDegree = (notes, revealedSet) => {
                 const hiddenNotes = notes.filter(n => !revealedSet.has(n.id));
@@ -542,6 +531,8 @@
                 
                 const nextItem = patternQueue.current.pop();
                 
+                if (!nextItem) return;
+                
                 let notes = [];
                 let patternName = "";
                 let message = "";
@@ -549,7 +540,6 @@
                 let initialTarget = 'R';
 
                 if (nextItem.isBlock) {
-                    // Block Quiz Setup
                     patternName = `Block (${nextItem.lowString}-${nextItem.lowString-1}弦)`;
                     notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, nextItem);
                     
@@ -561,7 +551,6 @@
                     message = `先頭は "${nextItem.startDegree}" だよ。残りのブロック音をなぞろう！`;
 
                 } else {
-                    // Normal Pattern Quiz Setup
                     const nextPatternKey = nextItem;
                     patternName = PATTERN_DEFS[nextPatternKey].name;
                     notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, nextPatternKey);
@@ -593,25 +582,35 @@
                 });
                 setTrainingStatus('playing');
                 setFeedback(null);
-            }, [trainingConfig, calculatePatternNotes]);
+            }, [trainingConfig, calculatePatternNotes, refillQueue]);
 
             // Config change -> Queue reset
             useEffect(() => {
                 patternQueue.current = [];
-            }, [trainingConfig.type]);
+            }, [trainingConfig.type, trainingConfig.scaleType, trainingConfig.key]);
+
+            // Add space key shortcut for "Next"
+            useEffect(() => {
+                if (trainingStatus !== 'cleared') return;
+                
+                const handleKeyDown = (e) => {
+                    if (e.code === 'Space') {
+                        e.preventDefault();
+                        startTraining();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [trainingStatus, startTraining]);
 
             const getHintText = () => {
                 if (!currentQuestion) return "";
-                
-                // Block Quiz Hint: Show contained degrees
                 if (currentQuestion.blockConfig) {
                     const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig);
-                    // notes are generated in order: LowString[0], LowString[1], HighString[0], HighString[1]
                     const degrees = notes.map(n => n.degree).join('、');
                     return `ヒント: 含まれる度数は ${degrees} だよ`;
                 }
                 
-                // Normal Hint
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 const rootStrings = [...new Set(notes.filter(n => n.type === 'root').map(n => n.s))].sort((a,b) => a-b);
                 return `ヒント: Rootは ${rootStrings.join(', ')}弦 にあるよ`;
@@ -637,7 +636,6 @@
             const handleTrainingClick = (stringNum, fretNum) => {
                 if (trainingStatus !== 'playing' || !currentQuestion) return;
 
-                // Recalculate notes to check against
                 const notes = currentQuestion.blockConfig 
                     ? calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig)
                     : calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
@@ -653,11 +651,9 @@
                     return;
                 }
 
-                // Check logic based on level / mode
                 let isCorrect = false;
 
                 if (currentQuestion.blockConfig) {
-                    // Block Quiz: Any note in the generated block is correct
                     isCorrect = true;
                 } else if (trainingConfig.level === 1) {
                     isCorrect = (clickedNote.degree === 'R');
@@ -680,7 +676,6 @@
                         return;
                     }
 
-                    // Partial correct feedback
                     if (currentQuestion.blockConfig) {
                         setCurrentQuestion(prev => ({ ...prev, revealedNoteIds: newRevealed, mistake: false }));
                     } else if (trainingConfig.level === 1) {
@@ -741,7 +736,6 @@
 
             const getTrainingNotes = () => {
                 if (!currentQuestion) return [];
-                // For Block, recalculate to get specific block notes
                 if (currentQuestion.blockConfig) {
                      const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, null, currentQuestion.blockConfig);
                      return notes.map(n => ({
@@ -749,7 +743,6 @@
                         isVisible: currentQuestion.revealedNoteIds.has(n.id)
                     }));
                 }
-                // Normal
                 const notes = calculatePatternNotes(trainingConfig.key, trainingConfig.scaleType, currentQuestion.patternKey);
                 return notes.map(n => ({
                     ...n,
@@ -830,9 +823,6 @@
                                 </div>
                             </div>
 
-                            <div className="text-sm text-blue-800 bg-blue-50 p-3 rounded mb-4 max-w-2xl w-full text-center">
-                                {PATTERN_DEFS[activePatternKey].description}
-                            </div>
                             <FretboardUI 
                                 notes={viewerNotes} 
                                 displayMode={displayMode}
