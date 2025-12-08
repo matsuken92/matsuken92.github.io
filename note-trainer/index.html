@@ -2,44 +2,23 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Music Note Practice</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+Symbols&display=swap');
         
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             background-color: #f3f4f6;
-            touch-action: manipulation;
+            touch-action: pan-x pan-y;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .piano-key {
-            transition: all 0.1s ease;
-            box-shadow: 0 4px 0 #cbd5e1;
-        }
-        .piano-key:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 #cbd5e1;
-        }
-
-        .note-enter {
-            animation: fadeIn 0.3s ease-out;
-        }
-        .note-current {
-            fill: #3b82f6;
-            stroke: #3b82f6;
-        }
-        .note-correct {
-            fill: #22c55e !important;
-            stroke: #22c55e !important;
-            transition: fill 0.2s;
-        }
-        .note-wrong {
-            fill: #ef4444 !important;
-            stroke: #ef4444 !important;
-            transition: fill 0.2s;
-        }
+        .note-enter { animation: fadeIn 0.3s ease-out; }
+        .note-current { fill: #3b82f6; stroke: #3b82f6; }
+        .note-correct { fill: #22c55e !important; stroke: #22c55e !important; transition: fill 0.2s; }
+        .note-wrong { fill: #ef4444 !important; stroke: #ef4444 !important; transition: fill 0.2s; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
@@ -52,7 +31,6 @@
             background-size: 20px 20px;
         }
 
-        /* 判定マークのアニメーション */
         .pop-mark {
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
@@ -60,18 +38,49 @@
             0% { opacity: 0; transform: scale(0.5) translateY(10px); }
             100% { opacity: 1; transform: scale(1) translateY(0); }
         }
+
+        /* Piano Styles */
+        .key-white {
+            fill: white;
+            stroke: #cbd5e1;
+            stroke-width: 1px;
+            transition: fill 0.1s;
+        }
+        .key-white.active { fill: #e2e8f0; }
+        .key-white.correct { fill: #dcfce7 !important; }
+        .key-white.wrong { fill: #fee2e2 !important; }
+
+        .key-black {
+            fill: #1e293b;
+            stroke: #0f172a;
+            stroke-width: 1px;
+            transition: fill 0.1s;
+        }
+        .key-black.active { fill: #475569; }
+        .key-black.correct { fill: #166534 !important; }
+        .key-black.wrong { fill: #991b1b !important; }
+
+        /* Button Styles */
+        .piano-btn {
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+        .piano-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #cbd5e1;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col items-center py-6 px-4">
+<body class="text-slate-800 min-h-screen flex flex-col items-center py-4 px-2 md:py-6">
 
-    <!-- Header -->
-    <header class="w-full max-w-2xl mb-6 text-center">
-        <h1 class="text-3xl font-bold text-slate-900 mb-2">Music Note Practice</h1>
-        <p class="text-slate-500 text-sm">音符を読んで正しい音名を答えましょう</p>
+    <header class="w-full max-w-3xl mb-4 text-center">
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Music Note Practice</h1>
     </header>
 
-    <!-- Main Card -->
-    <main class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden">
+    <main class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
         
         <!-- Settings Accordion -->
         <div class="border-b border-slate-100">
@@ -81,14 +90,49 @@
             </button>
             
             <div id="settings-panel" class="hidden p-6 bg-slate-50 space-y-4 text-sm">
-                <!-- Language & Clef -->
+                
+                <!-- Input Mode & Language -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-600 mb-1 font-medium">入力モード / Input Mode</label>
+                        <select id="setting-input-mode" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="piano" selected>ピアノ鍵盤 (Piano Keys)</option>
+                            <option value="buttons">音名ボタン (Note Buttons)</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-slate-600 mb-1 font-medium">表記 / Language</label>
                         <select id="setting-lang" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="DOREMI" selected>イタリア語 (ド レ ミ)</option>
                             <option value="CDE">英語 (C D E)</option>
                             <option value="JAPANESE">日本語 (ハ ニ ホ)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Key & Clef -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-600 mb-1 font-medium">出題キー / Key Signature</label>
+                        <select id="setting-key" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="C">C Major (ハ長調) [Default]</option>
+                            <option value="RANDOM">🎲 Random (ランダム)</option>
+                            <optgroup label="Sharps (♯)">
+                                <option value="G">G Major (ト長調) - 1♯</option>
+                                <option value="D">D Major (ニ長調) - 2♯</option>
+                                <option value="A">A Major (イ長調) - 3♯</option>
+                                <option value="E">E Major (ホ長調) - 4♯</option>
+                                <option value="B">B Major (ロ長調) - 5♯</option>
+                                <option value="F#">F# Major (嬰ヘ長調) - 6♯</option>
+                            </optgroup>
+                            <optgroup label="Flats (♭)">
+                                <option value="F">F Major (ヘ長調) - 1♭</option>
+                                <option value="Bb">Bb Major (変ロ長調) - 2♭</option>
+                                <option value="Eb">Eb Major (変ホ長調) - 3♭</option>
+                                <option value="Ab">Ab Major (変イ長調) - 4♭</option>
+                                <option value="Db">Db Major (変ニ長調) - 5♭</option>
+                                <option value="Gb">Gb Major (変ト長調) - 6♭</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div>
@@ -100,20 +144,18 @@
                     </div>
                 </div>
 
-                <!-- Range -->
-                <div>
-                    <label class="block text-slate-600 mb-1 font-medium">音域 / Note Range</label>
-                    <div class="flex items-center space-x-2">
-                        <select id="setting-range-min" class="w-1/2 p-2 border border-slate-300 rounded-lg"></select>
-                        <span class="text-slate-400">-</span>
-                        <select id="setting-range-max" class="w-1/2 p-2 border border-slate-300 rounded-lg"></select>
-                    </div>
-                </div>
-
-                <!-- Options -->
+                <!-- Range & Count -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-slate-600 mb-1 font-medium">問題数 / Number of Notes</label>
+                        <label class="block text-slate-600 mb-1 font-medium">音域 / Note Range</label>
+                        <div class="flex items-center space-x-2">
+                            <select id="setting-range-min" class="w-1/2 p-2 border border-slate-300 rounded-lg"></select>
+                            <span class="text-slate-400">-</span>
+                            <select id="setting-range-max" class="w-1/2 p-2 border border-slate-300 rounded-lg"></select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-slate-600 mb-1 font-medium">問題数 / Notes</label>
                         <select id="setting-count" class="w-full p-2 border border-slate-300 rounded-lg">
                             <option value="4">4</option>
                             <option value="8" selected>8</option>
@@ -122,82 +164,118 @@
                             <option value="999">無限 (Endless)</option>
                         </select>
                     </div>
-                    <div class="flex items-center pt-6">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" id="setting-jump-limit" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
-                            <span class="text-slate-700">8度跳躍制限 (Jump Limit)</span>
-                        </label>
-                    </div>
                 </div>
 
                 <div class="pt-2">
                     <button id="btn-generate" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center space-x-2">
-                        <span>🔄 新しい問題を作成 / Generate New</span>
+                        <span>🔄 設定を適用してリセット</span>
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Score Wrapper -->
-        <div class="relative w-full h-48 md:h-64 score-bg">
+        <div class="relative w-full h-40 md:h-56 score-bg border-b border-slate-200">
             
-            <!-- Note-specific Feedback (Floating at TOP to avoid blocking notes) -->
             <div id="float-feedback" class="absolute top-2 left-0 right-0 z-20 pointer-events-none flex justify-center opacity-0 h-16">
                 <span id="float-text" class="text-5xl font-bold drop-shadow-sm"></span>
             </div>
 
-            <!-- Scrollable Score Area -->
-            <div id="score-container" class="w-full h-full overflow-x-auto overflow-y-hidden flex items-center">
+            <!-- Current Key Display -->
+            <div id="current-key-display" class="absolute top-2 left-2 text-xs font-bold text-slate-400 border border-slate-200 bg-white px-2 py-1 rounded">
+                Key: C
+            </div>
+
+            <div id="score-container" class="w-full h-full overflow-x-auto overflow-y-hidden flex items-center scrollbar-hide">
                 <svg id="score-svg" class="h-full" style="min-width: 100%;" viewBox="0 0 600 200" preserveAspectRatio="xMinYMid meet"></svg>
             </div>
             
-            <!-- Game Over Overlay -->
             <div id="feedback-overlay" class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 bg-white/80 transition-opacity duration-300 backdrop-blur-sm">
-                <span id="feedback-text" class="text-5xl md:text-6xl font-bold drop-shadow-md transform transition-transform duration-200"></span>
+                <span id="feedback-text" class="text-4xl md:text-6xl font-bold drop-shadow-md transform transition-transform duration-200 text-center px-4"></span>
             </div>
-
         </div>
 
-        <!-- Progress Bar -->
-        <div class="w-full bg-slate-200 h-2">
-            <div id="progress-bar" class="bg-blue-500 h-2 transition-all duration-300" style="width: 0%"></div>
+        <div class="w-full bg-slate-200 h-1.5">
+            <div id="progress-bar" class="bg-blue-500 h-1.5 transition-all duration-300" style="width: 0%"></div>
         </div>
 
-        <!-- Controls (Keyboard) -->
-        <div class="p-6 bg-slate-50">
-            <div id="keyboard-container" class="grid grid-cols-7 gap-2 md:gap-4 max-w-lg mx-auto">
-                <!-- Buttons generated by JS -->
+        <!-- Input Area -->
+        <div class="w-full bg-slate-50 border-t border-slate-200 relative min-h-[160px] flex flex-col justify-center">
+            
+            <div id="input-piano-container" class="w-full overflow-x-auto pb-4 pt-2 px-2 hidden">
+                <div id="keyboard-wrapper" class="mx-auto"></div>
+                <div class="absolute top-0 left-0 bottom-0 w-6 bg-gradient-to-r from-slate-50 to-transparent pointer-events-none"></div>
+                <div class="absolute top-0 right-0 bottom-0 w-6 bg-gradient-to-l from-slate-50 to-transparent pointer-events-none"></div>
             </div>
+
+            <div id="input-buttons-container" class="w-full p-4 hidden">
+                <div id="buttons-wrapper" class="grid grid-cols-7 gap-1 md:gap-3 max-w-2xl mx-auto"></div>
+            </div>
+        </div>
+
+        <div class="bg-white p-3 border-t border-slate-100 flex justify-between items-center text-sm text-slate-500">
+            <span>Score: <strong id="score-val" class="text-slate-800">0</strong></span>
+            <span>残り: <strong id="remaining-val" class="text-slate-800">8</strong></span>
         </div>
 
     </main>
 
-    <!-- Stats / Footer -->
-    <div class="mt-6 text-slate-500 text-sm flex space-x-6">
-        <span>Score: <strong id="score-val" class="text-slate-800">0</strong></span>
-        <span>Remaining: <strong id="remaining-val" class="text-slate-800">8</strong></span>
-    </div>
-
-    <!-- Scripts -->
     <script>
         /**
-         * Music Logic & Constants
+         * Key Signature & Scale Data
+         * * map: Maps MIDI (0-11) to Diatonic Step Index (0=C, 1=D, ... 6=B).
+         * This is crucial for correct visual placement (e.g., F# vs Gb).
          */
+        const KEYS = {
+            'C':  { sharps: 0, flats: 0, scale: [0, 2, 4, 5, 7, 9, 11], map: {0:0, 2:1, 4:2, 5:3, 7:4, 9:5, 11:6} },
+            'G':  { sharps: 1, flats: 0, scale: [7, 9, 11, 0, 2, 4, 6], map: {7:4, 9:5, 11:6, 0:0, 2:1, 4:2, 6:3} }, // F#=6 -> Step 3 (F)
+            'D':  { sharps: 2, flats: 0, scale: [2, 4, 6, 7, 9, 11, 1], map: {2:1, 4:2, 6:3, 7:4, 9:5, 11:6, 1:0} }, // C#=1 -> Step 0 (C)
+            'A':  { sharps: 3, flats: 0, scale: [9, 11, 1, 2, 4, 6, 8], map: {9:5, 11:6, 1:0, 2:1, 4:2, 6:3, 8:4} }, // G#=8 -> Step 4 (G)
+            'E':  { sharps: 4, flats: 0, scale: [4, 6, 8, 9, 11, 1, 3], map: {4:2, 6:3, 8:4, 9:5, 11:6, 1:0, 3:1} }, // D#=3 -> Step 1 (D)
+            'B':  { sharps: 5, flats: 0, scale: [11, 1, 3, 4, 6, 8, 10], map: {11:6, 1:0, 3:1, 4:2, 6:3, 8:4, 10:5} }, // A#=10 -> Step 5 (A)
+            'F#': { sharps: 6, flats: 0, scale: [6, 8, 10, 11, 1, 3, 5], map: {6:3, 8:4, 10:5, 11:6, 1:0, 3:1, 5:2} }, // E#=5 -> Step 2 (E)
+            'F':  { sharps: 0, flats: 1, scale: [5, 7, 9, 10, 0, 2, 4], map: {5:3, 7:4, 9:5, 10:6, 0:0, 2:1, 4:2} }, // Bb=10 -> Step 6 (B)
+            'Bb': { sharps: 0, flats: 2, scale: [10, 0, 2, 3, 5, 7, 9], map: {10:6, 0:0, 2:1, 3:2, 5:3, 7:4, 9:5} }, // Eb=3 -> Step 2 (E)
+            'Eb': { sharps: 0, flats: 3, scale: [3, 5, 7, 8, 10, 0, 2], map: {3:2, 5:3, 7:4, 8:5, 10:6, 0:0, 2:1} }, // Ab=8 -> Step 5 (A)
+            'Ab': { sharps: 0, flats: 4, scale: [8, 10, 0, 1, 3, 5, 7], map: {8:5, 10:6, 0:0, 1:1, 3:2, 5:3, 7:4} }, // Db=1 -> Step 1 (D)
+            'Db': { sharps: 0, flats: 5, scale: [1, 3, 5, 6, 8, 10, 0], map: {1:1, 3:2, 5:3, 6:4, 8:5, 10:6, 0:0} }, // Gb=6 -> Step 4 (G)
+            'Gb': { sharps: 0, flats: 6, scale: [6, 8, 10, 11, 1, 3, 5], map: {6:4, 8:5, 10:6, 11:0, 1:1, 3:2, 5:3} }  // Cb=11 -> Step 0 (C)
+        };
+
+        // Positions for Key Signatures (Relative to Treble F5 Line / Bass A3 Line)
+        // Correct standard placements.
+        // Treble F5 line is "Line 5" (counting from bottom 1). Index in code relative to top line (0).
+        // 0=Top Line. 0.5=Space Above? No, 0.5=Space Below. Positive = Down.
+        // Treble Top Line: F5. 
+        // Sharps: F(0), C(1.5), G(-0.5), D(1), A(2.5), E(0.5) 
+        // Flats: B(2), E(0.5), A(2.5), D(1), G(3), C(1.5)
+        // Bass Top Line: A3.
+        // Sharps: F(1), C(2.5), G(0.5), D(2), A(3.5), E(1.5)
+        // Flats: B(3), E(1.5), A(3.5), D(2), G(4), C(2.5)
+        const KEY_SIG_POSITIONS = {
+            treble_sharps: [0, 1.5, -0.5, 1, 2.5, 0.5], 
+            treble_flats:  [2, 0.5, 2.5, 1, 3, 1.5],
+            bass_sharps:   [1, 2.5, 0.5, 2, 3.5, 1.5],
+            bass_flats:    [3, 1.5, 3.5, 2, 4, 2.5] 
+        };
+
         const NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
         const NOTE_LABELS = {
             'CDE': ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-            'DOREMI': ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'], // カタカナ表記
+            'DOREMI': ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'],
             'JAPANESE': ['ハ', 'ニ', 'ホ', 'ヘ', 'ト', 'イ', 'ロ']
         };
 
         const STATE = {
             config: {
-                lang: 'DOREMI', // Default
+                mode: 'piano', 
+                lang: 'DOREMI',
                 clef: 'treble',
-                rangeMin: 48, // C3
-                rangeMax: 83, // B5 (Updated Default)
+                rangeMin: 48,
+                rangeMax: 83, 
                 count: 8,
-                jumpLimit: true
+                keySetting: 'C', 
+                currentKey: 'C'  
             },
             currentSequence: [],
             currentIndex: 0,
@@ -205,23 +283,23 @@
             isFinished: false
         };
 
-        // Audio Context
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        function playTone(midiNote, type = 'sine') {
+        function playTone(midiNote, type = 'sine', duration = 0.5) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             const freq = 440 * Math.pow(2, (midiNote - 69) / 12);
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.5);
+            osc.stop(audioCtx.currentTime + duration);
         }
 
         function playFeedbackSound(isCorrect) {
@@ -229,8 +307,11 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = isCorrect ? 'triangle' : 'sawtooth';
-            osc.frequency.setValueAtTime(isCorrect ? 880 : 200, audioCtx.currentTime);
-            if (!isCorrect) {
+            if (isCorrect) {
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+            } else {
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
                 osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.2);
             }
             gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -241,13 +322,11 @@
             osc.stop(audioCtx.currentTime + 0.3);
         }
 
-
         /**
-         * Initialization
+         * Init
          */
         window.addEventListener('DOMContentLoaded', () => {
             initSettingsUI();
-            updateKeyboardLabels();
             generateNewGame();
             
             document.getElementById('settings-toggle').addEventListener('click', toggleSettings);
@@ -256,31 +335,33 @@
                 generateNewGame();
                 toggleSettings();
             });
-            document.getElementById('setting-lang').addEventListener('change', updateKeyboardLabels);
+            document.getElementById('setting-lang').addEventListener('change', (e) => {
+                STATE.config.lang = e.target.value;
+                if(STATE.config.mode === 'buttons') renderInputUI();
+            });
         });
 
         function toggleSettings() {
             const panel = document.getElementById('settings-panel');
             const arrow = document.getElementById('settings-arrow');
             panel.classList.toggle('hidden');
-            if (panel.classList.contains('hidden')) {
-                arrow.style.transform = 'rotate(0deg)';
-            } else {
-                arrow.style.transform = 'rotate(180deg)';
-            }
+            arrow.style.transform = panel.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function getNoteName(midi) {
+            const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            return names[midi % 12];
         }
 
         function initSettingsUI() {
             const minSel = document.getElementById('setting-range-min');
             const maxSel = document.getElementById('setting-range-max');
             const ranges = [];
-            
-            for(let i=36; i<=95; i++) { // C2 to B6 extended for B5 range
-                const noteName = getNoteNameFromMidi(i);
+            for(let i=36; i<=95; i++) {
+                const noteName = getNoteName(i);
                 const octave = Math.floor(i / 12) - 1;
                 ranges.push({ val: i, label: `${noteName}${octave}` });
             }
-
             const populate = (sel, defaultVal) => {
                 ranges.forEach(r => {
                     const opt = document.createElement('option');
@@ -290,90 +371,70 @@
                     sel.appendChild(opt);
                 });
             };
-
-            populate(minSel, 48); // Default C3
-            populate(maxSel, 83); // Default B5 (Updated)
+            populate(minSel, 48); // C3
+            populate(maxSel, 83); // B5
         }
 
         function applySettings() {
+            STATE.config.mode = document.getElementById('setting-input-mode').value;
             STATE.config.lang = document.getElementById('setting-lang').value;
             STATE.config.clef = document.getElementById('setting-clef').value;
             STATE.config.rangeMin = parseInt(document.getElementById('setting-range-min').value);
             STATE.config.rangeMax = parseInt(document.getElementById('setting-range-max').value);
             STATE.config.count = parseInt(document.getElementById('setting-count').value);
-            STATE.config.jumpLimit = document.getElementById('setting-jump-limit').checked;
-
-            if(STATE.config.rangeMin > STATE.config.rangeMax) {
-                const temp = STATE.config.rangeMin;
-                STATE.config.rangeMin = STATE.config.rangeMax;
-                STATE.config.rangeMax = temp;
-            }
-        }
-
-        function getNoteNameFromMidi(midi) {
-            const noteIndex = midi % 12;
-            const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-            return names[noteIndex]; 
+            STATE.config.keySetting = document.getElementById('setting-key').value;
         }
 
         /**
          * Game Logic
          */
         function generateNewGame() {
-            const overlay = document.getElementById('feedback-overlay');
-            overlay.style.opacity = '0';
-            
+            document.getElementById('feedback-overlay').style.opacity = '0';
             STATE.currentSequence = [];
             STATE.currentIndex = 0;
             STATE.score = 0;
             STATE.isFinished = false;
 
+            if (STATE.config.keySetting === 'RANDOM') {
+                const keys = Object.keys(KEYS);
+                STATE.config.currentKey = keys[Math.floor(Math.random() * keys.length)];
+            } else {
+                STATE.config.currentKey = STATE.config.keySetting;
+            }
+            
+            document.getElementById('current-key-display').innerText = `Key: ${STATE.config.currentKey}`;
             updateScoreUI();
 
-            const whiteKeys = [0, 2, 4, 5, 7, 9, 11];
+            const keyData = KEYS[STATE.config.currentKey];
             const validNotes = [];
             for (let m = STATE.config.rangeMin; m <= STATE.config.rangeMax; m++) {
-                if (whiteKeys.includes(m % 12)) {
+                const noteIndex = m % 12;
+                if (keyData.scale.includes(noteIndex)) {
                     validNotes.push(m);
                 }
             }
+            
             if(validNotes.length === 0) validNotes.push(60); 
 
-            // 履歴管理用 (このセット内で使用された音)
             const history = [];
 
             for (let i = 0; i < STATE.config.count; i++) {
                 let note;
                 let attempts = 0;
-
-                // 満遍なくするためのプールを作成
-                // まだ出題されていない音を優先プールに入れる
                 let pool = validNotes.filter(n => !history.includes(n));
-                if (pool.length === 0) pool = [...validNotes]; // 全部出尽くしたらリセット
+                if (pool.length === 0) pool = [...validNotes];
 
                 do {
                     attempts++;
-
-                    // 基本は未出題プールから選ぶが、詰まり防止のため試行回数が増えたら全体から選ぶ
                     const currentPool = (attempts < 10 && pool.length > 0) ? pool : validNotes;
                     note = currentPool[Math.floor(Math.random() * currentPool.length)];
 
-                    // Check 1: Jump Limit (8度制限)
-                    if (history.length > 0 && STATE.config.jumpLimit) {
-                        const lastNote = history[history.length - 1];
-                        const diff = Math.abs(note - lastNote);
-                        // 1オクターブ(12)を超える場合はリトライ
-                        // ただし無限ループ防止のため20回で諦める
-                        if (diff > 12 && attempts < 20) continue; 
-                    }
-
-                    // Check 2: 直前と同じ音は避ける
                     if (history.length > 0) {
-                        const lastNote = history[history.length - 1];
-                        if (lastNote === note && attempts < 20) continue;
+                        const last = history[history.length - 1];
+                        if (Math.abs(note - last) > 12 && attempts < 20) continue;
+                        if (last === note && attempts < 20) continue;
                     }
-
-                    break; // 条件クリア
+                    break; 
                 } while (true);
 
                 STATE.currentSequence.push(note);
@@ -381,27 +442,43 @@
             }
 
             renderScore();
+            renderInputUI();
         }
 
-        function handleInput(inputNoteIndex) {
+        function handleInput(inputVal, type) {
             if (STATE.isFinished) return;
 
             const targetMidi = STATE.currentSequence[STATE.currentIndex];
-            const targetNoteName = getNoteNameFromMidi(targetMidi);
-            const targetNoteIndex = NOTES.indexOf(targetNoteName);
+            let isCorrect = false;
 
-            const isCorrect = inputNoteIndex === targetNoteIndex;
-            
+            if (type === 'midi') {
+                isCorrect = (inputVal === targetMidi);
+                const keyEl = document.getElementById(`key-${inputVal}`);
+                if(keyEl) {
+                    keyEl.classList.add(isCorrect ? 'correct' : 'wrong');
+                    setTimeout(() => keyEl.classList.remove('correct', 'wrong'), 300);
+                }
+                playTone(inputVal, isCorrect ? 'triangle' : 'sawtooth', 0.3);
+
+            } else {
+                // Button Mode: Use the explicit key mapping to check correctness
+                const keyData = KEYS[STATE.config.currentKey];
+                const targetNoteIndex = keyData.map[targetMidi % 12];
+                isCorrect = (inputVal === targetNoteIndex);
+                
+                if(isCorrect) playTone(targetMidi, 'triangle', 0.3);
+                else playFeedbackSound(false);
+            }
+
             const noteGroup = document.getElementById(`note-group-${STATE.currentIndex}`);
             const noteHead = noteGroup.querySelector('ellipse');
             const noteStem = noteGroup.querySelector('line');
 
             if (isCorrect) {
-                playTone(targetMidi);
                 noteHead.classList.add('note-correct');
                 if(noteStem) noteStem.style.stroke = '#22c55e';
                 STATE.score++;
-                showFloatFeedback('⭕', true); // Show circle
+                showFloatFeedback('⭕', true);
                 
                 STATE.currentIndex++;
                 updateScoreUI();
@@ -409,21 +486,16 @@
                 if (STATE.currentIndex >= STATE.currentSequence.length && STATE.config.count !== 999) {
                     finishGame();
                 } else if (STATE.config.count === 999) {
-                     if (STATE.currentIndex >= STATE.currentSequence.length) {
-                         generateNewGame();
-                     } else {
-                        highlightCurrentNote();
-                     }
+                     if (STATE.currentIndex >= STATE.currentSequence.length) generateNewGame();
+                     else highlightCurrentNote();
                 } else {
                     highlightCurrentNote();
                 }
 
             } else {
-                playFeedbackSound(false);
                 noteHead.classList.add('note-wrong');
                 if(noteStem) noteStem.style.stroke = '#ef4444';
                 showFloatFeedback('❌', false);
-                
                 setTimeout(() => {
                     noteHead.classList.remove('note-wrong');
                     if(noteStem) noteStem.style.stroke = 'black';
@@ -431,38 +503,47 @@
                 }, 500);
             }
         }
+        
+        // --- KEY LOGIC CORE: Calculate Visual Y Position ---
+        function getVisualStepsFromC4(midi, key) {
+            // C4 is midi 60.
+            // visualStep = (OctaveDifference * 7) + (NoteIndexDifference)
+            const oct = Math.floor(midi / 12);
+            const refOct = 5; // C4 is octave 5 in 0-based MIDI? No. 
+            // MIDI C4 is 60. 60/12 = 5. So Octave index is 5.
+            
+            const noteVal = midi % 12;
+            const keyData = KEYS[key];
+            const noteIndex = keyData.map[noteVal]; // 0-6 (C-B)
+            
+            // C4 is (Oct 5, Index 0).
+            // Calculate absolute visual index from C0 (Midi 0 = C-1? Midi 12 = C0).
+            // Let's stick to C4 relative.
+            const absStep = (oct * 7) + noteIndex;
+            const c4Step = (5 * 7) + 0; 
+            
+            return absStep - c4Step; 
+        }
 
         function finishGame() {
             STATE.isFinished = true;
-            
             const overlay = document.getElementById('feedback-overlay');
             const text = document.getElementById('feedback-text');
-            
             text.innerText = "Good Job! 🎉";
             text.className = "text-5xl md:text-6xl font-bold text-blue-600 drop-shadow-md";
-            
             overlay.style.opacity = '1';
-
-            // Auto-restart after 1.0 second delay (Shortened)
-            setTimeout(() => {
-                generateNewGame();
-            }, 1000); 
+            setTimeout(() => { generateNewGame(); }, 1000); 
         }
 
-        // Floating feedback logic (Updated for visibility)
         function showFloatFeedback(text, good) {
             const el = document.getElementById('float-text');
             const container = document.getElementById('float-feedback');
-            
             el.innerText = text;
             el.className = good ? "text-5xl font-bold text-green-500 drop-shadow-sm" : "text-5xl font-bold text-red-500 drop-shadow-sm";
-            
-            // Animation reset
             container.classList.remove('pop-mark');
-            void container.offsetWidth; // trigger reflow
+            void container.offsetWidth;
             container.style.opacity = '1';
             container.classList.add('pop-mark');
-            
             setTimeout(() => {
                 container.style.opacity = '0';
                 container.classList.remove('pop-mark');
@@ -474,21 +555,20 @@
             let remaining = STATE.config.count - STATE.currentIndex;
             if (STATE.config.count === 999) remaining = "∞";
             document.getElementById('remaining-val').innerText = remaining;
-
             const progress = (STATE.currentIndex / STATE.config.count) * 100;
             document.getElementById('progress-bar').style.width = `${progress}%`;
         }
 
         /**
-         * SVG Rendering
+         * SVG Score Rendering
          */
         function renderScore() {
             const svg = document.getElementById('score-svg');
             svg.innerHTML = ''; 
 
             const totalNotes = STATE.config.count;
-            const noteSpacing = 55;
-            const startX = 120;
+            const noteSpacing = 60;
+            const startX = 160; 
             const calculatedWidth = startX + (totalNotes * noteSpacing) + 50;
             const svgWidth = Math.max(600, calculatedWidth);
 
@@ -498,6 +578,7 @@
             const staffY = 80;
             const lineSpacing = 15;
             
+            // Staff Lines
             for (let i = 0; i < 5; i++) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 line.setAttribute("x1", "20");
@@ -509,6 +590,7 @@
                 svg.appendChild(line);
             }
 
+            // Clef
             const clefGroup = document.createElementNS("http://www.w3.org/2000/svg", "text");
             clefGroup.setAttribute("font-family", "'Noto Sans Symbols', sans-serif");
             
@@ -525,6 +607,10 @@
             }
             svg.appendChild(clefGroup);
 
+            // Key Signature
+            drawKeySignature(svg, staffY, lineSpacing);
+
+            // Notes
             STATE.currentSequence.forEach((midi, index) => {
                 const noteGroup = createNoteSVG(midi, startX + (index * noteSpacing), staffY, lineSpacing);
                 noteGroup.setAttribute("id", `note-group-${index}`);
@@ -536,21 +622,75 @@
             setTimeout(highlightCurrentNote, 0);
         }
 
+        function drawKeySignature(svg, staffY, spacing) {
+            const key = STATE.config.currentKey;
+            const data = KEYS[key];
+            if (!data) return;
+
+            const isSharps = data.sharps > 0;
+            const count = isSharps ? data.sharps : data.flats;
+            if (count === 0) return;
+
+            const symbol = isSharps ? '♯' : '♭';
+            const clefType = STATE.config.clef;
+            
+            let posArray;
+            if (clefType === 'treble') {
+                posArray = isSharps ? KEY_SIG_POSITIONS.treble_sharps : KEY_SIG_POSITIONS.treble_flats;
+            } else {
+                posArray = isSharps ? KEY_SIG_POSITIONS.bass_sharps : KEY_SIG_POSITIONS.bass_flats;
+            }
+
+            let startX = 85; 
+            const stepX = 14; 
+
+            for(let i=0; i<count; i++) {
+                const yOffset = posArray[i]; 
+                const y = staffY + (yOffset * spacing);
+                
+                const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                txt.textContent = symbol;
+                txt.setAttribute("x", startX + (i * stepX));
+                const yAdjust = isSharps ? (spacing/2) - 1 : (spacing/2) - 2;
+                txt.setAttribute("y", y + yAdjust); 
+                txt.setAttribute("font-size", "28");
+                txt.setAttribute("font-family", "'Noto Sans Symbols', sans-serif");
+                svg.appendChild(txt);
+            }
+        }
+
         function createNoteSVG(midi, cx, staffTopY, spacing) {
             const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
             
-            let referenceMidi, referenceY;
+            // New Calculation Logic based on C4 relative steps
+            // 1. Get visual steps from C4 for the target note (using Key mapping)
+            const stepsFromC4 = getVisualStepsFromC4(midi, STATE.config.currentKey);
             
+            // 2. Determine Y position of C4 in current clef
+            // Treble C4 is 1 line below staff (Visual Index from Top Line?).
+            // Top Line is F5. 
+            // C4 -> D4 -> E4 -> F4 -> G4 -> A4 -> B4 -> C5 -> D5 -> E5 -> F5.
+            // C4 is 10 steps below F5.
+            
+            // Bass Clef Top Line is A3.
+            // A3 -> G3 -> F3 -> E3 -> D3 -> C3. 
+            // C4 is 2 steps above A3.
+            
+            let c4Y;
             if (STATE.config.clef === 'treble') {
-                referenceMidi = 77; 
-                referenceY = staffTopY;
+                // Top line F5 (Y=staffTopY). C4 is 10 steps below.
+                // Each step is spacing/2. Down is positive Y.
+                c4Y = staffTopY + (10 * (spacing / 2));
             } else {
-                referenceMidi = 57; 
-                referenceY = staffTopY;
+                // Top line A3 (Y=staffTopY). C4 is 2 steps above.
+                c4Y = staffTopY - (2 * (spacing / 2));
             }
 
-            const whiteKeyIndex = getScaleStepDifference(referenceMidi, midi);
-            const yPos = referenceY - (whiteKeyIndex * (spacing / 2));
+            // 3. Calculate target Y
+            // If stepsFromC4 is positive (higher than C4), we move UP (negative Y).
+            const yPos = c4Y - (stepsFromC4 * (spacing / 2));
+
+            // Stem direction
             const middleLineY = staffTopY + (2 * spacing);
             const stemDirection = yPos < middleLineY ? 'down' : 'up';
 
@@ -565,12 +705,8 @@
                  group.appendChild(line);
             };
 
-            for (let ly = staffTopY - spacing; ly >= yPos; ly -= spacing) {
-                drawLedger(ly);
-            }
-            for (let ly = staffTopY + 5*spacing; ly <= yPos; ly += spacing) {
-                drawLedger(ly);
-            }
+            for (let ly = staffTopY - spacing; ly >= yPos; ly -= spacing) drawLedger(ly);
+            for (let ly = staffTopY + 5*spacing; ly <= yPos; ly += spacing) drawLedger(ly);
 
             const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
             ellipse.setAttribute("cx", cx);
@@ -597,18 +733,7 @@
             stem.setAttribute("stroke", "black");
             stem.setAttribute("stroke-width", "1.5");
             group.appendChild(stem);
-
             return group;
-        }
-
-        function getScaleStepDifference(refMidi, targetMidi) {
-            const getStep = (m) => {
-                const octave = Math.floor(m / 12);
-                const note = m % 12;
-                const map = {0:0, 1:0, 2:1, 3:1, 4:2, 5:3, 6:3, 7:4, 8:4, 9:5, 10:5, 11:6};
-                return (octave * 7) + map[note];
-            };
-            return getStep(targetMidi) - getStep(refMidi);
         }
 
         function highlightCurrentNote() {
@@ -623,29 +748,41 @@
                 const group = document.getElementById(`note-group-${STATE.currentIndex}`);
                 if(group) {
                     const head = group.querySelector('ellipse');
-                    if(head) {
-                        head.classList.add('note-current');
-                    }
+                    if(head) head.classList.add('note-current');
                     
                     const container = document.getElementById('score-container');
-                    const noteX = 120 + (STATE.currentIndex * 55);
+                    const noteX = 160 + (STATE.currentIndex * 60);
                     const containerWidth = container.clientWidth;
                     const scrollPos = noteX - (containerWidth / 2);
-                    
                     container.scrollTo({ left: scrollPos, behavior: 'smooth' });
                 }
             }
         }
 
-        function updateKeyboardLabels() {
-            const container = document.getElementById('keyboard-container');
-            container.innerHTML = ''; 
+        function renderInputUI() {
+            const pianoContainer = document.getElementById('input-piano-container');
+            const buttonsContainer = document.getElementById('input-buttons-container');
+
+            if (STATE.config.mode === 'piano') {
+                buttonsContainer.classList.add('hidden');
+                pianoContainer.classList.remove('hidden');
+                renderPianoKeyboard();
+            } else {
+                pianoContainer.classList.add('hidden');
+                buttonsContainer.classList.remove('hidden');
+                renderButtonKeyboard();
+            }
+        }
+
+        function renderButtonKeyboard() {
+            const wrapper = document.getElementById('buttons-wrapper');
+            wrapper.innerHTML = '';
             
-            const labels = NOTE_LABELS[document.getElementById('setting-lang').value];
+            const labels = NOTE_LABELS[STATE.config.lang];
             
             NOTES.forEach((note, index) => {
                 const btn = document.createElement('button');
-                btn.className = "piano-key w-full aspect-square md:aspect-auto md:h-20 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-xl md:text-2xl font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 select-none";
+                btn.className = "piano-btn w-full aspect-square bg-white border border-slate-200 rounded-xl flex items-center justify-center text-lg md:text-2xl font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 select-none";
                 btn.innerText = labels[index];
                 
                 const action = (e) => {
@@ -656,17 +793,118 @@
                         btn.style.transform = "";
                         btn.style.boxShadow = "";
                     }, 100);
-                    
-                    handleInput(index);
+                    handleInput(index, 'index');
                 };
 
                 btn.addEventListener('mousedown', action);
                 btn.addEventListener('touchstart', action);
-
-                container.appendChild(btn);
+                wrapper.appendChild(btn);
             });
         }
 
+        function renderPianoKeyboard() {
+            const wrapper = document.getElementById('keyboard-wrapper');
+            wrapper.innerHTML = '';
+
+            const startMidi = Math.floor(STATE.config.rangeMin / 12) * 12; 
+            let endMidi = Math.ceil((STATE.config.rangeMax + 1) / 12) * 12;
+            if (endMidi < STATE.config.rangeMax) endMidi += 12;
+
+            const whiteKeyWidth = 48;
+            const whiteKeyHeight = 140;
+            const blackKeyWidth = 28;
+            const blackKeyHeight = 90;
+
+            let whiteKeyCount = 0;
+            for(let m=startMidi; m<endMidi; m++) {
+                const n = m % 12;
+                if([0,2,4,5,7,9,11].includes(n)) whiteKeyCount++;
+            }
+            const totalWidth = whiteKeyCount * whiteKeyWidth;
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", totalWidth);
+            svg.setAttribute("height", whiteKeyHeight);
+            svg.setAttribute("class", "block select-none");
+            wrapper.style.width = `${totalWidth}px`;
+
+            const gWhite = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            const gBlack = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            const gLabels = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            
+            svg.appendChild(gWhite);
+            svg.appendChild(gLabels);
+            svg.appendChild(gBlack);
+
+            let currentX = 0;
+
+            for (let m = startMidi; m < endMidi; m++) {
+                const noteIndex = m % 12;
+                const isWhite = [0, 2, 4, 5, 7, 9, 11].includes(noteIndex);
+                
+                if (isWhite) {
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", currentX);
+                    rect.setAttribute("y", 0);
+                    rect.setAttribute("width", whiteKeyWidth);
+                    rect.setAttribute("height", whiteKeyHeight);
+                    rect.setAttribute("class", "key-white cursor-pointer");
+                    rect.setAttribute("id", `key-${m}`);
+                    rect.setAttribute("rx", 4); 
+                    
+                    addPianoKeyInteraction(rect, m);
+                    gWhite.appendChild(rect);
+
+                    if (noteIndex === 0) {
+                        const octave = (m / 12) - 1;
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.textContent = `C${octave}`;
+                        text.setAttribute("x", currentX + (whiteKeyWidth/2));
+                        text.setAttribute("y", whiteKeyHeight - 10);
+                        text.setAttribute("text-anchor", "middle");
+                        text.setAttribute("fill", "#94a3b8");
+                        text.setAttribute("font-size", "14");
+                        text.setAttribute("font-weight", "bold");
+                        text.setAttribute("pointer-events", "none");
+                        gLabels.appendChild(text);
+                    }
+                    currentX += whiteKeyWidth;
+                } else {
+                    const bX = currentX - (blackKeyWidth / 2);
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", bX);
+                    rect.setAttribute("y", 0);
+                    rect.setAttribute("width", blackKeyWidth);
+                    rect.setAttribute("height", blackKeyHeight);
+                    rect.setAttribute("class", "key-black cursor-pointer");
+                    rect.setAttribute("id", `key-${m}`);
+                    rect.setAttribute("rx", 2);
+                    addPianoKeyInteraction(rect, m);
+                    gBlack.appendChild(rect);
+                }
+            }
+            wrapper.appendChild(svg);
+
+            const startScrollMidi = STATE.config.rangeMin;
+            let offsetKeys = 0;
+             for(let m=startMidi; m<startScrollMidi; m++) {
+                if([0,2,4,5,7,9,11].includes(m%12)) offsetKeys++;
+            }
+            const scrollX = offsetKeys * whiteKeyWidth;
+            const container = document.getElementById('input-piano-container');
+            setTimeout(() => {
+                container.scrollLeft = Math.max(0, scrollX - 50);
+            }, 100);
+        }
+
+        function addPianoKeyInteraction(rect, midi) {
+            rect.addEventListener('click', (e) => {
+                e.preventDefault();
+                rect.classList.add('active');
+                setTimeout(() => rect.classList.remove('active'), 150);
+                handleInput(midi, 'midi');
+            });
+        }
     </script>
 </body>
 </html>
