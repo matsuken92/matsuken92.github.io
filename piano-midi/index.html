@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Trainer</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            touch-action: manipulation; /* スマホでのダブルタップ拡大防止 */
+        }
+
+        /* ピアノ鍵盤のスタイル */
+        .piano-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .piano {
+            position: relative;
+            height: 160px;
+            display: inline-block;
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .key {
+            position: absolute;
+            border-radius: 0 0 4px 4px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background-color 0.1s, transform 0.05s;
+            z-index: 1;
+        }
+
+        .key:active {
+            transform: translateY(2px);
+        }
+
+        .key.white {
+            width: 40px;
+            height: 160px;
+            background-color: #fff;
+            border: 1px solid #cbd5e1;
+            border-top: 3px solid #000;
+            color: #94a3b8;
+            z-index: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 5px;
+            font-size: 10px;
+        }
+
+        .key.black {
+            width: 24px;
+            height: 100px;
+            background-color: #1e293b;
+            border: 1px solid #0f172a;
+            border-top: 3px solid #000;
+            z-index: 2;
+        }
+
+        /* アクティブ（押されている）状態 */
+        .key.active {
+            background-color: #3b82f6 !important; /* Tailwind blue-500 */
+            border-color: #2563eb !important;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        .key.black.active {
+            background-color: #3b82f6 !important;
+            background-image: linear-gradient(to bottom, #60a5fa, #3b82f6);
+        }
+
+        /* アニメーション */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        .piano-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .piano-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .piano-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        /* Number Input Styling */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
+        <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-music text-blue-500"></i> Chord Trainer
+        </h1>
+        <div id="midi-status" class="text-xs font-medium text-slate-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-slate-300" id="midi-indicator"></span>
+            <span id="midi-text">MIDI未接続</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto relative bg-slate-50">
+        
+        <!-- VIEW: SETTINGS -->
+        <div id="view-settings" class="max-w-md mx-auto p-6 fade-in pb-24">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-2">コード演奏スピードアップ</h2>
+                <p class="text-slate-500 text-sm">キー、コードタイプ、ボイシングを選んで素早く回答しましょう。</p>
+            </div>
+
+            <!-- Play Mode -->
+            <div class="mb-8 p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <h3 class="font-bold mb-3 text-slate-700">演奏モード</h3>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="playMode" value="one-hand" class="w-5 h-5 text-blue-600 focus:ring-blue-500" checked>
+                        <span>片手 (4音)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="playMode" value="two-hands" class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+                        <span>両手 (8音)</span>
+                    </label>
+                </div>
+                <p class="text-xs text-slate-400 mt-2 ml-1">両手モードは左右でオクターブ違いの同じコードを弾きます。</p>
+            </div>
+
+            <!-- Voicing -->
+            <div class="mb-8">
+                <h3 class="font-bold mb-3 text-slate-700">ボイシング</h3>
+                <div class="flex gap-4 flex-wrap">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="voicing" value="root" class="w-5 h-5 text-blue-600 focus:ring-blue-500" checked>
+                        <span>ルートポジション</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="voicing" value="2nd" class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+                        <span>第2転回形</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="voicing" value="mix" class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+                        <span>ミックス</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Chord Type -->
+            <div class="mb-8">
+                <div class="flex justify-between items-end mb-3">
+                    <h3 class="font-bold text-slate-700">コードタイプ</h3>
+                    <div class="flex gap-2">
+                         <button id="select-all-types" class="text-xs bg-blue-50 text-blue-600 font-semibold px-3 py-1.5 rounded-md hover:bg-blue-100 transition-colors">全選択</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 transition-colors">
+                        <input type="checkbox" name="chordType" value="maj7" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
+                        <span class="font-medium">Δ7</span>
+                    </label>
+                    <label class="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 transition-colors">
+                        <input type="checkbox" name="chordType" value="7" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
+                        <span class="font-medium">7</span>
+                    </label>
+                    <label class="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 transition-colors">
+                        <input type="checkbox" name="chordType" value="m7" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" checked>
+                        <span class="font-medium">m7</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Keys -->
+            <div class="mb-8">
+                <div class="flex flex-wrap justify-between items-end mb-3 gap-y-2">
+                    <h3 class="font-bold text-slate-700">キー</h3>
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <!-- Random Selection Control -->
+                        <div class="flex items-center mr-1 bg-white border border-slate-200 rounded-md p-0.5 shadow-sm">
+                            <input type="number" id="random-key-count" value="4" min="1" max="12" class="w-8 text-center text-sm font-semibold text-slate-700 outline-none border-r border-slate-100 h-6">
+                            <button id="btn-random-keys" class="text-xs text-blue-600 font-bold px-2 py-1 hover:bg-blue-50 rounded-r transition-colors">ランダム</button>
+                        </div>
+
+                         <button id="select-all-keys" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-1.5 rounded-md hover:bg-slate-200 transition-colors">全選択</button>
+                         <button id="deselect-all-keys" class="text-xs bg-slate-100 text-slate-600 font-semibold px-2 py-1.5 rounded-md hover:bg-slate-200 transition-colors">全解除</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <!-- Checkboxes will be generated by JS -->
+                    <div id="keys-container" class="contents"></div>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <div class="fixed bottom-0 left-0 w-full bg-white p-4 border-t border-slate-200 flex justify-center shadow-lg z-20">
+                <button id="btn-start" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-12 rounded-full w-full max-w-md shadow-lg transition-transform active:scale-95 text-lg">
+                    スタート
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: QUIZ -->
+        <div id="view-quiz" class="hidden h-full flex flex-col">
+            <!-- Top Info -->
+            <div class="flex justify-between items-center px-4 py-4 md:px-6">
+                <div class="flex gap-3 items-center">
+                    <span id="mode-badge" class="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-bold rounded">片手</span>
+                    <div class="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-100">
+                        進捗: <span id="quiz-progress-text" class="text-slate-800 font-bold">1 / 10</span>
+                        <span class="text-slate-300 mx-2">|</span>
+                        正解率: <span id="quiz-accuracy-text" class="text-blue-600 font-bold">100%</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-finish" class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold px-4 py-1.5 rounded-md shadow-sm transition-colors">
+                        <i class="fa-solid fa-flag-checkered mr-1"></i> 終わる
+                    </button>
+                    <button id="btn-quit" class="text-sm text-slate-400 hover:text-red-500 px-3 py-1 rounded">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                <div id="question-chord" class="text-7xl font-bold text-slate-800 mb-2">Fm7</div>
+                
+                <!-- ボイシング指示を強調表示（デザイン変更） -->
+                <div id="voicing-badge" class="mt-4 px-8 py-3 rounded-full text-2xl font-bold border-2 inline-flex items-center shadow-sm transition-all transform">
+                    <i class="fa-solid fa-layer-group mr-3 opacity-70"></i>
+                    <span id="question-voicing">ルートポジション</span>
+                </div>
+                
+                <!-- Feedback Message -->
+                <div id="feedback-message" class="h-8 mt-4 font-bold text-xl transition-all duration-200 opacity-0 transform translate-y-4">
+                    正解！
+                </div>
+
+                 <!-- Hint/Notes Display -->
+                 <div class="mt-8 p-4 bg-slate-100 rounded-lg text-sm text-slate-600 max-w-sm w-full">
+                    <p class="mb-1"><i class="fa-regular fa-keyboard mr-2"></i>現在の入力 (<span id="current-note-count">0</span>音):</p>
+                    <div id="current-notes-display" class="font-mono text-lg font-bold text-blue-600 h-8 flex items-center justify-center gap-2 overflow-hidden">
+                        -
+                    </div>
+                </div>
+            </div>
+
+            <!-- Piano Keyboard -->
+            <div class="bg-slate-800 pt-2 pb-6 shadow-inner mt-auto">
+                <div class="text-center text-slate-400 text-xs mb-2">
+                    <i class="fa-solid fa-arrow-pointer mr-1"></i> 画面の鍵盤をタップしてトグル選択、またはMIDI鍵盤で演奏
+                </div>
+                <div class="piano-container px-4 text-center">
+                    <div id="piano" class="piano relative">
+                        <!-- Keys generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: RESULT -->
+        <div id="view-result" class="hidden max-w-md mx-auto p-6 fade-in h-full flex flex-col justify-center text-center">
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-2 text-slate-800">お疲れ様でした！</h2>
+                <p class="text-slate-500">今回の練習結果</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">正解率</div>
+                    <div id="result-accuracy" class="text-3xl font-bold text-blue-600">100%</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">練習時間</div>
+                    <div id="result-time" class="text-3xl font-bold text-slate-800">0 <span class="text-base font-normal text-slate-500">秒</span></div>
+                </div>
+            </div>
+            
+            <div class="text-sm text-slate-500 mb-8">
+                完了数: <span id="result-completed" class="font-bold text-slate-800">0</span> / <span id="result-total" class="font-bold text-slate-800">0</span>
+            </div>
+
+            <button id="btn-restart" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform active:scale-95 w-full">
+                もう一度
+            </button>
+            <button id="btn-back-settings" class="mt-4 text-slate-500 hover:text-slate-800 font-medium py-2">
+                設定に戻る
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        /**
+         * 音楽理論＆データ定義
+         */
+        const NOTE_NAMES_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        const NOTE_NAMES_FLAT  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+        
+        // ♭表記を使用するキーのリスト
+        const FLAT_KEYS = ["F", "Bb", "Eb", "Ab", "Db", "Gb"];
+
+        const KEY_LIST = [
+            { name: "C", root: 0 }, { name: "F", root: 5 }, { name: "Bb", root: 10 }, 
+            { name: "Eb", root: 3 }, { name: "Ab", root: 8 }, { name: "Db", root: 1 }, 
+            { name: "Gb", root: 6 }, { name: "B", root: 11 }, { name: "E", root: 4 }, 
+            { name: "A", root: 9 }, { name: "D", root: 2 }, { name: "G", root: 7 }
+        ];
+
+        // Intervals (semitones from root)
+        const CHORD_TYPES = {
+            "maj7": { label: "Δ7", intervals: [0, 4, 7, 11] },
+            "7":    { label: "7",  intervals: [0, 4, 7, 10] },
+            "m7":   { label: "m7", intervals: [0, 3, 7, 10] }
+        };
+
+        const PIANO_START_NOTE = 36; // C2 (Extended for Two Hands)
+        const PIANO_END_NOTE = 84;   // C6
+        const WHITE_KEY_WIDTH = 40;
+
+        /**
+         * State Management
+         */
+        const state = {
+            view: 'settings', // settings, quiz, result
+            mode: 'one-hand', // 'one-hand', 'two-hands'
+            midiAccess: null,
+            activeNotes: new Set(), // 現在押されているノート番号
+            
+            // Settings
+            selectedVoicing: 'root',
+            selectedChordTypes: ['maj7', '7', 'm7'],
+            selectedKeys: [], 
+            
+            // Quiz Status
+            quizQueue: [],
+            currentQuestionIndex: 0,
+            
+            // Accuracy Tracking
+            firstTryCorrectCount: 0, // ミスなしで正解した数
+            currentQuestionMistaken: false, // 現在の問題でミスをしたか
+
+            startTime: 0,
+            endTime: 0,
+            isLocked: false // 正解アニメーション中は入力を受け付けない
+        };
+
+        /**
+         * DOM Elements
+         */
+        const els = {
+            views: {
+                settings: document.getElementById('view-settings'),
+                quiz: document.getElementById('view-quiz'),
+                result: document.getElementById('view-result')
+            },
+            piano: document.getElementById('piano'),
+            keysContainer: document.getElementById('keys-container'),
+            midiStatus: document.getElementById('midi-status'),
+            midiIndicator: document.getElementById('midi-indicator'),
+            midiText: document.getElementById('midi-text'),
+            
+            // Quiz
+            questionChord: document.getElementById('question-chord'),
+            questionVoicing: document.getElementById('question-voicing'),
+            voicingBadge: document.getElementById('voicing-badge'), // バッジ全体
+            quizProgressText: document.getElementById('quiz-progress-text'),
+            quizAccuracyText: document.getElementById('quiz-accuracy-text'),
+            feedbackMessage: document.getElementById('feedback-message'),
+            currentNotesDisplay: document.getElementById('current-notes-display'),
+            currentNoteCount: document.getElementById('current-note-count'),
+            modeBadge: document.getElementById('mode-badge'),
+
+            // Buttons
+            btnStart: document.getElementById('btn-start'),
+            btnQuit: document.getElementById('btn-quit'), // × ボタン
+            btnFinish: document.getElementById('btn-finish'), // 終わるボタン
+            btnRestart: document.getElementById('btn-restart'),
+            btnBackSettings: document.getElementById('btn-back-settings'),
+            btnSelectAllKeys: document.getElementById('select-all-keys'),
+            btnDeselectAllKeys: document.getElementById('deselect-all-keys'),
+            btnRandomKeys: document.getElementById('btn-random-keys'),
+            inputRandomKeyCount: document.getElementById('random-key-count'),
+            btnSelectAllTypes: document.getElementById('select-all-types')
+        };
+
+        /**
+         * Initialization
+         */
+        function init() {
+            renderKeysSettings();
+            generatePiano();
+            setupEventListeners();
+            initMidi();
+            
+            // Default random selection (4 keys)
+            selectRandomKeys(4);
+        }
+
+        function renderKeysSettings() {
+            els.keysContainer.innerHTML = KEY_LIST.map(k => `
+                <label class="flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 transition-colors">
+                    <input type="checkbox" name="key" value="${k.name}" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                    <span class="font-medium font-bold">${k.name}</span>
+                </label>
+            `).join('');
+        }
+
+        function generatePiano() {
+            els.piano.innerHTML = '';
+            let whiteKeyIndex = 0;
+            let totalWhiteKeys = 0;
+
+            // Calculate width
+            for (let i = PIANO_START_NOTE; i <= PIANO_END_NOTE; i++) {
+                if (!isBlackKey(i)) totalWhiteKeys++;
+            }
+            els.piano.style.width = `${totalWhiteKeys * WHITE_KEY_WIDTH}px`;
+
+            for (let note = PIANO_START_NOTE; note <= PIANO_END_NOTE; note++) {
+                const isBlack = isBlackKey(note);
+                const keyEl = document.createElement('div');
+                keyEl.className = `key ${isBlack ? 'black' : 'white'}`;
+                keyEl.dataset.note = note;
+                
+                // Position
+                if (isBlack) {
+                    const leftPos = (whiteKeyIndex * WHITE_KEY_WIDTH) - 12; 
+                    keyEl.style.left = `${leftPos}px`;
+                } else {
+                    keyEl.style.left = `${whiteKeyIndex * WHITE_KEY_WIDTH}px`;
+                    // 音名ラベル (C2, C3, C4...)
+                    if (note % 12 === 0) {
+                        keyEl.innerHTML = `C${Math.floor(note/12)-1}`;
+                    }
+                    whiteKeyIndex++;
+                }
+
+                // Mouse/Touch Interaction
+                keyEl.addEventListener('mousedown', (e) => handleKeyInteraction(note, e));
+
+                els.piano.appendChild(keyEl);
+            }
+        }
+
+        function isBlackKey(note) {
+            return [1, 3, 6, 8, 10].includes(note % 12);
+        }
+
+        /**
+         * Logic: MIDI Handling
+         */
+        function initMidi() {
+            if (navigator.requestMIDIAccess) {
+                navigator.requestMIDIAccess().then(onMidiSuccess, onMidiFailure);
+            } else {
+                els.midiText.innerText = "MIDI非対応";
+            }
+        }
+
+        function onMidiSuccess(midiAccess) {
+            state.midiAccess = midiAccess;
+            updateMidiStatus();
+            
+            for (let input of midiAccess.inputs.values()) {
+                input.onmidimessage = handleMidiMessage;
+            }
+
+            midiAccess.onstatechange = (e) => {
+                updateMidiStatus();
+                // 新しいデバイスにはリスナー追加
+                if (e.port.state === 'connected' && e.port.type === 'input') {
+                   e.port.onmidimessage = handleMidiMessage;
+                }
+            };
+        }
+
+        function onMidiFailure() {
+            els.midiText.innerText = "MIDIエラー";
+        }
+
+        function updateMidiStatus() {
+            const inputs = state.midiAccess ? Array.from(state.midiAccess.inputs.values()) : [];
+            const isConnected = inputs.length > 0 && inputs.some(i => i.state === 'connected');
+            
+            if (isConnected) {
+                els.midiIndicator.classList.remove('bg-slate-300', 'bg-red-500');
+                els.midiIndicator.classList.add('bg-green-500');
+                els.midiText.innerText = "MIDI接続完了";
+                els.midiText.classList.add('text-green-600');
+            } else {
+                els.midiIndicator.classList.remove('bg-green-500');
+                els.midiIndicator.classList.add('bg-slate-300');
+                els.midiText.innerText = "MIDI未接続 (タップで入力可)";
+                els.midiText.classList.remove('text-green-600');
+            }
+        }
+
+        function handleMidiMessage(msg) {
+            if (state.view !== 'quiz' || state.isLocked) return;
+
+            const [command, note, velocity] = msg.data;
+            
+            if (command === 144 && velocity > 0) {
+                // Check Mistake Logic (Accuracy)
+                checkAccuracyOnInput(note);
+
+                if (!state.activeNotes.has(note)) {
+                    state.activeNotes.add(note);
+                    updateKeyVisuals(note, true);
+                    checkAnswer();
+                }
+            }
+            else if (command === 128 || (command === 144 && velocity === 0)) {
+                if (state.activeNotes.has(note)) {
+                    state.activeNotes.delete(note);
+                    updateKeyVisuals(note, false);
+                    checkAnswer();
+                }
+            }
+        }
+
+        // マウス/タッチ入力用ハンドラ（トグル式）
+        function handleKeyInteraction(note, event) {
+            if (state.view !== 'quiz' || state.isLocked) return;
+            event.preventDefault(); // フォーカス移動防止
+
+            if (state.activeNotes.has(note)) {
+                state.activeNotes.delete(note);
+                updateKeyVisuals(note, false);
+            } else {
+                checkAccuracyOnInput(note); // Check Mistake
+                state.activeNotes.add(note);
+                updateKeyVisuals(note, true);
+            }
+            checkAnswer();
+        }
+
+        // Accuracy Logic: 押された音が構成音に含まれていなければミスとみなす
+        function checkAccuracyOnInput(note) {
+            if (state.isLocked || state.currentQuestionMistaken) return;
+            
+            const q = state.quizQueue[state.currentQuestionIndex];
+            if (!q) return;
+
+            const pc = note % 12;
+            const targetPCs = q.intervals.map(i => (q.keyRoot + i) % 12);
+
+            // もし押された音(pc)がターゲット構成音に含まれていなければミス
+            if (!targetPCs.includes(pc)) {
+                state.currentQuestionMistaken = true;
+                updateProgressDisplay(); // Update accuracy display
+            }
+        }
+
+        function updateKeyVisuals(note, isActive) {
+            const keyEl = document.querySelector(`.key[data-note="${note}"]`);
+            if (keyEl) {
+                if (isActive) keyEl.classList.add('active');
+                else keyEl.classList.remove('active');
+            }
+            updateCurrentNotesDisplay();
+        }
+
+        // 現在のキーに応じて音名を切り替えて表示する関数
+        function updateCurrentNotesDisplay() {
+            const notes = Array.from(state.activeNotes).sort((a,b)=>a-b);
+            els.currentNoteCount.innerText = notes.length;
+            
+            if (notes.length === 0) {
+                els.currentNotesDisplay.innerText = "-";
+                return;
+            }
+
+            // 現在のキーを取得（クイズ中のみ）
+            let useFlat = false;
+            if (state.view === 'quiz' && state.quizQueue.length > 0 && state.quizQueue[state.currentQuestionIndex]) {
+                const currentKeyName = state.quizQueue[state.currentQuestionIndex].keyName;
+                if (FLAT_KEYS.includes(currentKeyName)) {
+                    useFlat = true;
+                }
+            }
+            
+            const noteNames = useFlat ? NOTE_NAMES_FLAT : NOTE_NAMES_SHARP;
+
+            const names = notes.map(n => noteNames[n%12]);
+            els.currentNotesDisplay.innerText = names.join(" ");
+        }
+
+        /**
+         * Logic: Quiz & Chord Validation
+         */
+        function setupEventListeners() {
+            els.btnStart.addEventListener('click', startQuiz);
+            els.btnQuit.addEventListener('click', () => switchView('settings'));
+            els.btnFinish.addEventListener('click', showResult); // 終わるボタン
+            els.btnRestart.addEventListener('click', startQuiz);
+            els.btnBackSettings.addEventListener('click', () => switchView('settings'));
+
+            // Select/Deselect All Keys
+            els.btnSelectAllKeys.addEventListener('click', () => {
+                document.querySelectorAll('input[name="key"]').forEach(el => el.checked = true);
+            });
+            els.btnDeselectAllKeys.addEventListener('click', () => {
+                document.querySelectorAll('input[name="key"]').forEach(el => el.checked = false);
+            });
+
+             // Select All Chord Types
+             els.btnSelectAllTypes.addEventListener('click', () => {
+                document.querySelectorAll('input[name="chordType"]').forEach(el => el.checked = true);
+            });
+            
+            // Random Keys
+            els.btnRandomKeys.addEventListener('click', () => {
+                const count = parseInt(els.inputRandomKeyCount.value) || 4;
+                selectRandomKeys(count);
+            });
+        }
+
+        function selectRandomKeys(count) {
+            const checkboxes = Array.from(document.querySelectorAll('input[name="key"]'));
+            const n = Math.max(1, Math.min(count, checkboxes.length));
+            checkboxes.forEach(cb => cb.checked = false);
+            const indices = Array.from({length: checkboxes.length}, (_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+            for (let i = 0; i < n; i++) {
+                checkboxes[indices[i]].checked = true;
+            }
+        }
+
+        function startQuiz() {
+            // Read settings
+            const mode = document.querySelector('input[name="playMode"]:checked').value;
+            const voicing = document.querySelector('input[name="voicing"]:checked').value;
+            const chordTypes = Array.from(document.querySelectorAll('input[name="chordType"]:checked')).map(el => el.value);
+            const keys = Array.from(document.querySelectorAll('input[name="key"]:checked')).map(el => el.value);
+
+            if (chordTypes.length === 0 || keys.length === 0) {
+                alert("コードタイプとキーを少なくとも1つ選択してください。");
+                return;
+            }
+
+            state.mode = mode;
+            state.selectedVoicing = voicing;
+            state.selectedChordTypes = chordTypes;
+            state.selectedKeys = keys;
+            
+            // Generate full set (1 set)
+            state.quizQueue = generateQuizQueue(keys, chordTypes, voicing);
+            state.currentQuestionIndex = 0;
+            state.firstTryCorrectCount = 0;
+            state.currentQuestionMistaken = false;
+            state.startTime = Date.now();
+            state.isLocked = false;
+            
+            // Clear piano
+            state.activeNotes.clear();
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+            updateCurrentNotesDisplay();
+
+            // Update Badge
+            els.modeBadge.innerText = state.mode === 'two-hands' ? "両手" : "片手";
+            els.modeBadge.className = state.mode === 'two-hands' 
+                ? "px-2 py-1 bg-purple-100 text-purple-600 text-xs font-bold rounded"
+                : "px-2 py-1 bg-blue-100 text-blue-600 text-xs font-bold rounded";
+
+            switchView('quiz');
+            showQuestion();
+        }
+
+        // リスト生成（全組み合わせ）
+        function generateQuizQueue(keys, types, voicingMode) {
+            let queue = [];
+            keys.forEach(k => {
+                types.forEach(t => {
+                    // ミックスの場合は両方のパターンを追加して均等にする
+                    if (voicingMode === 'mix') {
+                        queue.push(createQuestion(k, t, 'root'));
+                        queue.push(createQuestion(k, t, '2nd'));
+                    } else {
+                        queue.push(createQuestion(k, t, voicingMode));
+                    }
+                });
+            });
+            // Shuffle
+            for (let i = queue.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [queue[i], queue[j]] = [queue[j], queue[i]];
+            }
+            return queue;
+        }
+
+        function createQuestion(keyName, typeKey, voicing) {
+             return {
+                keyName: keyName,
+                keyRoot: KEY_LIST.find(kl => kl.name === keyName).root,
+                typeKey: typeKey,
+                typeLabel: CHORD_TYPES[typeKey].label,
+                intervals: CHORD_TYPES[typeKey].intervals,
+                targetVoicing: voicing
+            };
+        }
+
+        function showQuestion() {
+            if (state.currentQuestionIndex >= state.quizQueue.length) {
+                // 1セット終了
+                showResult();
+                return;
+            }
+
+            const q = state.quizQueue[state.currentQuestionIndex];
+            els.questionChord.innerHTML = `<span class="text-6xl">${q.keyName}</span><span class="text-5xl ml-1">${q.typeLabel}</span>`;
+            
+            let voicingText = "ルートポジション";
+            // Reset styles
+            els.voicingBadge.className = "mt-4 px-8 py-3 rounded-full text-2xl font-bold border-2 inline-flex items-center shadow-sm transition-all transform";
+            
+            if (q.targetVoicing === '2nd') {
+                voicingText = "第2転回形";
+                els.voicingBadge.classList.add("bg-orange-50", "border-orange-300", "text-orange-600");
+            } else {
+                els.voicingBadge.classList.add("bg-blue-50", "border-blue-300", "text-blue-600");
+            }
+            
+            els.questionVoicing.innerText = `${voicingText}`;
+            
+            // Reset state for new question
+            state.currentQuestionMistaken = false;
+            
+            els.feedbackMessage.innerText = "";
+            els.feedbackMessage.classList.remove('opacity-100', 'translate-y-0', 'text-green-500', 'text-red-500');
+            els.feedbackMessage.classList.add('opacity-0', 'translate-y-4');
+
+            updateProgressDisplay();
+            updateCurrentNotesDisplay();
+        }
+
+        function updateProgressDisplay() {
+            // Progress: Current / Total
+            els.quizProgressText.innerText = `${state.currentQuestionIndex + 1} / ${state.quizQueue.length}`;
+            
+            // Accuracy Calculation
+            // 終了した問題数 + 現在の問題(もし終わっていれば)
+            // ここでは「これまでの成績」を表示する。
+            // 現在の正解率 = (これまでのノーミス正解数) / (現在の問題番号) 
+            // ただし、問1のときはまだ0/0なので100%とするか、0%とするか。開始直後は100%表示が一般的。
+            
+            let denom = state.currentQuestionIndex;
+            let num = state.firstTryCorrectCount;
+            
+            // プレイ中のリアルタイム更新（ミスしたら即下がる）
+            if (state.currentQuestionMistaken) {
+                // 現在の問題ですでにミスしているなら、分母を+1して計算に含めて見せる（仮）
+                // しかし厳密には終了していない。
+                // シンプルに: (確定した正解数) / (終了した問題数) だと、今のミスが反映されない。
+                // (確定正解数) / (現在挑戦中の問題数) で表示する。
+                denom += 1; 
+                // num は増えない
+            } else {
+                 // ミスしていないなら、今の問題を含めて「暫定100%」として見せるか？
+                 // いや、まだ解いていないので含めない方が正確。
+                 if (denom === 0) {
+                     els.quizAccuracyText.innerText = "100%";
+                     return;
+                 }
+            }
+            
+            if (denom === 0) denom = 1; // Avoid zero division
+            const acc = Math.round((num / denom) * 100);
+            els.quizAccuracyText.innerText = `${acc}%`;
+        }
+
+        function checkAnswer() {
+            if (state.mode === 'two-hands') {
+                checkAnswerTwoHands();
+            } else {
+                checkAnswerOneHand();
+            }
+        }
+
+        function checkAnswerOneHand() {
+            const q = state.quizQueue[state.currentQuestionIndex];
+            if(!q) return;
+
+            const notes = Array.from(state.activeNotes).sort((a,b) => a-b);
+            
+            if (notes.length === 0) return;
+
+            const inputPCs = notes.map(n => n % 12);
+            const targetPCs = q.intervals.map(i => (q.keyRoot + i) % 12).sort((a,b)=>a-b);
+
+            const inputSet = new Set(inputPCs);
+            const targetSet = new Set(targetPCs);
+            
+            if (inputSet.size !== targetSet.size) return; 
+            for (let pc of targetSet) {
+                if (!inputSet.has(pc)) return; 
+            }
+
+            const lowestNote = notes[0];
+            const lowestPC = lowestNote % 12;
+            let isCorrectVoicing = false;
+            
+            if (q.targetVoicing === 'root') {
+                if (lowestPC === q.keyRoot) isCorrectVoicing = true;
+            } else if (q.targetVoicing === '2nd') {
+                const fifthPC = (q.keyRoot + 7) % 12;
+                if (lowestPC === fifthPC) isCorrectVoicing = true;
+            }
+
+            if (isCorrectVoicing) {
+                handleCorrectAnswer();
+            }
+        }
+
+        function checkAnswerTwoHands() {
+            const q = state.quizQueue[state.currentQuestionIndex];
+            if(!q) return;
+            const notes = Array.from(state.activeNotes).sort((a,b) => a-b);
+
+            // 1. Must have exactly 8 notes
+            if (notes.length !== 8) return;
+
+            // 2. Split into Low (Left) and High (Right)
+            const lowNotes = notes.slice(0, 4);
+            const highNotes = notes.slice(4, 8);
+
+            // 3. Check Octave Relation (Right hand = Left hand + 12 semitones)
+            for (let i = 0; i < 4; i++) {
+                if (highNotes[i] !== lowNotes[i] + 12) return;
+            }
+
+            // 4. Validate Logic (using only Left Hand notes)
+            const inputPCs = lowNotes.map(n => n % 12);
+            const targetPCs = q.intervals.map(i => (q.keyRoot + i) % 12).sort((a,b)=>a-b);
+            
+            const inputSet = new Set(inputPCs);
+            const targetSet = new Set(targetPCs);
+
+            if (inputSet.size !== targetSet.size) return;
+            for (let pc of targetSet) {
+                if (!inputSet.has(pc)) return;
+            }
+
+            // 5. Check Voicing (Lowest note of Left Hand)
+            const lowestNote = lowNotes[0];
+            const lowestPC = lowestNote % 12;
+            let isCorrectVoicing = false;
+            
+            if (q.targetVoicing === 'root') {
+                if (lowestPC === q.keyRoot) isCorrectVoicing = true;
+            } else if (q.targetVoicing === '2nd') {
+                const fifthPC = (q.keyRoot + 7) % 12;
+                if (lowestPC === fifthPC) isCorrectVoicing = true;
+            }
+
+            if (isCorrectVoicing) {
+                handleCorrectAnswer();
+            }
+        }
+
+        function handleCorrectAnswer() {
+            state.isLocked = true;
+            
+            // Check Accuracy for this question
+            if (!state.currentQuestionMistaken) {
+                state.firstTryCorrectCount++;
+            }
+
+            els.feedbackMessage.innerText = "正解！";
+            els.feedbackMessage.classList.remove('opacity-0', 'translate-y-4');
+            els.feedbackMessage.classList.add('opacity-100', 'translate-y-0', 'text-green-500');
+            
+            // Update display one last time for this question (to reflect success)
+            updateProgressDisplay();
+
+            setTimeout(() => {
+                state.activeNotes.clear();
+                document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+                updateCurrentNotesDisplay();
+
+                state.currentQuestionIndex++;
+                state.isLocked = false;
+                showQuestion();
+            }, 800);
+        }
+
+        function showResult() {
+            state.endTime = Date.now();
+            const duration = ((state.endTime - state.startTime) / 1000).toFixed(0);
+            
+            // Final Accuracy
+            // Total questions answered = state.currentQuestionIndex
+            let totalAnswered = state.currentQuestionIndex;
+            if (totalAnswered === 0) totalAnswered = 1;
+
+            const accuracy = Math.round((state.firstTryCorrectCount / totalAnswered) * 100);
+
+            document.getElementById('result-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('result-time').innerHTML = `${duration} <span class="text-base font-normal text-slate-500">秒</span>`;
+            
+            document.getElementById('result-completed').innerText = state.currentQuestionIndex;
+            document.getElementById('result-total').innerText = state.quizQueue.length;
+
+            switchView('result');
+        }
+
+        function switchView(viewName) {
+            state.view = viewName;
+            Object.values(els.views).forEach(el => el.classList.add('hidden'));
+            els.views[viewName].classList.remove('hidden');
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
+
