@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Training Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Poppins:wght@600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                        heading: ['"Poppins"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#3b82f6', // Blue
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8fafc; /* Slate 50 */
+            color: #1e293b; /* Slate 800 */
+        }
+        
+        .tool-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="pt-12 pb-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-slate-200 pb-6">
+            <div>
+                <h1 class="font-heading text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">
+                    Music Training Tools
+                </h1>
+                <p class="text-slate-500 text-base">
+                    日々の音楽トレーニングの一覧
+                </p>
+            </div>
+            
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-64 mt-4 md:mt-0">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-input" placeholder="検索..." class="search-input w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 placeholder-slate-400 transition-all shadow-sm">
+            </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex flex-wrap gap-2 mb-2" id="filter-container">
+            <button class="filter-btn active px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-slate-900 text-white shadow-sm" data-filter="all">All</button>
+            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 shadow-sm" data-filter="guitar">Guitar</button>
+            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 shadow-sm" data-filter="piano">Piano</button>
+            <button class="filter-btn px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 shadow-sm" data-filter="theory">Theory</button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="px-4 sm:px-6 lg:px-8 pb-20 max-w-7xl mx-auto">
+        <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Items will be injected here via JavaScript -->
+        </div>
+        
+        <!-- Empty State (Hidden by default) -->
+        <div id="empty-state" class="hidden text-center py-20">
+            <div class="text-5xl mb-4 text-slate-300">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-600">見つかりませんでした</h3>
+            <p class="text-slate-500 text-sm">検索条件を変更してみてください</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 py-8 text-center text-slate-400 text-sm bg-white">
+        <p>&copy; Music Training Tools Collection.</p>
+    </footer>
+
+    <script>
+        // Data Structure
+        const tools = [
+            {
+                title: "コード暗記スピードアップ",
+                url: "https://matsuken92.github.io/chord-trainer2/",
+                category: "theory",
+                icon: "fa-music",
+                color: "text-pink-500",
+                bg: "bg-pink-50",
+                desc: "コード構成音の暗記"
+            },
+            {
+                title: "コードの鍵盤位置トレーニング",
+                url: "https://matsuken92.github.io/piano-midi/",
+                category: "piano",
+                icon: "fa-keyboard",
+                color: "text-blue-500",
+                bg: "bg-blue-50",
+                desc: "ピアノMIDIを使ったコード練習"
+            },
+            {
+                title: "五線譜暗記トレーニング",
+                url: "https://matsuken92.github.io/note-trainer/",
+                category: "theory",
+                icon: "fa-book-open",
+                color: "text-emerald-500",
+                bg: "bg-emerald-50",
+                desc: "音符の読み取り練習ツール"
+            },
+            {
+                title: "ギター指板暗記",
+                url: "https://matsuken92.github.io/guitar-position/",
+                category: "guitar",
+                icon: "fa-guitar",
+                color: "text-orange-500",
+                bg: "bg-orange-50",
+                desc: "指板上の音名を完全マスター"
+            },
+            {
+                title: "ギタートライアド",
+                url: "https://matsuken92.github.io/guitar-triad/",
+                category: "guitar",
+                icon: "fa-layer-group",
+                color: "text-orange-600",
+                bg: "bg-orange-50",
+                desc: "トライアド（三和音）の位置把握"
+            },
+            {
+                title: "ペンタ特訓",
+                url: "https://matsuken92.github.io/guitar-penta/",
+                category: "guitar",
+                icon: "fa-fire",
+                color: "text-red-500",
+                bg: "bg-red-50",
+                desc: "ペンタトニックスケールの集中練習"
+            },
+            {
+                title: "五度圏クイズ",
+                url: "https://matsuken92.github.io/circle-of-fifth/",
+                category: "theory",
+                icon: "fa-circle-notch",
+                color: "text-violet-500",
+                bg: "bg-violet-50",
+                desc: "サークル・オブ・フィフスを暗記"
+            },
+            {
+                title: "四和音フラッシュカード",
+                url: "https://matsuken92.github.io/tetrad-trainer/",
+                category: "theory",
+                icon: "fa-dice-four",
+                color: "text-rose-500",
+                bg: "bg-rose-50",
+                desc: "7thコードなど四和音の瞬発力強化"
+            }
+        ];
+
+        const grid = document.getElementById('tools-grid');
+        const searchInput = document.getElementById('search-input');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const emptyState = document.getElementById('empty-state');
+
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // Render Function
+        function renderTools() {
+            grid.innerHTML = '';
+            
+            const filteredTools = tools.filter(tool => {
+                const matchesCategory = currentFilter === 'all' || tool.category === currentFilter;
+                const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      tool.desc.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredTools.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+            } else {
+                grid.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                
+                filteredTools.forEach((tool, index) => {
+                    const card = document.createElement('a');
+                    card.href = tool.url;
+                    card.target = "_blank";
+                    card.rel = "noopener noreferrer";
+                    card.className = "tool-card block bg-white rounded-xl border border-slate-200 p-5 h-full flex flex-col group relative overflow-hidden";
+                    
+                    // Animation delay
+                    card.style.animation = `fadeInUp 0.4s ease-out forwards ${index * 0.05}s`;
+                    card.style.opacity = '0';
+
+                    // Badge Style
+                    let badgeClass = "bg-slate-100 text-slate-600";
+                    if (tool.category === 'guitar') badgeClass = "bg-orange-50 text-orange-600 border border-orange-100";
+                    if (tool.category === 'piano') badgeClass = "bg-blue-50 text-blue-600 border border-blue-100";
+                    if (tool.category === 'theory') badgeClass = "bg-violet-50 text-violet-600 border border-violet-100";
+
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-10 h-10 rounded-lg ${tool.bg} flex items-center justify-center transition-colors group-hover:scale-110 duration-300">
+                                <i class="fas ${tool.icon} text-lg ${tool.color}"></i>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${badgeClass}">
+                                ${tool.category}
+                            </span>
+                        </div>
+                        
+                        <div class="flex-1">
+                            <h2 class="text-base font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">${tool.title}</h2>
+                            <p class="text-slate-500 text-xs leading-relaxed line-clamp-2">${tool.desc}</p>
+                        </div>
+                        
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+                            <i class="fas fa-arrow-right text-slate-300 text-sm group-hover:text-blue-500 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        // Add Keyframe for animation
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // Event Listeners
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderTools();
+        });
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update Buttons
+                filterBtns.forEach(b => {
+                    b.classList.remove('bg-slate-900', 'text-white');
+                    b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                    // Reset hover classes if needed, though Tailwind handles hover state well
+                });
+                btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+                btn.classList.add('bg-slate-900', 'text-white');
+
+                // Update Filter
+                currentFilter = btn.dataset.filter;
+                renderTools();
+            });
+        });
+
+        // Initial Render
+        renderTools();
+
+    </script>
+</body>
+</html>

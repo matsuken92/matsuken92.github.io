@@ -2,62 +2,102 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>四和音フラッシュカード</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc; /* Very light gray/blue background */
     }
-    #card {
-      font-size: 2rem;
-      margin: 1rem;
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
     }
-    .answer, .buttons, .stats {
-      margin: 1rem;
+    /* Smooth fade in for answer */
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
     }
-    button {
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      margin: 0.3rem;
-    }
-    #guideline {
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-      line-height: 1.6;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
-<body>
-  <h1>四和音フラッシュカード</h1>
-  <div id="guideline">
-    ①コード名を言う<br>
-    ②調合の数と場所を言う<br>
-    ③<strong>【大事】コードの音名を言う</strong><br>
-    ④両手で抑える（薬指を使わない）
-  </div>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 text-slate-700">
 
-  <div style="margin: 1rem;">
-    <label>
-      <input type="checkbox" id="orderedMode" onchange="resetOrder()"> 順番指定モード（C→G♭→G）
-    </label>
-  </div>
+  <main class="w-full max-w-md bg-white rounded-2xl card-shadow overflow-hidden">
+    
+    <!-- Header Area -->
+    <header class="bg-white border-b border-slate-100 p-6 text-center">
+      <h1 class="text-xl font-bold text-slate-800 tracking-wide">四和音フラッシュカード</h1>
+      <div class="mt-4 text-left bg-blue-50 text-blue-800 p-4 rounded-lg text-sm leading-relaxed">
+        <p class="font-bold mb-1 border-b border-blue-200 pb-1">トレーニング手順</p>
+        <ol class="list-decimal list-inside space-y-1 text-slate-700">
+          <li>コード名を言う</li>
+          <li>調合の数と場所を言う</li>
+          <li><strong class="text-blue-900 bg-blue-100 px-1 rounded">重要</strong> コードの音名を言う</li>
+          <li>両手で抑える（薬指を使わない）</li>
+        </ol>
+      </div>
+    </header>
 
-  <div id="card"></div>
+    <!-- Controls -->
+    <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-center">
+      <label class="inline-flex items-center cursor-pointer select-none group">
+        <div class="relative">
+          <input type="checkbox" id="orderedMode" onchange="resetOrder()" class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+        </div>
+        <span class="ml-3 text-sm font-medium text-slate-600 group-hover:text-slate-800 transition-colors">順番指定モード (C→G♭→G)</span>
+      </label>
+    </div>
 
-  <div class="buttons">
-    <button onclick="showAnswer()">回答</button>
-  </div>
+    <!-- Card Display -->
+    <div class="p-8 text-center flex flex-col items-center justify-center min-h-[200px]">
+      <div id="card" class="text-6xl font-bold text-slate-800 tracking-tight my-4">
+        <!-- JS inserts chord here -->
+      </div>
+    </div>
 
-  <div class="answer" id="answer"></div>
-  <div class="answer" id="keySignature"></div>
+    <!-- Answer Section -->
+    <div class="px-6 pb-6 text-center space-y-4">
+      <button onclick="showAnswer()" id="showAnswerBtn" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-4 rounded-xl transition-colors shadow-sm active:scale-[0.98] transform duration-100">
+        回答を表示
+      </button>
 
-  <div class="buttons" id="selfAssessment" style="display:none;">
-    <button onclick="markAnswer(true)">正解</button>
-    <button onclick="markAnswer(false)">不正解</button>
-  </div>
+      <div id="answerArea" class="hidden space-y-4">
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-100 fade-in">
+          <div class="mb-3">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">構成音</span>
+            <div id="answer" class="text-2xl font-bold text-slate-800 mt-1"></div>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">調号</span>
+            <div id="keySignature" class="text-lg text-slate-700 mt-1"></div>
+          </div>
+        </div>
 
-  <div class="stats" id="stats"></div>
+        <!-- Self Assessment Buttons -->
+        <div id="selfAssessment" class="grid grid-cols-2 gap-3 fade-in">
+          <button onclick="markAnswer(true)" class="bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold py-3 px-4 rounded-xl transition-colors">
+            正解
+          </button>
+          <button onclick="markAnswer(false)" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 px-4 rounded-xl transition-colors">
+            不正解
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="bg-slate-50 border-t border-slate-100 p-6">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 text-center">学習ステータス</h3>
+      <div id="stats" class="grid grid-cols-2 gap-2 text-sm">
+        <!-- JS inserts stats here -->
+      </div>
+    </div>
+  </main>
 
   <script>
     const chords = [
@@ -90,6 +130,7 @@
     function weightedRandom() {
       let weights = chords.map(c => {
         const s = stats[c.name];
+        // 正解率が高いほど出にくくする重み付け
         return 1 - (s.correct / (s.total || 1));
       });
       const sum = weights.reduce((a, b) => a + b, 0);
@@ -99,22 +140,28 @@
         if (r < weights[i]) return chords[i];
         r -= weights[i];
       }
-      return chords.find(c => c.name !== previous);
+      return chords.find(c => c.name !== previous) || chords[0];
     }
 
     function nextCard() {
+      // UI Reset
+      document.getElementById('answerArea').classList.add('hidden');
+      document.getElementById('showAnswerBtn').style.display = 'block'; // ボタンを再表示
+      
       document.getElementById('answer').textContent = "";
       document.getElementById('keySignature').textContent = "";
-      document.getElementById('selfAssessment').style.display = 'none';
-
+      
       const isOrdered = document.getElementById('orderedMode').checked;
       if (isOrdered) {
         current = chords.find(c => c.name === order[orderedIndex]);
         orderedIndex = (orderedIndex + 1) % order.length;
       } else {
         current = weightedRandom();
-        while (current.name === previous) {
+        // 万が一同じカードが連続する場合の再抽選（データ数が少ない場合のガード）
+        let attempts = 0;
+        while (current.name === previous && attempts < 10) {
           current = weightedRandom();
+          attempts++;
         }
       }
 
@@ -124,8 +171,10 @@
 
     function showAnswer() {
       document.getElementById('answer').textContent = current.notes.join("・");
-      document.getElementById('keySignature').textContent = `調号: ${current.keySig}`;
-      document.getElementById('selfAssessment').style.display = 'block';
+      document.getElementById('keySignature').textContent = current.keySig; // ラベルはHTML側にあるので値だけセット
+      
+      document.getElementById('showAnswerBtn').style.display = 'none'; // 回答ボタンを隠す
+      document.getElementById('answerArea').classList.remove('hidden');
     }
 
     function markAnswer(correct) {
@@ -138,12 +187,26 @@
 
     function updateStats() {
       const div = document.getElementById('stats');
+      // デザインに合わせてHTML生成を変更
       div.innerHTML = chords.map(c => {
         const s = stats[c.name];
-        return `${c.name}: ${s.correct}/${s.total}`;
-      }).join("<br>");
+        const percent = s.total === 0 ? 0 : Math.round((s.correct / s.total) * 100);
+        // 正解率によって色を変える
+        const colorClass = percent === 100 ? 'text-blue-600' : (s.total > 0 ? 'text-slate-600' : 'text-slate-400');
+        
+        return `
+          <div class="flex justify-between items-center bg-white px-3 py-2 rounded border border-slate-100">
+            <span class="font-medium text-slate-700">${c.name}</span>
+            <span class="text-xs ${colorClass} font-mono">
+              ${s.correct}/${s.total}
+            </span>
+          </div>
+        `;
+      }).join("");
     }
 
+    // 初期化
+    updateStats();
     nextCard();
   </script>
 </body>
