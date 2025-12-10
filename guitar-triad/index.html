@@ -243,6 +243,9 @@
             const [trainingStatus, setTrainingStatus] = useState('idle');
             const [currentQuestion, setCurrentQuestion] = useState(null); 
             const [feedback, setFeedback] = useState(null);
+            
+            // Speed Mode State
+            const [isSpeedMode, setIsSpeedMode] = useState(false);
 
             // Settings
             const [settings, setSettings] = useState({
@@ -402,6 +405,13 @@
                             mistake: false
                         }));
                         setTrainingStatus('cleared');
+
+                        // Speed Mode Logic: Auto Advance
+                        if (isSpeedMode) {
+                            setTimeout(() => {
+                                startTraining();
+                            }, 400); // 0.4秒後に次へ
+                        }
                     } else {
                         setCurrentQuestion(prev => ({ 
                             ...prev, 
@@ -557,6 +567,19 @@
                                             })}
                                         </div>
                                     </div>
+                                    
+                                    {/* Speed Mode Toggle */}
+                                    <div className="flex items-center justify-between mt-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <span className="font-bold text-sm text-gray-600 flex items-center gap-2">
+                                            ⚡ スピードモード <span className="text-xs font-normal opacity-70">(自動送り)</span>
+                                        </span>
+                                        <button
+                                            onClick={() => setIsSpeedMode(!isSpeedMode)}
+                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isSpeedMode ? 'bg-blue-600' : 'bg-gray-300'}`}
+                                        >
+                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isSpeedMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <button 
@@ -590,9 +613,14 @@
                                             <span className="bg-gray-800 text-white px-3 py-1 rounded">Root {currentQuestion.rootString}弦</span>
                                         </div>
                                         
-                                        {trainingStatus === 'cleared' && (
+                                        {trainingStatus === 'cleared' && !isSpeedMode && (
                                             <div className="mt-2 text-sm font-bold animate-pulse text-yellow-800">
                                                 PRESS SPACE FOR NEXT
+                                            </div>
+                                        )}
+                                        {trainingStatus === 'cleared' && isSpeedMode && (
+                                            <div className="mt-2 text-sm font-bold text-yellow-800 flex items-center justify-center gap-1">
+                                                <span className="animate-spin">⚡</span> NEXT...
                                             </div>
                                         )}
                                     </div>
@@ -608,12 +636,14 @@
                                 {/* Controls */}
                                 <div className="flex gap-4 mb-6">
                                     {trainingStatus === 'cleared' ? (
-                                        <button 
-                                            onClick={startTraining}
-                                            className="bg-gray-900 text-white px-8 py-2 rounded-full font-bold shadow-lg hover:bg-black transition-transform hover:scale-105"
-                                        >
-                                            次へ (Space)
-                                        </button>
+                                        !isSpeedMode && (
+                                            <button 
+                                                onClick={startTraining}
+                                                className="bg-gray-900 text-white px-8 py-2 rounded-full font-bold shadow-lg hover:bg-black transition-transform hover:scale-105"
+                                            >
+                                                次へ (Space)
+                                            </button>
+                                        )
                                     ) : (
                                         <>
                                             <button 
