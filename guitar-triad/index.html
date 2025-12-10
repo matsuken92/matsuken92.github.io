@@ -21,6 +21,8 @@
             touch-action: manipulation;
             overscroll-behavior: none;
             background-color: #f3f4f6;
+            user-select: none;
+            -webkit-user-select: none;
         }
         .fretboard-bg {
             background-color: #d4a373; /* メイプル風単色 */
@@ -51,6 +53,11 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* ドラッグ中の要素が他の要素のイベントを邪魔しないように */
+        .pointer-events-none {
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +70,16 @@
 
         const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+        const DIATONIC_INTERVALS = [
+            { degreeName: 'I',   offset: 0,  type: 'Major' },
+            { degreeName: 'ii',  offset: 2,  type: 'Minor' },
+            { degreeName: 'iii', offset: 4,  type: 'Minor' },
+            { degreeName: 'IV',  offset: 5,  type: 'Major' },
+            { degreeName: 'V',   offset: 7,  type: 'Major' },
+            { degreeName: 'vi',  offset: 9,  type: 'Minor' },
+            { degreeName: 'vii°', offset: 11, type: 'Diminished' }
+        ];
+
         // 6弦上のルート位置（0〜11フレット）E=0
         const ROOT_FRETS_ON_6 = {
             'E': 0, 'F': 1, 'F#': 2, 'G': 3, 'G#': 4, 
@@ -73,16 +90,20 @@
         // 各弦の開放弦における、6弦(E)からの半音差オフセット
         const STRING_OFFSETS = { 6: 0, 5: 5, 4: 10, 3: 15, 2: 19, 1: 24 };
 
-        // トライアドシェイプ定義
+        // トライアドシェイプ定義 (Diminished追加)
         const TRIAD_SHAPES = {
             // --- Set 1 (Strings 1, 2, 3) ---
-            'Set1_Maj_R3': { name: 'Set 1 (Root 3弦)', strings: [3, 2, 1], offsets: [0, 0, -2], degrees: ['R', '3', '5'], type: 'Major' }, // C-E-G (R-3-5)
-            'Set1_Maj_R2': { name: 'Set 1 (Root 2弦)', strings: [3, 2, 1], offsets: [-1, 0, -1], degrees: ['5', 'R', '3'], type: 'Major' }, // G-C-E (5-R-3)
-            'Set1_Maj_R1': { name: 'Set 1 (Root 1弦)', strings: [3, 2, 1], offsets: [1, 0, 0], degrees: ['3', '5', 'R'], type: 'Major' }, // E-G-C (3-5-R)
+            'Set1_Maj_R3': { name: 'Set 1 (Root 3弦)', strings: [3, 2, 1], offsets: [0, 0, -2], degrees: ['R', '3', '5'], type: 'Major' }, 
+            'Set1_Maj_R2': { name: 'Set 1 (Root 2弦)', strings: [3, 2, 1], offsets: [-1, 0, -1], degrees: ['5', 'R', '3'], type: 'Major' }, 
+            'Set1_Maj_R1': { name: 'Set 1 (Root 1弦)', strings: [3, 2, 1], offsets: [1, 0, 0], degrees: ['3', '5', 'R'], type: 'Major' }, 
 
             'Set1_Min_R3': { name: 'Set 1 (Root 3弦)', strings: [3, 2, 1], offsets: [0, -1, -2], degrees: ['R', 'b3', '5'], type: 'Minor' },
-            'Set1_Min_R2': { name: 'Set 1 (Root 2弦)', strings: [3, 2, 1], offsets: [-1, 0, -2], degrees: ['5', 'R', 'b3'], type: 'Minor' }, // b3 is on string 1 (-1 from Maj -1 -> -2)
-            'Set1_Min_R1': { name: 'Set 1 (Root 1弦)', strings: [3, 2, 1], offsets: [0, 0, 0], degrees: ['b3', '5', 'R'], type: 'Minor' }, // b3 is on string 3 (-1 from Maj +1 -> 0)
+            'Set1_Min_R2': { name: 'Set 1 (Root 2弦)', strings: [3, 2, 1], offsets: [-1, 0, -2], degrees: ['5', 'R', 'b3'], type: 'Minor' }, 
+            'Set1_Min_R1': { name: 'Set 1 (Root 1弦)', strings: [3, 2, 1], offsets: [0, 0, 0], degrees: ['b3', '5', 'R'], type: 'Minor' }, 
+
+            'Set1_Dim_R3': { name: 'Set 1 (Root 3弦)', strings: [3, 2, 1], offsets: [0, -1, -3], degrees: ['R', 'b3', 'b5'], type: 'Diminished' },
+            'Set1_Dim_R2': { name: 'Set 1 (Root 2弦)', strings: [3, 2, 1], offsets: [-2, 0, -2], degrees: ['b5', 'R', 'b3'], type: 'Diminished' }, 
+            'Set1_Dim_R1': { name: 'Set 1 (Root 1弦)', strings: [3, 2, 1], offsets: [0, -1, 0], degrees: ['b3', 'b5', 'R'], type: 'Diminished' }, 
 
             // --- Set 2 (Strings 2, 3, 4) ---
             'Set2_Maj_R4': { name: 'Set 2 (Root 4弦)', strings: [4, 3, 2], offsets: [0, -1, -2], degrees: ['R', '3', '5'], type: 'Major' },
@@ -93,6 +114,10 @@
             'Set2_Min_R3': { name: 'Set 2 (Root 3弦)', strings: [4, 3, 2], offsets: [0, 0, -1], degrees: ['5', 'R', 'b3'], type: 'Minor' },
             'Set2_Min_R2': { name: 'Set 2 (Root 2弦)', strings: [4, 3, 2], offsets: [0, -1, 0], degrees: ['b3', '5', 'R'], type: 'Minor' },
 
+            'Set2_Dim_R4': { name: 'Set 2 (Root 4弦)', strings: [4, 3, 2], offsets: [0, -2, -3], degrees: ['R', 'b3', 'b5'], type: 'Diminished' },
+            'Set2_Dim_R3': { name: 'Set 2 (Root 3弦)', strings: [4, 3, 2], offsets: [-1, 0, -1], degrees: ['b5', 'R', 'b3'], type: 'Diminished' },
+            'Set2_Dim_R2': { name: 'Set 2 (Root 2弦)', strings: [4, 3, 2], offsets: [0, -1, -1], degrees: ['b3', 'b5', 'R'], type: 'Diminished' },
+
             // --- Set 3 (Strings 3, 4, 5) ---
             'Set3_Maj_R5': { name: 'Set 3 (Root 5弦)', strings: [5, 4, 3], offsets: [0, -1, -3], degrees: ['R', '3', '5'], type: 'Major' },
             'Set3_Maj_R4': { name: 'Set 3 (Root 4弦)', strings: [5, 4, 3], offsets: [0, 0, -1], degrees: ['5', 'R', '3'], type: 'Major' },
@@ -102,6 +127,10 @@
             'Set3_Min_R4': { name: 'Set 3 (Root 4弦)', strings: [5, 4, 3], offsets: [0, 0, -2], degrees: ['5', 'R', 'b3'], type: 'Minor' },
             'Set3_Min_R3': { name: 'Set 3 (Root 3弦)', strings: [5, 4, 3], offsets: [1, 0, 0], degrees: ['b3', '5', 'R'], type: 'Minor' },
 
+            'Set3_Dim_R5': { name: 'Set 3 (Root 5弦)', strings: [5, 4, 3], offsets: [0, -2, -4], degrees: ['R', 'b3', 'b5'], type: 'Diminished' },
+            'Set3_Dim_R4': { name: 'Set 3 (Root 4弦)', strings: [5, 4, 3], offsets: [-1, 0, -2], degrees: ['b5', 'R', 'b3'], type: 'Diminished' },
+            'Set3_Dim_R3': { name: 'Set 3 (Root 3弦)', strings: [5, 4, 3], offsets: [1, -1, 0], degrees: ['b3', 'b5', 'R'], type: 'Diminished' },
+
             // --- Set 4 (Strings 4, 5, 6) ---
             'Set4_Maj_R6': { name: 'Set 4 (Root 6弦)', strings: [6, 5, 4], offsets: [0, -1, -3], degrees: ['R', '3', '5'], type: 'Major' },
             'Set4_Maj_R5': { name: 'Set 4 (Root 5弦)', strings: [6, 5, 4], offsets: [0, 0, -1], degrees: ['5', 'R', '3'], type: 'Major' },
@@ -110,6 +139,10 @@
             'Set4_Min_R6': { name: 'Set 4 (Root 6弦)', strings: [6, 5, 4], offsets: [0, -2, -3], degrees: ['R', 'b3', '5'], type: 'Minor' },
             'Set4_Min_R5': { name: 'Set 4 (Root 5弦)', strings: [6, 5, 4], offsets: [0, 0, -2], degrees: ['5', 'R', 'b3'], type: 'Minor' },
             'Set4_Min_R4': { name: 'Set 4 (Root 4弦)', strings: [6, 5, 4], offsets: [1, 0, 0], degrees: ['b3', '5', 'R'], type: 'Minor' },
+
+            'Set4_Dim_R6': { name: 'Set 4 (Root 6弦)', strings: [6, 5, 4], offsets: [0, -2, -4], degrees: ['R', 'b3', 'b5'], type: 'Diminished' },
+            'Set4_Dim_R5': { name: 'Set 4 (Root 5弦)', strings: [6, 5, 4], offsets: [-1, 0, -2], degrees: ['b5', 'R', 'b3'], type: 'Diminished' },
+            'Set4_Dim_R4': { name: 'Set 4 (Root 4弦)', strings: [6, 5, 4], offsets: [1, -1, 0], degrees: ['b3', 'b5', 'R'], type: 'Diminished' },
         };
 
         const getNoteName = (stringNum, fretNum) => {
@@ -118,6 +151,12 @@
             const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
             const openIndex = chromatic.indexOf(openNote);
             return chromatic[(openIndex + fretNum) % 12];
+        };
+
+        const getShiftedNote = (rootNote, semitones) => {
+            const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const idx = chromatic.indexOf(rootNote);
+            return chromatic[(idx + semitones) % 12];
         };
 
         // --- Components ---
@@ -200,16 +239,21 @@
                                                 return (
                                                     <div 
                                                         key={fretNum} 
-                                                        className={`${fretNum === 0 ? 'w-10 flex-none' : 'flex-1'} h-full flex items-center justify-center cursor-pointer hover:bg-white/10 active:bg-white/20 transition-colors z-20`}
+                                                        className={`${fretNum === 0 ? 'w-10 flex-none' : 'flex-1'} h-full flex items-center justify-center cursor-pointer transition-colors z-20`}
+                                                        // data-s と data-f はドラッグ＆ドロップ判定に使用
+                                                        data-s={stringNum}
+                                                        data-f={fretNum}
                                                         onClick={() => onFretClick && onFretClick(stringNum, fretNum)}
                                                     >
                                                         {note && note.isVisible && (
                                                             <div 
                                                                 className={`
-                                                                    relative z-30 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg animate-pop-in
+                                                                    relative z-30 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shadow-lg animate-pop-in pointer-events-none
                                                                     ${note.degree === 'R' 
                                                                         ? 'bg-red-600/95 text-white ring-2 ring-red-300 shadow-[0_2px_5px_rgba(0,0,0,0.4)]' 
-                                                                        : note.type === 'Major' ? 'bg-orange-500/95 text-white' : 'bg-blue-500/95 text-white'}
+                                                                        : note.type === 'Major' 
+                                                                            ? 'bg-orange-500/95 text-white' 
+                                                                            : note.type === 'Minor' ? 'bg-blue-500/95 text-white' : 'bg-purple-600/95 text-white'}
                                                                 `}
                                                             >
                                                                 {displayMode === 'degree' ? note.degree : getNoteName(stringNum, fretNum)}
@@ -238,35 +282,48 @@
         };
 
         const App = () => {
-            const [targetKeys, setTargetKeys] = useState(new Set(['C', 'G', 'D', 'A', 'E'])); // デフォルトでいくつか選択
+            // Chromatic Mode State
+            const [targetKeys, setTargetKeys] = useState(new Set(['C', 'G', 'D', 'A', 'E'])); 
             const [randomCount, setRandomCount] = useState(4);
+
+            // Diatonic Mode State
+            const [diatonicKey, setDiatonicKey] = useState('C');
+            const [targetDegrees, setTargetDegrees] = useState(new Set(DIATONIC_INTERVALS.map(d => d.degreeName)));
+
             const [trainingStatus, setTrainingStatus] = useState('idle');
             const [currentQuestion, setCurrentQuestion] = useState(null); 
             const [feedback, setFeedback] = useState(null);
-            
-            // Speed Mode State
             const [isSpeedMode, setIsSpeedMode] = useState(false);
 
             // Settings
             const [settings, setSettings] = useState({
                 targetSets: { 1: true, 2: true, 3: true, 4: true },
-                targetTypes: { 'Major': true, 'Minor': true }
+                targetTypes: { 'Major': true, 'Minor': true, 'Diminished': true },
+                level: 1, // 1: Position Only, 2: Degree Drag & Drop
+                mode: 'diatonic' // 'chromatic' | 'diatonic'
             });
 
-            // --- Key Selection Helpers ---
+            // Question Queue for Shuffled Deck Logic
+            const questionQueue = useRef([]);
+
+            // --- Drag & Drop State for Level 2 ---
+            const [dragState, setDragState] = useState({
+                isDragging: false,
+                degree: null, // 'R', '3', 'b3', '5', 'b5'
+                x: 0,
+                y: 0
+            });
+            const draggedElementRef = useRef(null);
+
+            // --- Key Selection Helpers (Chromatic) ---
             const toggleKey = (key) => {
                 const newSet = new Set(targetKeys);
-                if (newSet.has(key)) {
-                    newSet.delete(key);
-                } else {
-                    newSet.add(key);
-                }
+                if (newSet.has(key)) newSet.delete(key);
+                else newSet.add(key);
                 setTargetKeys(newSet);
             };
-
             const selectAllKeys = () => setTargetKeys(new Set(KEYS));
             const deselectAllKeys = () => setTargetKeys(new Set());
-            
             const selectRandomKeys = () => {
                 const shuffled = [...KEYS].sort(() => 0.5 - Math.random());
                 const count = Math.max(1, Math.min(12, randomCount));
@@ -274,32 +331,46 @@
                 setTargetKeys(new Set(selected));
             };
 
-            // Helper: Find fret for a given string that matches the root note (approximate center of board)
+            // --- Degree Selection Helpers (Diatonic) ---
+            const toggleDegree = (degreeName) => {
+                const newSet = new Set(targetDegrees);
+                if (newSet.has(degreeName)) newSet.delete(degreeName);
+                else newSet.add(degreeName);
+                setTargetDegrees(newSet);
+            };
+            const selectAllDegrees = () => setTargetDegrees(new Set(DIATONIC_INTERVALS.map(d => d.degreeName)));
+            const deselectAllDegrees = () => setTargetDegrees(new Set());
+            const selectRandomDegrees = () => {
+                const allDegrees = DIATONIC_INTERVALS.map(d => d.degreeName);
+                const shuffled = [...allDegrees].sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, 4);
+                setTargetDegrees(new Set(selected));
+            };
+
+            // Queue Reset on Setting Change
+            useEffect(() => {
+                questionQueue.current = [];
+            }, [settings, targetKeys, diatonicKey, targetDegrees]);
+
+            // Helper: Find fret for a given string that matches the root note
             const getRootFretOnString = (stringNum, noteName) => {
-                // Find fret 0-11 for this note on this string
                 const chromatic = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
                 const openStringNoteIndex = chromatic.indexOf(getNoteName(stringNum, 0));
                 const targetNoteIndex = chromatic.indexOf(noteName);
-                
                 let fret = (targetNoteIndex - openStringNoteIndex + 12) % 12;
-                
-                // Adjust to be in a playable range (e.g., 2 to 14) if possible
                 if (fret < 2) fret += 12;
                 if (fret > 14) fret -= 12; 
-                
                 return fret;
             };
 
             const calculateTriadNotes = useCallback((key, shapeKey) => {
                 if (!shapeKey) return [];
                 const shape = TRIAD_SHAPES[shapeKey];
-                
                 const rootStringIndex = shape.degrees.indexOf('R'); 
                 const rootStringNum = shape.strings[rootStringIndex];
-                
                 const rootFret = getRootFretOnString(rootStringNum, key);
 
-                const notes = shape.strings.map((strNum, idx) => {
+                return shape.strings.map((strNum, idx) => {
                     const offset = shape.offsets[idx];
                     return {
                         s: strNum,
@@ -310,64 +381,137 @@
                         isVisible: true
                     };
                 });
-                
-                return notes;
             }, []);
 
+            // Generate Queue based on current settings
+            const generateQueue = useCallback(() => {
+                let questions = [];
+
+                if (settings.mode === 'diatonic') {
+                    // Diatonic Mode Generation
+                    const availableIntervals = DIATONIC_INTERVALS.filter(d => targetDegrees.has(d.degreeName));
+                    if (availableIntervals.length === 0) return [];
+
+                    availableIntervals.forEach(interval => {
+                         const targetRoot = getShiftedNote(diatonicKey, interval.offset);
+                         const targetType = interval.type;
+                         
+                         // Find available shapes for this type
+                         const shapes = Object.entries(TRIAD_SHAPES).filter(([key, shape]) => {
+                             const setNum = key.startsWith('Set1') ? 1 : key.startsWith('Set2') ? 2 : key.startsWith('Set3') ? 3 : 4;
+                             if (!settings.targetSets[setNum]) return false;
+                             return shape.type === targetType;
+                         });
+
+                         shapes.forEach(([shapeKey, shapeDef]) => {
+                             questions.push({
+                                 targetRoot,
+                                 targetType,
+                                 targetDegreeName: interval.degreeName,
+                                 centerKey: diatonicKey,
+                                 shapeKey,
+                                 shapeDef
+                             });
+                         });
+                    });
+
+                } else {
+                    // Chromatic Mode Generation
+                    const activeTypes = Object.keys(settings.targetTypes).filter(t => settings.targetTypes[t]);
+                    const keysArray = Array.from(targetKeys);
+                    if (activeTypes.length === 0 || keysArray.length === 0) return [];
+
+                    keysArray.forEach(key => {
+                        activeTypes.forEach(type => {
+                            // Find shapes
+                            const shapes = Object.entries(TRIAD_SHAPES).filter(([k, shape]) => {
+                                 const setNum = k.startsWith('Set1') ? 1 : k.startsWith('Set2') ? 2 : k.startsWith('Set3') ? 3 : 4;
+                                 if (!settings.targetSets[setNum]) return false;
+                                 return shape.type === type;
+                             });
+                             
+                             shapes.forEach(([shapeKey, shapeDef]) => {
+                                 questions.push({
+                                     targetRoot: key,
+                                     targetType: type,
+                                     targetDegreeName: '',
+                                     centerKey: null,
+                                     shapeKey,
+                                     shapeDef
+                                 });
+                             });
+                        });
+                    });
+                }
+
+                // Shuffle (Fisher-Yates)
+                for (let i = questions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [questions[i], questions[j]] = [questions[j], questions[i]];
+                }
+                
+                return questions;
+            }, [settings, targetKeys, diatonicKey, targetDegrees]);
+
             const startTraining = useCallback(() => {
-                // 1. Validate Keys
-                if (targetKeys.size === 0) {
+                // Initial Validations
+                if (settings.mode === 'chromatic' && targetKeys.size === 0) {
                     alert("キーを少なくとも1つ選択してください。");
                     return;
                 }
-
-                // 2. Filter available shapes based on settings
-                const availableShapes = Object.entries(TRIAD_SHAPES).filter(([key, shape]) => {
-                    // Check Set
-                    const setNum = key.startsWith('Set1') ? 1 : key.startsWith('Set2') ? 2 : key.startsWith('Set3') ? 3 : 4;
-                    if (!settings.targetSets[setNum]) return false;
-                    
-                    // Check Type
-                    if (!settings.targetTypes[shape.type]) return false;
-                    
-                    return true;
-                });
-
-                if (availableShapes.length === 0) {
-                    alert("設定で少なくとも1つのセットとタイプを選択してください。");
+                if (settings.mode === 'diatonic' && targetDegrees.size === 0) {
+                    alert("出題対象のコード(度数)を少なくとも1つ選択してください。");
                     return;
                 }
 
-                // 3. Pick Random Key from selected keys
-                const keysArray = Array.from(targetKeys);
-                const selectedKey = keysArray[Math.floor(Math.random() * keysArray.length)];
+                // Check and refill queue if needed
+                if (questionQueue.current.length === 0) {
+                    const newQueue = generateQueue();
+                    if (newQueue.length === 0) {
+                        alert("有効な問題パターンがありません。設定（セットやタイプ）を確認してください。");
+                        return;
+                    }
+                    questionQueue.current = newQueue;
+                }
 
-                // 4. Pick Random Shape
-                const randomIdx = Math.floor(Math.random() * availableShapes.length);
-                const [shapeKey, shapeDef] = availableShapes[randomIdx];
-
-                // 5. Extract Info for Question
-                const setName = `Set ${shapeKey.charAt(3)} (${shapeDef.strings[2]}-${shapeDef.strings[0]}弦)`;
-                const rootStringIdx = shapeDef.degrees.indexOf('R');
-                const rootString = shapeDef.strings[rootStringIdx];
+                // Pop next question
+                const q = questionQueue.current.pop();
                 
+                const setName = `Set ${q.shapeKey.charAt(3)} (${q.shapeDef.strings[2]}-${q.shapeDef.strings[0]}弦)`;
+                const rootStringIdx = q.shapeDef.degrees.indexOf('R');
+                const rootString = q.shapeDef.strings[rootStringIdx];
+                
+                let message = "";
+                if (settings.level === 2) {
+                    message = `[Lv.2] 正しい度数をドラッグして配置しよう`;
+                } else {
+                    if (settings.mode === 'diatonic') {
+                         message = `Key ${q.centerKey} の ${q.targetDegreeName} (${q.targetRoot} ${q.targetType==='Diminished'?'dim':q.targetType}) - ${setName}`;
+                    } else {
+                         message = `${q.targetRoot} ${q.targetType==='Diminished'?'dim':q.targetType} - ${setName}, Root ${rootString}弦`;
+                    }
+                }
+
                 const question = {
-                    key: selectedKey,
-                    shapeKey: shapeKey,
-                    type: shapeDef.type,
+                    key: q.targetRoot,
+                    centerKey: q.centerKey,
+                    degreeName: q.targetDegreeName,
+                    shapeKey: q.shapeKey,
+                    type: q.shapeDef.type, 
                     setName: setName,
                     rootString: rootString,
-                    message: `${selectedKey} ${shapeDef.type} - ${setName}, Root ${rootString}弦`,
-                    targetNotes: calculateTriadNotes(selectedKey, shapeKey),
+                    message: message,
+                    targetNotes: calculateTriadNotes(q.targetRoot, q.shapeKey),
                     revealedNoteIds: new Set(),
                     mistake: false,
-                    showHint: false
+                    showHint: false,
+                    remainingCount: questionQueue.current.length // デバッグ用に残数を表示したければ使える
                 };
 
                 setCurrentQuestion(question);
                 setTrainingStatus('playing');
                 setFeedback(null);
-            }, [settings, targetKeys, calculateTriadNotes]);
+            }, [settings, targetKeys, diatonicKey, targetDegrees, calculateTriadNotes, generateQueue]);
 
             // Space key for next
             useEffect(() => {
@@ -382,66 +526,133 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [trainingStatus, startTraining]);
 
+            // --- Click Handler (Level 1) ---
             const handleFretClick = (stringNum, fretNum) => {
                 if (trainingStatus !== 'playing' || !currentQuestion) return;
+                if (settings.level === 2) return; // Level 2ではクリック無効
 
                 const clickedNote = currentQuestion.targetNotes.find(n => n.s === stringNum && n.fret === fretNum);
 
                 if (clickedNote) {
-                    if (currentQuestion.revealedNoteIds.has(clickedNote.id)) return;
-
-                    const newRevealed = new Set(currentQuestion.revealedNoteIds);
-                    newRevealed.add(clickedNote.id);
-
-                    // Check Clear
-                    const allIds = currentQuestion.targetNotes.map(n => n.id);
-                    const isComplete = allIds.every(id => newRevealed.has(id));
-
-                    if (isComplete) {
-                        setCurrentQuestion(prev => ({ 
-                            ...prev, 
-                            revealedNoteIds: newRevealed, 
-                            message: "Excellent! クリア！",
-                            mistake: false
-                        }));
-                        setTrainingStatus('cleared');
-
-                        // Speed Mode Logic: Auto Advance
-                        if (isSpeedMode) {
-                            setTimeout(() => {
-                                startTraining();
-                            }, 400); // 0.4秒後に次へ
-                        }
-                    } else {
-                        setCurrentQuestion(prev => ({ 
-                            ...prev, 
-                            revealedNoteIds: newRevealed, 
-                            mistake: false 
-                        }));
-                    }
+                    processCorrectAnswer(clickedNote);
                 } else {
-                    // Mistake
-                    setFeedback("不正解...");
-                    setCurrentQuestion(prev => ({ ...prev, mistake: true }));
-                    setTimeout(() => {
-                        setFeedback(null);
-                        setCurrentQuestion(prev => ({ ...prev, mistake: false }));
-                    }, 800);
+                    processMistake();
                 }
             };
 
-            const toggleSet = (num) => {
-                setSettings(prev => ({
-                    ...prev,
-                    targetSets: { ...prev.targetSets, [num]: !prev.targetSets[num] }
-                }));
+            // --- Drag & Drop Logic (Level 2) ---
+            const handlePointerDown = (e, degree) => {
+                if (trainingStatus !== 'playing' || settings.level !== 2) return;
+                e.preventDefault();
+                // マウス/タッチ座標を取得
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                setDragState({
+                    isDragging: true,
+                    degree: degree,
+                    x: clientX,
+                    y: clientY
+                });
             };
-            const toggleType = (type) => {
-                setSettings(prev => ({
-                    ...prev,
-                    targetTypes: { ...prev.targetTypes, [type]: !prev.targetTypes[type] }
-                }));
+
+            const handlePointerMove = (e) => {
+                if (!dragState.isDragging) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                setDragState(prev => ({ ...prev, x: clientX, y: clientY }));
             };
+
+            const handlePointerUp = (e) => {
+                if (!dragState.isDragging) return;
+                e.preventDefault();
+
+                // ドロップ位置の要素を特定
+                const clientX = dragState.x;
+                const clientY = dragState.y;
+                
+                // ポインターの下にある要素を取得
+                const element = document.elementFromPoint(clientX, clientY);
+                const fretCell = element?.closest('[data-s]');
+                
+                if (fretCell) {
+                    const stringNum = parseInt(fretCell.getAttribute('data-s'));
+                    const fretNum = parseInt(fretCell.getAttribute('data-f'));
+                    const targetNote = currentQuestion.targetNotes.find(n => n.s === stringNum && n.fret === fretNum);
+                    
+                    if (targetNote) {
+                        if (targetNote.degree === dragState.degree) {
+                            processCorrectAnswer(targetNote);
+                        } else {
+                            processMistake("度数が違うよ！");
+                        }
+                    } else {
+                        processMistake();
+                    }
+                }
+
+                setDragState({ isDragging: false, degree: null, x: 0, y: 0 });
+            };
+
+            // --- Common Success/Fail Logic ---
+            const processCorrectAnswer = (note) => {
+                if (currentQuestion.revealedNoteIds.has(note.id)) return;
+
+                const newRevealed = new Set(currentQuestion.revealedNoteIds);
+                newRevealed.add(note.id);
+
+                const allIds = currentQuestion.targetNotes.map(n => n.id);
+                const isComplete = allIds.every(id => newRevealed.has(id));
+
+                if (isComplete) {
+                    setCurrentQuestion(prev => ({ 
+                        ...prev, 
+                        revealedNoteIds: newRevealed, 
+                        message: "Excellent! クリア！",
+                        mistake: false
+                    }));
+                    setTrainingStatus('cleared');
+
+                    if (isSpeedMode) {
+                        setTimeout(() => startTraining(), 400);
+                    }
+                } else {
+                    setCurrentQuestion(prev => ({ 
+                        ...prev, 
+                        revealedNoteIds: newRevealed, 
+                        mistake: false 
+                    }));
+                }
+            };
+
+            const processMistake = (msg = "不正解...") => {
+                setFeedback(msg);
+                setCurrentQuestion(prev => ({ ...prev, mistake: true }));
+                setTimeout(() => {
+                    setFeedback(null);
+                    setCurrentQuestion(prev => ({ ...prev, mistake: false }));
+                }, 800);
+            };
+
+            // Effect for global pointer events during drag
+            useEffect(() => {
+                if (dragState.isDragging) {
+                    window.addEventListener('mousemove', handlePointerMove);
+                    window.addEventListener('mouseup', handlePointerUp);
+                    window.addEventListener('touchmove', handlePointerMove, { passive: false });
+                    window.addEventListener('touchend', handlePointerUp);
+                }
+                return () => {
+                    window.removeEventListener('mousemove', handlePointerMove);
+                    window.removeEventListener('mouseup', handlePointerUp);
+                    window.removeEventListener('touchmove', handlePointerMove);
+                    window.removeEventListener('touchend', handlePointerUp);
+                };
+            }, [dragState.isDragging]);
+
+            const toggleSet = (num) => setSettings(prev => ({ ...prev, targetSets: { ...prev.targetSets, [num]: !prev.targetSets[num] } }));
+            const toggleType = (type) => setSettings(prev => ({ ...prev, targetTypes: { ...prev.targetTypes, [type]: !prev.targetTypes[type] } }));
 
             const getDisplayNotes = () => {
                 if (!currentQuestion) return [];
@@ -451,23 +662,35 @@
                 }));
             };
             
-            // Calculate active strings for visualization
             const activeStrings = useMemo(() => {
                 if (!currentQuestion) return null;
                 const shape = TRIAD_SHAPES[currentQuestion.shapeKey];
                 return shape ? shape.strings : null;
             }, [currentQuestion]);
 
+            // Level 2 Draggable Tokens
+            const getDraggableTokens = () => {
+                if (!currentQuestion) return [];
+                const tokens = ['R'];
+                if (currentQuestion.type === 'Major') {
+                    tokens.push('3', '5');
+                } else if (currentQuestion.type === 'Minor') {
+                    tokens.push('b3', '5');
+                } else if (currentQuestion.type === 'Diminished') {
+                    tokens.push('b3', 'b5');
+                }
+                return tokens;
+            };
+
             return (
                 <div className="flex flex-col items-center p-4 min-h-screen font-sans text-gray-800">
                     <div className="w-full max-w-4xl flex justify-between items-center mb-6 border-b border-gray-300 pb-4 sticky top-0 bg-[#f3f4f6] z-50 pt-2">
                         <h1 className="text-xl font-bold text-gray-800 tracking-tight">🎸 トライアド・マスター</h1>
-                        {/* ヘッダーのプルダウンは削除（設定画面に移動） */}
                     </div>
 
-                    <div className="w-full flex flex-col items-center max-w-5xl">
+                    <div className="w-full flex flex-col items-center max-w-5xl relative">
                         
-                        {/* Settings Panel (Show when Idle) */}
+                        {/* Settings Panel */}
                         {trainingStatus === 'idle' && (
                             <div className="bg-white p-6 rounded-2xl shadow-xl border w-full max-w-lg animate-pop-in">
                                 <h2 className="text-xl font-black mb-6 text-center text-gray-700 flex items-center justify-center gap-2">
@@ -476,73 +699,181 @@
                                 
                                 <div className="space-y-6">
                                     
-                                    {/* Key Selection UI */}
-                                    <div>
-                                        <div className="flex justify-between items-end mb-3">
-                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Target Keys</label>
-                                            <div className="flex gap-2 items-center">
-                                                <div className="flex items-center bg-gray-50 rounded border border-gray-200 px-1 py-0.5">
-                                                    <input 
-                                                        type="number" 
-                                                        min="1" max="12" 
-                                                        value={randomCount}
-                                                        onChange={(e) => setRandomCount(parseInt(e.target.value) || 4)}
-                                                        className="w-8 text-center text-sm font-bold outline-none bg-transparent"
-                                                    />
-                                                    <button onClick={selectRandomKeys} className="text-xs font-bold text-blue-600 px-2 py-1 hover:bg-blue-100 rounded transition-colors">
-                                                        ランダム
-                                                    </button>
-                                                </div>
-                                                <div className="h-4 w-px bg-gray-300 mx-1"></div>
-                                                <button onClick={selectAllKeys} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全選択</button>
-                                                <button onClick={deselectAllKeys} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全解除</button>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {KEYS.map(k => (
-                                                <button
-                                                    key={k}
-                                                    onClick={() => toggleKey(k)}
-                                                    className={`py-2 rounded-lg border flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                                                        targetKeys.has(k) 
-                                                            ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm' 
-                                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                                                        targetKeys.has(k) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'
-                                                    }`}>
-                                                        {targetKeys.has(k) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
-                                                    </div>
-                                                    {k}
-                                                </button>
-                                            ))}
+                                    {/* Mode Selection */}
+                                    <div className="bg-blue-50 p-3 rounded-xl border border-blue-200">
+                                        <label className="block text-xs font-bold text-blue-400 mb-2 uppercase tracking-wider">Question Mode</label>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setSettings(s => ({...s, mode: 'diatonic'}))}
+                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                    settings.mode === 'diatonic' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-500 border'
+                                                }`}
+                                            >
+                                                Diatonic (Key指定)
+                                            </button>
+                                            <button 
+                                                onClick={() => setSettings(s => ({...s, mode: 'chromatic'}))}
+                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                    settings.mode === 'chromatic' ? 'bg-gray-600 text-white shadow-md' : 'bg-white text-gray-500 border'
+                                                }`}
+                                            >
+                                                Chromatic (ランダム)
+                                            </button>
                                         </div>
                                     </div>
+
+                                    {/* Level Selection */}
+                                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                                        <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Difficulty Level</label>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setSettings(s => ({...s, level: 1}))}
+                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                    settings.level === 1 ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-500 border'
+                                                }`}
+                                            >
+                                                Lv.1 ポジション当て
+                                            </button>
+                                            <button 
+                                                onClick={() => setSettings(s => ({...s, level: 2}))}
+                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                    settings.level === 2 ? 'bg-pink-600 text-white shadow-md' : 'bg-white text-gray-500 border'
+                                                }`}
+                                            >
+                                                Lv.2 度数ドラッグ
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* --- DIATONIC MODE SPECIFIC UI --- */}
+                                    {settings.mode === 'diatonic' && (
+                                        <>
+                                            {/* Key Center Selection (Single) */}
+                                            <div>
+                                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                                                    Target Key (Single)
+                                                </label>
+                                                <div className="grid grid-cols-6 gap-2">
+                                                    {KEYS.map(k => (
+                                                        <button
+                                                            key={k}
+                                                            onClick={() => setDiatonicKey(k)}
+                                                            className={`py-2 rounded-lg border font-bold text-sm transition-all active:scale-95 ${
+                                                                diatonicKey === k 
+                                                                    ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                                                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            {k}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Diatonic Chords Selection */}
+                                            <div>
+                                                <div className="flex justify-between items-end mb-3">
+                                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Target Chords (Degrees)</label>
+                                                    <div className="flex gap-2 items-center">
+                                                        <button onClick={selectRandomDegrees} className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1.5 rounded hover:bg-blue-100 transition-colors">ランダム4</button>
+                                                        <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                                                        <button onClick={selectAllDegrees} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全選択</button>
+                                                        <button onClick={deselectAllDegrees} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全解除</button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {DIATONIC_INTERVALS.map(d => (
+                                                        <button
+                                                            key={d.degreeName}
+                                                            onClick={() => toggleDegree(d.degreeName)}
+                                                            className={`py-2 rounded-lg border flex flex-col items-center justify-center transition-all active:scale-95 ${
+                                                                targetDegrees.has(d.degreeName) 
+                                                                    ? (d.type === 'Major' ? 'bg-orange-50 border-orange-400 text-orange-700' : d.type === 'Minor' ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-purple-50 border-purple-400 text-purple-700')
+                                                                    : 'bg-white border-gray-200 text-gray-400 opacity-60'
+                                                            }`}
+                                                        >
+                                                            <span className="font-bold text-sm">{d.degreeName}</span>
+                                                            <span className="text-[10px] opacity-70">{d.type === 'Diminished' ? 'dim' : d.type}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* --- CHROMATIC MODE SPECIFIC UI --- */}
+                                    {settings.mode === 'chromatic' && (
+                                        <>
+                                            <div>
+                                                <div className="flex justify-between items-end mb-3">
+                                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Target Roots (Multiple)</label>
+                                                    <div className="flex gap-2 items-center">
+                                                        <div className="flex items-center bg-gray-50 rounded border border-gray-200 px-1 py-0.5">
+                                                            <input 
+                                                                type="number" 
+                                                                min="1" max="12" 
+                                                                value={randomCount}
+                                                                onChange={(e) => setRandomCount(parseInt(e.target.value) || 4)}
+                                                                className="w-8 text-center text-sm font-bold outline-none bg-transparent"
+                                                            />
+                                                            <button onClick={selectRandomKeys} className="text-xs font-bold text-blue-600 px-2 py-1 hover:bg-blue-100 rounded transition-colors">
+                                                                ランダム
+                                                            </button>
+                                                        </div>
+                                                        <div className="h-4 w-px bg-gray-300 mx-1"></div>
+                                                        <button onClick={selectAllKeys} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全選択</button>
+                                                        <button onClick={deselectAllKeys} className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1.5 rounded hover:bg-gray-200 transition-colors">全解除</button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {KEYS.map(k => (
+                                                        <button
+                                                            key={k}
+                                                            onClick={() => toggleKey(k)}
+                                                            className={`py-2 rounded-lg border flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                                                                targetKeys.has(k) 
+                                                                    ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm' 
+                                                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                                                            }`}
+                                                        >
+                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                                                                targetKeys.has(k) ? 'bg-blue-500 border-blue-500' : 'border-gray-300 bg-white'
+                                                            }`}>
+                                                                {targetKeys.has(k) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                                            </div>
+                                                            {k}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Types (Only for Chromatic) */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
+                                                    Triad Types
+                                                </label>
+                                                <div className="flex gap-2">
+                                                    {['Major', 'Minor', 'Diminished'].map(type => (
+                                                        <button
+                                                            key={type}
+                                                            onClick={() => toggleType(type)}
+                                                            className={`flex-1 py-3 rounded-lg font-bold text-xs transition-all duration-200 border-2 active:scale-95 ${
+                                                                settings.targetTypes[type]
+                                                                    ? (type === 'Major' ? 'border-orange-500 bg-orange-50 text-orange-600' : type === 'Minor' ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-purple-500 bg-purple-50 text-purple-600')
+                                                                    : 'border-gray-200 text-gray-400'
+                                                            }`}
+                                                        >
+                                                            {settings.targetTypes[type] && '✓ '}{type}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
 
                                     <div className="h-px bg-gray-100 w-full my-4"></div>
 
-                                    {/* Types */}
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Triad Types</label>
-                                        <div className="flex gap-3">
-                                            {['Major', 'Minor'].map(type => (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => toggleType(type)}
-                                                    className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all duration-200 border-2 active:scale-95 ${
-                                                        settings.targetTypes[type]
-                                                            ? (type === 'Major' ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-blue-500 bg-blue-50 text-blue-600')
-                                                            : 'border-gray-200 text-gray-400'
-                                                    }`}
-                                                >
-                                                    {settings.targetTypes[type] && '✓ '}{type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Sets */}
+                                    {/* Sets (Common) */}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Target Sets</label>
                                         <div className="grid grid-cols-2 gap-3">
@@ -593,7 +924,7 @@
 
                         {/* Playing Interface */}
                         {trainingStatus !== 'idle' && currentQuestion && (
-                            <div className="w-full flex flex-col items-center animate-fade-in">
+                            <div className="w-full flex flex-col items-center animate-fade-in pb-20">
                                 
                                 {/* Question Card */}
                                 <div className={`
@@ -601,10 +932,14 @@
                                     ${trainingStatus === 'cleared' ? 'bg-yellow-400 text-yellow-900 scale-105' : 'bg-white text-gray-800 border border-gray-200'}
                                 `}>
                                     <div className="flex flex-col gap-1 relative z-10">
-                                        <span className="text-sm font-bold opacity-60 uppercase tracking-widest">Question</span>
-                                        <div className="text-3xl font-black mb-1">
-                                            <span className={currentQuestion.type === 'Major' ? 'text-orange-600' : 'text-blue-600'}>
-                                                {currentQuestion.key} {currentQuestion.type}
+                                        <span className="text-sm font-bold opacity-60 uppercase tracking-widest">
+                                            Question {settings.level===2 && "(Lv.2)"}
+                                            {settings.mode === 'diatonic' && <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">Key of {currentQuestion.centerKey}</span>}
+                                        </span>
+                                        <div className="text-3xl font-black mb-1 flex items-center justify-center gap-2">
+                                            {settings.mode === 'diatonic' && <span className="text-gray-400 text-xl">{currentQuestion.degreeName}</span>}
+                                            <span className={currentQuestion.type === 'Major' ? 'text-orange-600' : currentQuestion.type === 'Minor' ? 'text-blue-600' : 'text-purple-600'}>
+                                                {currentQuestion.key} {currentQuestion.type === 'Diminished' ? 'dim' : currentQuestion.type}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-center gap-3 text-lg font-bold">
@@ -612,6 +947,12 @@
                                             <span className="text-gray-400">▶</span>
                                             <span className="bg-gray-800 text-white px-3 py-1 rounded">Root {currentQuestion.rootString}弦</span>
                                         </div>
+                                        {/* Lv2専用メッセージ */}
+                                        {settings.level === 2 && trainingStatus !== 'cleared' && (
+                                            <div className="mt-2 text-sm text-pink-600 font-bold bg-pink-50 inline-block px-3 py-1 rounded-full">
+                                                下のチップをドラッグして配置してね
+                                            </div>
+                                        )}
                                         
                                         {trainingStatus === 'cleared' && !isSpeedMode && (
                                             <div className="mt-2 text-sm font-bold animate-pulse text-yellow-800">
@@ -625,7 +966,6 @@
                                         )}
                                     </div>
 
-                                    {/* Feedback Overlay */}
                                     {feedback && (
                                         <div className="absolute inset-0 bg-red-500 flex items-center justify-center z-20 animate-pop-in">
                                             <span className="text-white font-black text-2xl">{feedback}</span>
@@ -661,13 +1001,41 @@
                                 </div>
 
                                 {/* Fretboard */}
-                                <FretboardUI 
-                                    notes={getDisplayNotes()}
-                                    displayMode="degree"
-                                    onFretClick={handleFretClick}
-                                    highlightShake={currentQuestion.mistake}
-                                    activeSetStrings={activeStrings}
-                                />
+                                <div className="relative">
+                                    <FretboardUI 
+                                        notes={getDisplayNotes()}
+                                        displayMode="degree"
+                                        onFretClick={handleFretClick}
+                                        highlightShake={currentQuestion.mistake}
+                                        activeSetStrings={activeStrings}
+                                    />
+
+                                    {/* Level 2 Draggable Tokens Panel */}
+                                    {settings.level === 2 && trainingStatus !== 'cleared' && (
+                                        <div className="mt-8 flex justify-center gap-8 animate-fade-in p-4 bg-gray-100 rounded-xl shadow-inner border border-gray-200 select-none">
+                                            {/* Degrees to drag */}
+                                            {getDraggableTokens().map(deg => (
+                                                <div 
+                                                    key={deg}
+                                                    className="flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing"
+                                                    onMouseDown={(e) => handlePointerDown(e, deg)}
+                                                    onTouchStart={(e) => handlePointerDown(e, deg)}
+                                                >
+                                                    <div className={`
+                                                        w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white shadow-lg transform transition-transform hover:scale-110
+                                                        ${deg === 'R' 
+                                                            ? 'bg-red-600 ring-2 ring-red-300' 
+                                                            : currentQuestion.type === 'Major' 
+                                                                ? 'bg-orange-500' 
+                                                                : currentQuestion.type === 'Minor' ? 'bg-blue-500' : 'bg-purple-600'}
+                                                    `}>
+                                                        {deg}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 
                                 <button 
                                     onClick={() => setTrainingStatus('idle')}
@@ -675,6 +1043,25 @@
                                 >
                                     設定に戻る
                                 </button>
+                            </div>
+                        )}
+
+                        {/* Dragging Preview (Floating Element) */}
+                        {dragState.isDragging && (
+                            <div 
+                                className="fixed w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white shadow-2xl z-50 pointer-events-none"
+                                style={{ 
+                                    left: dragState.x, 
+                                    top: dragState.y, 
+                                    transform: 'translate(-50%, -50%)',
+                                    backgroundColor: dragState.degree === 'R' 
+                                        ? '#dc2626' 
+                                        : currentQuestion.type === 'Major' 
+                                            ? '#f97316' 
+                                            : currentQuestion.type === 'Minor' ? '#3b82f6' : '#9333ea'
+                                }}
+                            >
+                                {dragState.degree}
                             </div>
                         )}
 
