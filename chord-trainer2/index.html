@@ -1,1 +1,887 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="Chord Practice App - Practice playing major 7th, dominant 7th, and minor 7th chords"/><title>Chord Practice</title><script defer="defer" src="./static/js/main.78bc54d6.js"></script></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chord Practice App">
+    <title>Chord Practice</title>
+    
+    <!-- React & Babel for single file execution -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* Global Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', Meiryo, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            background: #f7fafd;
+            color: #232b3a;
+        }
+
+        /* Component Styles mapped from styled-components */
+        .bg {
+            min-height: 100vh;
+            background: #f7fafd;
+            padding-bottom: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px 0 20px;
+        }
+
+        .title-box {
+            text-align: left;
+        }
+
+        .main-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #232b3a;
+            margin: 0 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .main-title span {
+            font-size: 2rem;
+        }
+
+        .sub-title {
+            font-size: 1rem;
+            color: #6b7688;
+            font-weight: 500;
+        }
+
+        .lang-box {
+            margin-top: 4px;
+        }
+
+        .lang-select {
+            padding: 8px 16px 8px 36px;
+            border-radius: 8px;
+            border: 1px solid #e0e6ef;
+            background: #fff url('data:image/svg+xml;utf8,<svg fill="%236b7688" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9zm0-2c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm-1-3h2v-2h-2v2zm0-4h2V7h-2v5z"/></svg>') no-repeat 8px center;
+            font-size: 1rem;
+            color: #232b3a;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px 0 #e0e6ef44;
+            padding: 32px 32px 24px 32px;
+            margin: 0 auto 32px auto;
+            max-width: 520px;
+            min-width: 320px;
+            width: calc(100% - 40px);
+            box-sizing: border-box;
+        }
+
+        .speed-section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #232b3a;
+            margin: 0 0 8px 0;
+        }
+
+        .speed-description {
+            font-size: 0.95rem;
+            color: #6b7688;
+            margin: 0 0 12px 0;
+        }
+
+        /* Control Header Layout */
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .control-label {
+            font-size: 1.05rem;
+            color: #232b3a;
+            font-weight: 700; /* Bold to match screenshot */
+            margin: 0;
+        }
+
+        .key-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Input Group for Random (Screenshot style) */
+        .input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 6px;
+            background: #fff;
+            overflow: hidden;
+            height: 36px;
+        }
+
+        .random-count-input {
+            width: 40px;
+            border: none;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #374151;
+            outline: none;
+            padding: 0;
+            -moz-appearance: textfield;
+        }
+        .random-count-input::-webkit-outer-spin-button,
+        .random-count-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .input-divider {
+            width: 1px;
+            height: 20px;
+            background-color: #e5e7eb;
+        }
+
+        .random-btn {
+            border: none;
+            background: transparent;
+            color: #2563eb; /* Blue text */
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0 12px;
+            height: 100%;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .random-btn:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Grey Action Buttons (Select All / Clear) */
+        .grey-action-btn {
+            background: #f3f4f6; /* Very light gray */
+            border: none;
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 36px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #374151; /* Dark gray text */
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .grey-action-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .speed-radio-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
+        }
+
+        .speed-radio-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+            color: #232b3a;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(95px, 1fr));
+            gap: 8px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff; /* White bg for keys as per screenshot might be better, but keeping light gray for consistency unless requested */
+            border: 1px solid #e0e6ef;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-weight: 600;
+            color: #232b3a;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-label:hover {
+            border-color: #cbd5e1;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+             /* Customize checkbox if needed, using standard for now */
+             transform: scale(1.2);
+        }
+
+        .speed-error-text {
+            color: #d94a3a;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .speed-training-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .speed-button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 8px 0 #e0e6ef66;
+            min-width: 160px;
+            transition: background 0.2s;
+            flex-grow: 1;
+        }
+
+        .speed-primary-button {
+            background: #4a9eff;
+            color: #fff;
+        }
+        .speed-primary-button:hover {
+            background: #2f7edb;
+        }
+        .speed-primary-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .speed-secondary-button {
+            background: #1abc9c;
+            color: #fff;
+        }
+        .speed-secondary-button:hover {
+            background: #149f85;
+        }
+
+        .speed-chord-display {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #1a4480;
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .speed-voicing-hint {
+            font-size: 0.95rem;
+            color: #6b7688;
+            font-weight: 600;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .speed-result-box {
+            width: 100%;
+            background: #f0f8ff;
+            border: 1px solid #cbdaf5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            text-align: left;
+            white-space: pre-line;
+            box-sizing: border-box;
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        .label-text {
+            font-size: 1.05rem;
+            color: #232b3a;
+            font-weight: 600;
+        }
+
+        .reset-button {
+            background: #edf2ff;
+            color: #4a6cd8;
+            border: 1px solid #c5d0ff;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .reset-button:hover {
+            background: #dfe7ff;
+        }
+
+        .progress-count {
+            font-size: 0.95rem;
+            color: #6b7688;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.95rem;
+        }
+
+        .stats-th {
+            text-align: left;
+            padding: 8px;
+            background: #f5f7fb;
+            border-bottom: 1px solid #e0e6ef;
+            color: #6b7688;
+            font-weight: 600;
+        }
+
+        .stats-td {
+            padding: 8px;
+            border-bottom: 1px solid #f0f2f7;
+            color: #232b3a;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .lang-box {
+                align-self: flex-end;
+                margin-top: -40px; 
+            }
+            .main-title {
+                font-size: 1.8rem;
+            }
+            .control-header {
+                /* On small screens, we might want them to stack or wrap */
+                justify-content: space-between;
+            }
+            .key-controls {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useCallback, useEffect } = React;
+
+        // Data Definitions
+        const speedTrainingChordSymbols = ['△7', '7', 'm7'];
+        const defaultSpeedTrainingRoots = ['C', 'F', 'B♭', 'E♭', 'A♭', 'D♭', 'G♭', 'B', 'E', 'A', 'D', 'G'];
+
+        const speedTrainingAnswers = {
+            'C': { '△7': '調号：なし\n音名：ドミソシ', '7': '調号：なし\n音名：ドミソシ\nシがフラット', 'm7': '調号：なし\n音名：ドミソシ\nミとシがフラット' },
+            'F': { '△7': '調号：シがフラット\n音名：ファラドミ', '7': '調号：シがフラット\n音名：ファラドミ\nミがフラット', 'm7': '調号：シがフラット\n音名：ファラドミ\nラとミがフラット' },
+            'B♭': { '△7': '調号：シミがフラット\n音名：シレファラ', '7': '調号：シミがフラット\n音名：シレファラ\nラがフラット', 'm7': '調号：シミがフラット\n音名：シレファラ\nレとラがフラット' },
+            'E♭': { '△7': '調号：ミラシがフラット\n音名：ミソシレ', '7': '調号：ミラシがフラット\n音名：ミソシレ\nレがフラット', 'm7': '調号：ミラシがフラット\n音名：ミソシレ\nソとレがフラット' },
+            'A♭': { '△7': '調号：ラシレミがフラット\n音名：ラドミソ', '7': '調号：ラシレミがフラット\n音名：ラドミソ\nソがフラット', 'm7': '調号：ラシレミがフラット\n音名：ラドミソ\nドとソがフラット' },
+            'D♭': { '△7': '調号：ファド以外フラット\n音名：レファラド', '7': '調号：ファド以外フラット\n音名：レファラド\nドがフラット', 'm7': '調号：ファド以外フラット\n音名：レファラド\nファとドがフラット' },
+            'G♭': { '△7': '調号：ファ以外フラット\n音名：ソシレファ', '7': '調号：ファ以外フラット\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファ以外フラット\n音名：ソシレファ\nシとファがフラット' },
+            'B': { '△7': '調号：シミ以外シャープ\n音名：シレファラ', '7': '調号：シミ以外シャープ\n音名：シレファラ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：シレファラ\nレとラがフラット' },
+            'E': { '△7': '調号：ファソドレがシャープ\n音名：ミソシレ', '7': '調号：ファソドレがシャープ\n音名：ミソシレ\nレがフラット', 'm7': '調号：ファソドレがシャープ\n音名：ミソシレ\nソとレがフラット' },
+            'A': { '△7': '調号：ドファソがシャープ\n音名：ラドミソ', '7': '調号：ドファソがシャープ\n音名：ラドミソ\nソがフラット', 'm7': '調号：ドファソがシャープ\n音名：ラドミソ\nドとソがフラット' },
+            'D': { '△7': '調号：ファドがシャープ\n音名：レファラド', '7': '調号：ファドがシャープ\n音名：レファラド\nドがフラット', 'm7': '調号：ファドがシャープ\n音名：レファラド\nファとドがフラット' },
+            'G': { '△7': '調号：ファがシャープ\n音名：ソシレファ', '7': '調号：ファがシャープ\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファがシャープ\n音名：ソシレファ\nシとファがフラット' }
+        };
+
+        const speedTrainingSecondInversionAnswers = {
+            'C': { '△7': '調号：なし\n音名：ソシドミ', '7': '調号：なし\n音名：ソシドミ\nシがフラット', 'm7': '調号：なし\n音名：ソシドミ\nミとシがフラット' },
+            'F': { '△7': '調号：シがフラット\n音名：ドミファラ', '7': '調号：シがフラット\n音名：ドミファラ\nミがフラット', 'm7': '調号：シがフラット\n音名：ドミファラ\nラとミがフラット' },
+            'B♭': { '△7': '調号：シミがフラット\n音名：ファラシレ', '7': '調号：シミがフラット\n音名：ファラシレ\nラがフラット', 'm7': '調号：シミがフラット\n音名：ファラシレ\nレとラがフラット' },
+            'E♭': { '△7': '調号：ミラシがフラット\n音名：シレミソ', '7': '調号：ミラシがフラット\n音名：シレミソ\nレがフラット', 'm7': '調号：ミラシがフラット\n音名：シレミソ\nソとレがフラット' },
+            'A♭': { '△7': '調号：ラシレミがフラット\n音名：ミソラド', '7': '調号：ラシレミがフラット\n音名：ミソラド\nソがフラット', 'm7': '調号：ラシレミがフラット\n音名：ミソラド\nドとソがフラット' },
+            'D♭': { '△7': '調号：ファド以外フラット\n音名：ラドレファ', '7': '調号：ファド以外フラット\n音名：ラドレファ\nドがフラット', 'm7': '調号：ファド以外フラット\n音名：ラドレファ\nファとドがフラット' },
+            'G♭': { '△7': '調号：ファ以外フラット\n音名：レファソシ', '7': '調号：ファ以外フラット\n音名：レファソシ\nファがフラット', 'm7': '調号：ファ以外フラット\n音名：レファソシ\nシとファがフラット' },
+            'B': { '△7': '調号：シミ以外シャープ\n音名：ファラシレ', '7': '調号：シミ以外シャープ\n音名：ファラシレ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：ファラシレ\nレとラがフラット' },
+            'E': { '△7': '調号：ファソドレがシャープ\n音名：シレミソ', '7': '調号：ファソドレがシャープ\n音名：シレミソ\nレがフラット', 'm7': '調号：ファソドレがシャープ\n音名：シレミソ\nソとレがフラット' },
+            'A': { '△7': '調号：ドファソがシャープ\n音名：ミソラド', '7': '調号：ドファソがシャープ\n音名：ミソラド\nソがフラット', 'm7': '調号：ドファソがシャープ\n音名：ミソラド\nドとソがフラット' },
+            'D': { '△7': '調号：ファドがシャープ\n音名：ラドレファ', '7': '調号：ファドがシャープ\n音名：ラドレファ\nドがフラット', 'm7': '調号：ファドがシャープ\n音名：ラドレファ\nファとドがフラット' },
+            'G': { '△7': '調号：ファがシャープ\n音名：レファソシ', '7': '調号：ファがシャープ\n音名：レファソシ\nファがフラット', 'm7': '調号：ファがシャープ\n音名：レファソシ\nシとファがフラット' }
+        };
+
+        const translations = {
+            en: {
+                speedTrainingTitle: 'Chord Speed Training',
+                speedTrainingDescription: 'Select keys, chord types, and voicing to drill quick recall.',
+                language: 'Language',
+                speedTrainingVoicing: 'Voicing',
+                speedTrainingRootPosition: 'Root Position',
+                speedTrainingSecondInversion: '2nd Inversion',
+                speedTrainingMix: 'Mix',
+                speedTrainingChordTypes: 'Chord Types',
+                speedTrainingSelectChords: 'Keys',
+                speedTrainingStart: 'Start Training',
+                speedTrainingOk: 'OK',
+                speedTrainingNext: 'Next Chord',
+                speedTrainingResult: 'Result',
+                speedTrainingTimeTaken: 'Elapsed Time',
+                speedTrainingAnswer: 'Correct Answer',
+                speedTrainingError: 'Please select at least one key and chord type.',
+                questionProgress: 'Question Progress',
+                questionCount: 'Times Asked',
+                questionReset: 'Reset Counts',
+                seconds: 'seconds',
+                random: 'Random',
+                selectAll: 'Select All',
+                deselectAll: 'Clear'
+            },
+            ja: {
+                speedTrainingTitle: 'コード演奏スピードアップ',
+                speedTrainingDescription: 'キー、コードタイプ、ボイシングを選んで素早く回答しましょう。',
+                language: '言語',
+                speedTrainingVoicing: 'ボイシング',
+                speedTrainingRootPosition: 'ルートポジション',
+                speedTrainingSecondInversion: '第2転回形',
+                speedTrainingMix: 'ミックス',
+                speedTrainingChordTypes: 'コードタイプ',
+                speedTrainingSelectChords: 'キー',
+                speedTrainingStart: 'スタート',
+                speedTrainingOk: 'OK',
+                speedTrainingNext: '次のコード',
+                speedTrainingResult: '結果',
+                speedTrainingTimeTaken: '経過時間',
+                speedTrainingAnswer: '正解',
+                speedTrainingError: '少なくとも1つのキーとコードタイプを選択してください。',
+                questionProgress: '出題状況',
+                questionCount: '出題回数',
+                questionReset: 'リセット',
+                seconds: '秒',
+                random: 'ランダム',
+                selectAll: '全選択',
+                deselectAll: '全解除'
+            }
+        };
+
+        const getVoicingOptions = (voicing) => {
+            if (voicing === 'mix') {
+                return ['root', 'second'];
+            }
+            return [voicing];
+        };
+
+        const getSpeedTrainingVoicingLabel = (voicing, language) => {
+            switch (voicing) {
+                case 'root':
+                    return translations[language].speedTrainingRootPosition;
+                case 'second':
+                    return translations[language].speedTrainingSecondInversion;
+                case 'mix':
+                    return translations[language].speedTrainingMix;
+                default:
+                    return translations[language].speedTrainingRootPosition;
+            }
+        };
+
+        const shuffleArray = (array) => {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        };
+
+        const generateSpeedTrainingQueue = (roots, symbols, voicings) => {
+            if (roots.length === 0 || symbols.length === 0 || voicings.length === 0) return [];
+            const combos = [];
+            roots.forEach(root => {
+                symbols.forEach(symbol => {
+                    voicings.forEach(voicing => {
+                        combos.push({ root, symbol, voicing });
+                    });
+                });
+            });
+            return shuffleArray(combos);
+        };
+
+        const getQuestionKey = (question) =>
+            `${question.voicing}-${question.symbol}-${question.root}`;
+
+        // Main App Component
+        function App() {
+            const [language, setLanguage] = useState('ja');
+            const [speedTrainingSelectedRoots, setSpeedTrainingSelectedRoots] = useState(defaultSpeedTrainingRoots.slice(0, 4));
+            const [speedTrainingSelectedSymbols, setSpeedTrainingSelectedSymbols] = useState(speedTrainingChordSymbols);
+            const [speedTrainingVoicing, setSpeedTrainingVoicing] = useState('root');
+            const [speedTrainingQueue, setSpeedTrainingQueue] = useState([]);
+            const [currentQuestion, setCurrentQuestion] = useState(null);
+            const [speedTrainingActive, setSpeedTrainingActive] = useState(false);
+            const [speedTrainingStartTime, setSpeedTrainingStartTime] = useState(null);
+            const [speedTrainingResult, setSpeedTrainingResult] = useState(null);
+            const [speedTrainingAwaitingNext, setSpeedTrainingAwaitingNext] = useState(false);
+            const [speedTrainingError, setSpeedTrainingError] = useState('');
+            const [questionStats, setQuestionStats] = useState({});
+            
+            // New state for random selection
+            const [randomCount, setRandomCount] = useState(4);
+
+            const voicingOptions = useMemo(
+                () => getVoicingOptions(speedTrainingVoicing),
+                [speedTrainingVoicing]
+            );
+
+            const regenerateQueue = useCallback(
+                () => generateSpeedTrainingQueue(speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions),
+                [speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions]
+            );
+
+            const displayedCombos = useMemo(() => {
+                const combos = [];
+                speedTrainingSelectedRoots.forEach(root => {
+                    speedTrainingSelectedSymbols.forEach(symbol => {
+                        voicingOptions.forEach(voicing => {
+                            combos.push({ root, symbol, voicing });
+                        });
+                    });
+                });
+                return combos;
+            }, [speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions]);
+
+            const handleSpeedTrainingRootChange = (root, checked) => {
+                setSpeedTrainingSelectedRoots(prev => {
+                    if (checked) {
+                        if (prev.includes(root)) return prev;
+                        return [...prev, root];
+                    }
+                    return prev.filter(item => item !== root);
+                });
+            };
+
+            const handleSpeedTrainingSymbolChange = (symbol, checked) => {
+                setSpeedTrainingSelectedSymbols(prev => {
+                    if (checked) {
+                        if (prev.includes(symbol)) return prev;
+                        return [...prev, symbol];
+                    }
+                    return prev.filter(item => item !== symbol);
+                });
+            };
+
+            // New handlers for Key selection
+            const handleSelectAllKeys = useCallback(() => {
+                setSpeedTrainingSelectedRoots(defaultSpeedTrainingRoots);
+            }, []);
+
+            const handleDeselectAllKeys = useCallback(() => {
+                setSpeedTrainingSelectedRoots([]);
+            }, []);
+
+            const handleRandomSelectKeys = useCallback(() => {
+                const count = Math.max(1, Math.min(defaultSpeedTrainingRoots.length, randomCount));
+                const shuffled = shuffleArray(defaultSpeedTrainingRoots);
+                setSpeedTrainingSelectedRoots(shuffled.slice(0, count));
+            }, [randomCount]);
+
+
+            const recordQuestionPresentation = useCallback((question) => {
+                if (!question) {
+                    setSpeedTrainingActive(false);
+                    setCurrentQuestion(null);
+                    setSpeedTrainingResult(null);
+                    setSpeedTrainingAwaitingNext(false);
+                    setSpeedTrainingStartTime(null);
+                    return;
+                }
+                setSpeedTrainingActive(true);
+                setCurrentQuestion(question);
+                setSpeedTrainingResult(null);
+                setSpeedTrainingAwaitingNext(false);
+                setSpeedTrainingStartTime(Date.now());
+                setQuestionStats(prev => {
+                    const key = getQuestionKey(question);
+                    return {
+                        ...prev,
+                        [key]: (prev[key] || 0) + 1
+                    };
+                });
+            }, []);
+
+            const handleResetStats = useCallback(() => {
+                setQuestionStats({});
+            }, []);
+
+            const handleSpeedTrainingStart = useCallback(() => {
+                if (speedTrainingSelectedRoots.length === 0 || speedTrainingSelectedSymbols.length === 0) {
+                    setSpeedTrainingError(translations[language].speedTrainingError);
+                    recordQuestionPresentation(null);
+                    setSpeedTrainingQueue([]);
+                    return;
+                }
+                setSpeedTrainingError('');
+                const queue = regenerateQueue();
+                const [firstQuestion, ...restQueue] = queue;
+                setSpeedTrainingQueue(restQueue);
+                recordQuestionPresentation(firstQuestion || null);
+            }, [language, speedTrainingSelectedRoots, speedTrainingSelectedSymbols, recordQuestionPresentation, regenerateQueue]);
+
+            const handleSpeedTrainingOk = useCallback(() => {
+                if (!currentQuestion || speedTrainingStartTime === null || speedTrainingAwaitingNext) return;
+                const elapsedSeconds = Number(((Date.now() - speedTrainingStartTime) / 1000).toFixed(2));
+                const answerSource = currentQuestion.voicing === 'root' ? speedTrainingAnswers : speedTrainingSecondInversionAnswers;
+                const answerText = answerSource[currentQuestion.root][currentQuestion.symbol];
+                setSpeedTrainingResult({
+                    reactionSeconds: elapsedSeconds,
+                    answer: answerText
+                });
+                setSpeedTrainingAwaitingNext(true);
+                setSpeedTrainingStartTime(null);
+            }, [currentQuestion, speedTrainingStartTime, speedTrainingAwaitingNext]);
+
+            const handleSpeedTrainingNext = useCallback(() => {
+                setSpeedTrainingQueue(prevQueue => {
+                    let workingQueue = prevQueue;
+                    if (workingQueue.length === 0) {
+                        workingQueue = regenerateQueue();
+                    }
+                    const [nextQuestion, ...rest] = workingQueue;
+                    recordQuestionPresentation(nextQuestion || null);
+                    return rest;
+                });
+            }, [recordQuestionPresentation, regenerateQueue]);
+
+            const completedCount = useMemo(() => {
+                return Object.values(questionStats).reduce((sum, val) => sum + (val > 0 ? 1 : 0), 0);
+            }, [questionStats]);
+
+            return (
+                <div className="bg">
+                    <header className="header">
+                        <div className="title-box">
+                            <h1 className="main-title">
+                                <span role="img" aria-label="music">🎵</span> {translations[language].speedTrainingTitle}
+                            </h1>
+                            <div className="sub-title">{translations[language].speedTrainingDescription}</div>
+                        </div>
+                        <div className="lang-box">
+                            <select className="lang-select" value={language} onChange={e => setLanguage(e.target.value)}>
+                                <option value="en">English</option>
+                                <option value="ja">日本語</option>
+                            </select>
+                        </div>
+                    </header>
+
+                    <div className="card">
+                        <h2 className="speed-section-title">{translations[language].speedTrainingTitle}</h2>
+                        <p className="speed-description">{translations[language].speedTrainingDescription}</p>
+
+                        <div className="control-label">{translations[language].speedTrainingVoicing}</div>
+                        <div className="speed-radio-group">
+                            <label className="speed-radio-label">
+                                <input
+                                    type="radio"
+                                    name="speedVoicing"
+                                    checked={speedTrainingVoicing === 'root'}
+                                    onChange={() => setSpeedTrainingVoicing('root')}
+                                    style={{marginRight: '6px'}}
+                                />
+                                {translations[language].speedTrainingRootPosition}
+                            </label>
+                            <label className="speed-radio-label">
+                                <input
+                                    type="radio"
+                                    name="speedVoicing"
+                                    checked={speedTrainingVoicing === 'second'}
+                                    onChange={() => setSpeedTrainingVoicing('second')}
+                                    style={{marginRight: '6px'}}
+                                />
+                                {translations[language].speedTrainingSecondInversion}
+                            </label>
+                            <label className="speed-radio-label">
+                                <input
+                                    type="radio"
+                                    name="speedVoicing"
+                                    checked={speedTrainingVoicing === 'mix'}
+                                    onChange={() => setSpeedTrainingVoicing('mix')}
+                                    style={{marginRight: '6px'}}
+                                />
+                                {translations[language].speedTrainingMix}
+                            </label>
+                        </div>
+
+                        <div className="control-label">{translations[language].speedTrainingChordTypes}</div>
+                        <div className="checkbox-grid">
+                            {speedTrainingChordSymbols.map(symbol => (
+                                <label key={symbol} className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={speedTrainingSelectedSymbols.includes(symbol)}
+                                        onChange={e => handleSpeedTrainingSymbolChange(symbol, e.target.checked)}
+                                        style={{marginRight: '8px'}}
+                                    />
+                                    {symbol}
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="control-header">
+                            <div className="control-label">
+                                {translations[language].speedTrainingSelectChords}
+                            </div>
+                            <div className="key-controls">
+                                <div className="input-group">
+                                    <input 
+                                        type="number" 
+                                        className="random-count-input" 
+                                        value={randomCount} 
+                                        onChange={(e) => setRandomCount(Math.max(1, Math.min(12, Number(e.target.value))))}
+                                        min="1" 
+                                        max="12"
+                                    />
+                                    <div className="input-divider"></div>
+                                    <button className="random-btn" onClick={handleRandomSelectKeys}>
+                                        {translations[language].random}
+                                    </button>
+                                </div>
+                                <button className="grey-action-btn" onClick={handleSelectAllKeys}>
+                                    {translations[language].selectAll}
+                                </button>
+                                <button className="grey-action-btn" onClick={handleDeselectAllKeys}>
+                                    {translations[language].deselectAll}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="checkbox-grid">
+                            {defaultSpeedTrainingRoots.map(root => (
+                                <label key={root} className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={speedTrainingSelectedRoots.includes(root)}
+                                        onChange={e => handleSpeedTrainingRootChange(root, e.target.checked)}
+                                        style={{marginRight: '8px'}}
+                                    />
+                                    {root}
+                                </label>
+                            ))}
+                        </div>
+                        {speedTrainingError && <div className="speed-error-text">{speedTrainingError}</div>}
+
+                        <div className="speed-training-actions">
+                            <button className="speed-button speed-primary-button" onClick={handleSpeedTrainingStart}>
+                                {translations[language].speedTrainingStart}
+                            </button>
+                            {speedTrainingActive && currentQuestion && (
+                                speedTrainingAwaitingNext ? (
+                                    <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingNext}>
+                                        {translations[language].speedTrainingNext}
+                                    </button>
+                                ) : (
+                                    <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingOk}>
+                                        {translations[language].speedTrainingOk}
+                                    </button>
+                                )
+                            )}
+                        </div>
+
+                        {speedTrainingActive && currentQuestion && (
+                            <React.Fragment>
+                                <div className="speed-chord-display">
+                                    {currentQuestion.root}{currentQuestion.symbol}
+                                </div>
+                                <div className="speed-voicing-hint">
+                                    {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
+                                </div>
+                                {speedTrainingResult && (
+                                    <div className="speed-result-box">
+                                        <div style={{fontWeight: 700}}>{translations[language].speedTrainingResult}</div>
+                                        <div style={{marginTop: '8px'}}>
+                                            {translations[language].speedTrainingTimeTaken}: {speedTrainingResult.reactionSeconds} {translations[language].seconds}
+                                        </div>
+                                        <div style={{marginTop: '8px'}}>
+                                            {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
+                                        </div>
+                                        <div style={{marginTop: '8px', fontWeight: 600}}>
+                                            {translations[language].speedTrainingAnswer}
+                                        </div>
+                                        <div>
+                                            {speedTrainingResult.answer.split('\n').map((line, idx) => (
+                                                <div key={idx}>{line}</div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </React.Fragment>
+                        )}
+
+                        {displayedCombos.length > 0 && (
+                            <React.Fragment>
+                                <div className="label-row">
+                                    <div className="label-text">{translations[language].questionProgress}</div>
+                                    <button className="reset-button" onClick={handleResetStats}>{translations[language].questionReset}</button>
+                                    <span className="progress-count">
+                                        {completedCount}/{displayedCombos.length}
+                                    </span>
+                                </div>
+                                <table className="stats-table">
+                                    <thead>
+                                        <tr>
+                                            <th className="stats-th">{translations[language].speedTrainingVoicing}</th>
+                                            <th className="stats-th">{translations[language].speedTrainingChordTypes}</th>
+                                            <th className="stats-th">{translations[language].speedTrainingSelectChords}</th>
+                                            <th className="stats-th">{translations[language].questionCount}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {displayedCombos.map(combo => {
+                                            const key = getQuestionKey(combo);
+                                            const count = questionStats[key] || 0;
+                                            return (
+                                                <tr key={key}>
+                                                    <td className="stats-td">{getSpeedTrainingVoicingLabel(combo.voicing, language)}</td>
+                                                    <td className="stats-td">{combo.symbol}</td>
+                                                    <td className="stats-td">{combo.root}</td>
+                                                    <td className="stats-td">{count}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </React.Fragment>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
