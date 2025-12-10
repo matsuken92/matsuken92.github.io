@@ -70,6 +70,18 @@
 
         const KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
+        // 表示用ラベル変換 (Enharmonic)
+        const formatKeyLabel = (key) => {
+            const map = {
+                'C#': 'D♭',
+                'D#': 'E♭',
+                'F#': 'G♭',
+                'G#': 'A♭',
+                'A#': 'B♭'
+            };
+            return map[key] || key;
+        };
+
         const DIATONIC_INTERVALS = [
             { degreeName: 'I',   offset: 0,  type: 'Major' },
             { degreeName: 'ii',  offset: 2,  type: 'Minor' },
@@ -90,7 +102,7 @@
         // 各弦の開放弦における、6弦(E)からの半音差オフセット
         const STRING_OFFSETS = { 6: 0, 5: 5, 4: 10, 3: 15, 2: 19, 1: 24 };
 
-        // トライアドシェイプ定義 (Diminished追加)
+        // トライアドシェイプ定義
         const TRIAD_SHAPES = {
             // --- Set 1 (Strings 1, 2, 3) ---
             'Set1_Maj_R3': { name: 'Set 1 (Root 3弦)', strings: [3, 2, 1], offsets: [0, 0, -2], degrees: ['R', '3', '5'], type: 'Major' }, 
@@ -299,17 +311,18 @@
             const [settings, setSettings] = useState({
                 targetSets: { 1: true, 2: true, 3: true, 4: true },
                 targetTypes: { 'Major': true, 'Minor': true, 'Diminished': true },
-                level: 1, // 1: Position Only, 2: Degree Drag & Drop
+                level: 1, // 1: Position, 2: Degree Drag, 3: NoteName Drag
                 mode: 'diatonic' // 'chromatic' | 'diatonic'
             });
 
             // Question Queue for Shuffled Deck Logic
             const questionQueue = useRef([]);
 
-            // --- Drag & Drop State for Level 2 ---
+            // --- Drag & Drop State for Level 2 & 3 ---
             const [dragState, setDragState] = useState({
                 isDragging: false,
-                degree: null, // 'R', '3', 'b3', '5', 'b5'
+                degree: null, // Lv2: 'R', '3'... / Lv3: 'C', 'C#'...
+                label: null, // Display label like 'D♭'
                 x: 0,
                 y: 0
             });
@@ -482,13 +495,15 @@
                 const rootString = q.shapeDef.strings[rootStringIdx];
                 
                 let message = "";
-                if (settings.level === 2) {
+                if (settings.level === 3) {
+                    message = `[Lv.3] 正しい音名をドラッグして配置しよう`;
+                } else if (settings.level === 2) {
                     message = `[Lv.2] 正しい度数をドラッグして配置しよう`;
                 } else {
                     if (settings.mode === 'diatonic') {
-                         message = `Key ${q.centerKey} の ${q.targetDegreeName} (${q.targetRoot} ${q.targetType==='Diminished'?'dim':q.targetType}) - ${setName}`;
+                         message = `Key ${formatKeyLabel(q.centerKey)} の ${q.targetDegreeName} (${formatKeyLabel(q.targetRoot)} ${q.targetType==='Diminished'?'dim':q.targetType}) - ${setName}`;
                     } else {
-                         message = `${q.targetRoot} ${q.targetType==='Diminished'?'dim':q.targetType} - ${setName}, Root ${rootString}弦`;
+                         message = `${formatKeyLabel(q.targetRoot)} ${q.targetType==='Diminished'?'dim':q.targetType} - ${setName}, Root ${rootString}弦`;
                     }
                 }
 
@@ -505,7 +520,7 @@
                     revealedNoteIds: new Set(),
                     mistake: false,
                     showHint: false,
-                    remainingCount: questionQueue.current.length // デバッグ用に残数を表示したければ使える
+                    remainingCount: questionQueue.current.length 
                 };
 
                 setCurrentQuestion(question);
@@ -529,7 +544,7 @@
             // --- Click Handler (Level 1) ---
             const handleFretClick = (stringNum, fretNum) => {
                 if (trainingStatus !== 'playing' || !currentQuestion) return;
-                if (settings.level === 2) return; // Level 2ではクリック無効
+                if (settings.level !== 1) return; // Only Level 1 allows clicks
 
                 const clickedNote = currentQuestion.targetNotes.find(n => n.s === stringNum && n.fret === fretNum);
 
@@ -540,9 +555,9 @@
                 }
             };
 
-            // --- Drag & Drop Logic (Level 2) ---
-            const handlePointerDown = (e, degree) => {
-                if (trainingStatus !== 'playing' || settings.level !== 2) return;
+            // --- Drag & Drop Logic (Level 2 & 3) ---
+            const handlePointerDown = (e, degree, label) => {
+                if (trainingStatus !== 'playing' || settings.level === 1) return;
                 e.preventDefault();
                 // マウス/タッチ座標を取得
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -550,7 +565,8 @@
 
                 setDragState({
                     isDragging: true,
-                    degree: degree,
+                    degree: degree, // Internal value (e.g. 'C#', 'R', '3')
+                    label: label,   // Display label (e.g. 'D♭', 'R', '3')
                     x: clientX,
                     y: clientY
                 });
@@ -568,11 +584,19 @@
                 if (!dragState.isDragging) return;
                 e.preventDefault();
 
+                // 座標取得
+                let clientX = 0;
+                let clientY = 0;
+
+                if (e.changedTouches && e.changedTouches.length > 0) {
+                     clientX = e.changedTouches[0].clientX;
+                     clientY = e.changedTouches[0].clientY;
+                } else {
+                     clientX = e.clientX;
+                     clientY = e.clientY;
+                }
+
                 // ドロップ位置の要素を特定
-                const clientX = dragState.x;
-                const clientY = dragState.y;
-                
-                // ポインターの下にある要素を取得
                 const element = document.elementFromPoint(clientX, clientY);
                 const fretCell = element?.closest('[data-s]');
                 
@@ -582,17 +606,27 @@
                     const targetNote = currentQuestion.targetNotes.find(n => n.s === stringNum && n.fret === fretNum);
                     
                     if (targetNote) {
-                        if (targetNote.degree === dragState.degree) {
+                        let isCorrect = false;
+                        if (settings.level === 2) {
+                            // Check Degree ('R', '3', etc.)
+                            isCorrect = (targetNote.degree === dragState.degree);
+                        } else if (settings.level === 3) {
+                            // Check Note Name ('C', 'C#', etc.)
+                            const actualNote = getNoteName(stringNum, fretNum);
+                            isCorrect = (actualNote === dragState.degree);
+                        }
+
+                        if (isCorrect) {
                             processCorrectAnswer(targetNote);
                         } else {
-                            processMistake("度数が違うよ！");
+                            processMistake(settings.level === 3 ? "音が違うよ！" : "度数が違うよ！");
                         }
                     } else {
                         processMistake();
                     }
                 }
 
-                setDragState({ isDragging: false, degree: null, x: 0, y: 0 });
+                setDragState({ isDragging: false, degree: null, label: null, x: 0, y: 0 });
             };
 
             // --- Common Success/Fail Logic ---
@@ -668,18 +702,34 @@
                 return shape ? shape.strings : null;
             }, [currentQuestion]);
 
-            // Level 2 Draggable Tokens
+            // Level 2 & 3 Draggable Tokens
             const getDraggableTokens = () => {
-                if (!currentQuestion) return [];
-                const tokens = ['R'];
-                if (currentQuestion.type === 'Major') {
-                    tokens.push('3', '5');
-                } else if (currentQuestion.type === 'Minor') {
-                    tokens.push('b3', '5');
-                } else if (currentQuestion.type === 'Diminished') {
-                    tokens.push('b3', 'b5');
+                if (settings.level === 3) {
+                    // Level 3: 12 Notes (Chromatic)
+                    return KEYS.map(note => ({
+                        value: note,
+                        label: formatKeyLabel(note),
+                        colorClass: 'bg-indigo-600'
+                    }));
+                } else if (settings.level === 2) {
+                    // Level 2: Degrees
+                    if (!currentQuestion) return [];
+                    const tokens = [];
+                    tokens.push({ value: 'R', label: 'R', colorClass: 'bg-red-600 ring-2 ring-red-300' });
+                    
+                    if (currentQuestion.type === 'Major') {
+                        tokens.push({ value: '3', label: '3', colorClass: 'bg-orange-500' });
+                        tokens.push({ value: '5', label: '5', colorClass: 'bg-orange-500' });
+                    } else if (currentQuestion.type === 'Minor') {
+                        tokens.push({ value: 'b3', label: 'b3', colorClass: 'bg-blue-500' });
+                        tokens.push({ value: '5', label: '5', colorClass: 'bg-blue-500' });
+                    } else if (currentQuestion.type === 'Diminished') {
+                        tokens.push({ value: 'b3', label: 'b3', colorClass: 'bg-purple-600' });
+                        tokens.push({ value: 'b5', label: 'b5', colorClass: 'bg-purple-600' });
+                    }
+                    return tokens;
                 }
-                return tokens;
+                return [];
             };
 
             return (
@@ -728,19 +778,27 @@
                                         <div className="flex gap-2">
                                             <button 
                                                 onClick={() => setSettings(s => ({...s, level: 1}))}
-                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                className={`flex-1 py-2 px-1 rounded-lg text-xs font-bold transition-all ${
                                                     settings.level === 1 ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-500 border'
                                                 }`}
                                             >
-                                                Lv.1 ポジション当て
+                                                Lv.1 ポジション
                                             </button>
                                             <button 
                                                 onClick={() => setSettings(s => ({...s, level: 2}))}
-                                                className={`flex-1 py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                                                className={`flex-1 py-2 px-1 rounded-lg text-xs font-bold transition-all ${
                                                     settings.level === 2 ? 'bg-pink-600 text-white shadow-md' : 'bg-white text-gray-500 border'
                                                 }`}
                                             >
                                                 Lv.2 度数ドラッグ
+                                            </button>
+                                            <button 
+                                                onClick={() => setSettings(s => ({...s, level: 3}))}
+                                                className={`flex-1 py-2 px-1 rounded-lg text-xs font-bold transition-all ${
+                                                    settings.level === 3 ? 'bg-emerald-600 text-white shadow-md' : 'bg-white text-gray-500 border'
+                                                }`}
+                                            >
+                                                Lv.3 音名ドラッグ
                                             </button>
                                         </div>
                                     </div>
@@ -764,7 +822,7 @@
                                                                     : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                                                             }`}
                                                         >
-                                                            {k}
+                                                            {formatKeyLabel(k)}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -841,7 +899,7 @@
                                                             }`}>
                                                                 {targetKeys.has(k) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                                                             </div>
-                                                            {k}
+                                                            {formatKeyLabel(k)}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -933,13 +991,13 @@
                                 `}>
                                     <div className="flex flex-col gap-1 relative z-10">
                                         <span className="text-sm font-bold opacity-60 uppercase tracking-widest">
-                                            Question {settings.level===2 && "(Lv.2)"}
-                                            {settings.mode === 'diatonic' && <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">Key of {currentQuestion.centerKey}</span>}
+                                            Question {settings.level > 1 && `(Lv.${settings.level})`}
+                                            {settings.mode === 'diatonic' && <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded ml-2">Key of {formatKeyLabel(currentQuestion.centerKey)}</span>}
                                         </span>
                                         <div className="text-3xl font-black mb-1 flex items-center justify-center gap-2">
                                             {settings.mode === 'diatonic' && <span className="text-gray-400 text-xl">{currentQuestion.degreeName}</span>}
                                             <span className={currentQuestion.type === 'Major' ? 'text-orange-600' : currentQuestion.type === 'Minor' ? 'text-blue-600' : 'text-purple-600'}>
-                                                {currentQuestion.key} {currentQuestion.type === 'Diminished' ? 'dim' : currentQuestion.type}
+                                                {formatKeyLabel(currentQuestion.key)} {currentQuestion.type === 'Diminished' ? 'dim' : currentQuestion.type}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-center gap-3 text-lg font-bold">
@@ -947,8 +1005,8 @@
                                             <span className="text-gray-400">▶</span>
                                             <span className="bg-gray-800 text-white px-3 py-1 rounded">Root {currentQuestion.rootString}弦</span>
                                         </div>
-                                        {/* Lv2専用メッセージ */}
-                                        {settings.level === 2 && trainingStatus !== 'cleared' && (
+                                        {/* Lv2/Lv3 専用メッセージ */}
+                                        {settings.level > 1 && trainingStatus !== 'cleared' && (
                                             <div className="mt-2 text-sm text-pink-600 font-bold bg-pink-50 inline-block px-3 py-1 rounded-full">
                                                 下のチップをドラッグして配置してね
                                             </div>
@@ -1010,26 +1068,22 @@
                                         activeSetStrings={activeStrings}
                                     />
 
-                                    {/* Level 2 Draggable Tokens Panel */}
-                                    {settings.level === 2 && trainingStatus !== 'cleared' && (
-                                        <div className="mt-8 flex justify-center gap-8 animate-fade-in p-4 bg-gray-100 rounded-xl shadow-inner border border-gray-200 select-none">
-                                            {/* Degrees to drag */}
-                                            {getDraggableTokens().map(deg => (
+                                    {/* Draggable Tokens Panel (Lv.2 & Lv.3) */}
+                                    {settings.level > 1 && trainingStatus !== 'cleared' && (
+                                        <div className="mt-8 flex flex-wrap justify-center gap-4 animate-fade-in p-4 bg-gray-100 rounded-xl shadow-inner border border-gray-200 select-none max-w-4xl">
+                                            {/* Degrees/Notes to drag */}
+                                            {getDraggableTokens().map(token => (
                                                 <div 
-                                                    key={deg}
+                                                    key={token.label}
                                                     className="flex flex-col items-center gap-2 cursor-grab active:cursor-grabbing"
-                                                    onMouseDown={(e) => handlePointerDown(e, deg)}
-                                                    onTouchStart={(e) => handlePointerDown(e, deg)}
+                                                    onMouseDown={(e) => handlePointerDown(e, token.value, token.label)}
+                                                    onTouchStart={(e) => handlePointerDown(e, token.value, token.label)}
                                                 >
                                                     <div className={`
                                                         w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white shadow-lg transform transition-transform hover:scale-110
-                                                        ${deg === 'R' 
-                                                            ? 'bg-red-600 ring-2 ring-red-300' 
-                                                            : currentQuestion.type === 'Major' 
-                                                                ? 'bg-orange-500' 
-                                                                : currentQuestion.type === 'Minor' ? 'bg-blue-500' : 'bg-purple-600'}
+                                                        ${token.colorClass}
                                                     `}>
-                                                        {deg}
+                                                        {token.label}
                                                     </div>
                                                 </div>
                                             ))}
@@ -1054,14 +1108,10 @@
                                     left: dragState.x, 
                                     top: dragState.y, 
                                     transform: 'translate(-50%, -50%)',
-                                    backgroundColor: dragState.degree === 'R' 
-                                        ? '#dc2626' 
-                                        : currentQuestion.type === 'Major' 
-                                            ? '#f97316' 
-                                            : currentQuestion.type === 'Minor' ? '#3b82f6' : '#9333ea'
+                                    backgroundColor: settings.level === 3 ? '#4f46e5' : dragState.degree === 'R' ? '#dc2626' : '#f97316'
                                 }}
                             >
-                                {dragState.degree}
+                                {dragState.label}
                             </div>
                         )}
 
