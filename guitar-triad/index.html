@@ -178,8 +178,10 @@
             displayMode, // 'note' | 'degree'
             onFretClick,
             highlightShake,
-            activeSetStrings // [1,2,3] etc. to highlight background of active strings
+            activeSetStrings
         }) => {
+            // 自動スクロール用のuseEffectは削除済み
+            
             const frets = Array.from({ length: 16 }, (_, i) => i); // 0-15F
             
             // ポジションマーク
@@ -191,11 +193,11 @@
                 return notes.find(n => n.s === stringNum && n.fret === fretNum);
             };
 
-            const containerClass = `relative overflow-x-auto w-full max-w-5xl pb-10 px-2 transition-transform duration-300 ${highlightShake ? 'animate-shake' : ''}`;
+            const containerClass = `relative overflow-x-auto w-full pb-12 px-2 transition-transform duration-300 ${highlightShake ? 'animate-shake' : ''}`;
 
             return (
                 <div className={containerClass}>
-                    <div className="bg-[#222222] p-2 pl-4 rounded-lg shadow-2xl relative select-none" style={{ minWidth: '850px', border: '4px solid #1a1a1a' }}>
+                    <div className="bg-[#222222] p-2 pl-4 rounded-lg shadow-2xl relative select-none mx-auto" style={{ minWidth: '850px', border: '4px solid #1a1a1a' }}>
                         
                         <div className="fretboard-bg relative rounded-md h-44 overflow-visible"> 
                             
@@ -507,6 +509,8 @@
                     }
                 }
 
+                const targetNotes = calculateTriadNotes(q.targetRoot, q.shapeKey);
+
                 const question = {
                     key: q.targetRoot,
                     centerKey: q.centerKey,
@@ -516,7 +520,7 @@
                     setName: setName,
                     rootString: rootString,
                     message: message,
-                    targetNotes: calculateTriadNotes(q.targetRoot, q.shapeKey),
+                    targetNotes: targetNotes,
                     revealedNoteIds: new Set(),
                     mistake: false,
                     showHint: false,
@@ -1059,7 +1063,8 @@
                                 </div>
 
                                 {/* Fretboard */}
-                                <div className="relative">
+                                {/* ここが重要： 親要素に w-full max-w-5xl を適用し、中のスクロールを正常化 */}
+                                <div className="relative w-full max-w-5xl flex flex-col items-center">
                                     <FretboardUI 
                                         notes={getDisplayNotes()}
                                         displayMode="degree"
@@ -1125,3 +1130,5 @@
     </script>
 </body>
 </html>
+
+
