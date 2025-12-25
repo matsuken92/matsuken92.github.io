@@ -373,6 +373,35 @@
             color: #232b3a;
             font-weight: 500;
         }
+
+        /* Tempo Styles */
+        .tempo-container {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f2f7;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .tempo-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tempo-input {
+            width: 50px;
+            padding: 6px;
+            border: 1px solid #e0e6ef;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .tempo-note {
+            font-size: 0.85rem;
+            color: #6b7688;
+        }
         
         @media (max-width: 600px) {
             .header {
@@ -387,7 +416,6 @@
                 font-size: 1.8rem;
             }
             .control-header {
-                /* On small screens, we might want them to stack or wrap */
                 justify-content: space-between;
             }
             .key-controls {
@@ -401,7 +429,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useMemo, useCallback, useEffect } = React;
+        const { useState, useMemo, useCallback, useEffect, useRef } = React;
 
         // Data Definitions
         const speedTrainingChordSymbols = ['△7', '7', 'm7'];
@@ -461,7 +489,10 @@
                 seconds: 'seconds',
                 random: 'Random',
                 selectAll: 'Select All',
-                deselectAll: 'Clear'
+                deselectAll: 'Clear',
+                tempoMode: 'Tempo Mode',
+                tempoDescription: 'Auto-reveal answer after 4 beats.',
+                bpm: 'BPM'
             },
             ja: {
                 speedTrainingTitle: 'コード演奏スピードアップ',
@@ -486,7 +517,10 @@
                 seconds: '秒',
                 random: 'ランダム',
                 selectAll: '全選択',
-                deselectAll: '全解除'
+                deselectAll: '全解除',
+                tempoMode: 'テンポモード',
+                tempoDescription: 'BPMに合わせて4拍経過後に自動で正解を表示します。',
+                bpm: 'BPM'
             }
         };
 
@@ -550,8 +584,12 @@
             const [speedTrainingError, setSpeedTrainingError] = useState('');
             const [questionStats, setQuestionStats] = useState({});
             
-            // New state for random selection
+            // Random Selection State
             const [randomCount, setRandomCount] = useState(4);
+
+            // Tempo Mode States
+            const [isTempoMode, setIsTempoMode] = useState(false);
+            const [bpm, setBpm] = useState(80);
 
             const voicingOptions = useMemo(
                 () => getVoicingOptions(speedTrainingVoicing),
@@ -595,7 +633,7 @@
                 });
             };
 
-            // New handlers for Key selection
+            // Key selection handlers
             const handleSelectAllKeys = useCallback(() => {
                 setSpeedTrainingSelectedRoots(defaultSpeedTrainingRoots);
             }, []);
@@ -676,6 +714,21 @@
                     return rest;
                 });
             }, [recordQuestionPresentation, regenerateQueue]);
+
+            // Auto-Answer Timer Effect
+            useEffect(() => {
+                if (speedTrainingActive && currentQuestion && !speedTrainingResult && isTempoMode && !speedTrainingAwaitingNext) {
+                    // Calculate wait time: (60 seconds / BPM) * 4 beats * 1000ms
+                    const msPerBeat = (60 / Math.max(1, bpm)) * 1000;
+                    const waitTime = msPerBeat * 4;
+                    
+                    const timer = setTimeout(() => {
+                        handleSpeedTrainingOk();
+                    }, waitTime);
+                    
+                    return () => clearTimeout(timer);
+                }
+            }, [currentQuestion, speedTrainingActive, speedTrainingResult, isTempoMode, bpm, handleSpeedTrainingOk, speedTrainingAwaitingNext]);
 
             const completedCount = useMemo(() => {
                 return Object.values(questionStats).reduce((sum, val) => sum + (val > 0 ? 1 : 0), 0);
@@ -791,6 +844,35 @@
                                 </label>
                             ))}
                         </div>
+
+                        {/* Tempo Settings Section */}
+                        <div className="tempo-container">
+                             <label className="speed-radio-label">
+                                <input
+                                    type="checkbox"
+                                    checked={isTempoMode}
+                                    onChange={e => setIsTempoMode(e.target.checked)}
+                                    style={{marginRight: '8px', transform: 'scale(1.2)'}}
+                                />
+                                {translations[language].tempoMode}
+                            </label>
+                            
+                            {isTempoMode && (
+                                <div className="tempo-input-wrapper">
+                                    <span style={{fontWeight: 600, color: '#232b3a'}}>{translations[language].bpm}:</span>
+                                    <input
+                                        type="number"
+                                        className="tempo-input"
+                                        value={bpm}
+                                        onChange={e => setBpm(Math.max(1, Number(e.target.value)))}
+                                        min="1"
+                                        max="300"
+                                    />
+                                    <span className="tempo-note">{translations[language].tempoDescription}</span>
+                                </div>
+                            )}
+                        </div>
+
                         {speedTrainingError && <div className="speed-error-text">{speedTrainingError}</div>}
 
                         <div className="speed-training-actions">
