@@ -408,6 +408,26 @@
             align-items: center;
             gap: 8px;
         }
+        .tempo-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tempo-btn {
+            background: #fff;
+            border: 1px solid #e0e6ef;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #4a6cd8;
+            cursor: pointer;
+            min-width: 36px;
+            transition: background 0.2s;
+        }
+        .tempo-btn:hover {
+            background: #f5f7fb;
+        }
         .tempo-input {
             width: 50px;
             padding: 6px;
@@ -416,7 +436,14 @@
             text-align: center;
             font-weight: 600;
             font-size: 1rem;
+            -moz-appearance: textfield; /* Remove spin buttons for Firefox */
         }
+        .tempo-input::-webkit-outer-spin-button,
+        .tempo-input::-webkit-inner-spin-button {
+            -webkit-appearance: none; /* Remove spin buttons for Chrome/Safari */
+            margin: 0;
+        }
+
         .tempo-note {
             font-size: 0.85rem;
             color: #6b7688;
@@ -462,11 +489,11 @@
             'A♭': { '△7': '調号：ラシレミがフラット\n音名：ラドミソ', '7': '調号：ラシレミがフラット\n音名：ラドミソ\nソがフラット', 'm7': '調号：ラシレミがフラット\n音名：ラドミソ\nドとソがフラット' },
             'D♭': { '△7': '調号：ファド以外フラット\n音名：レファラド', '7': '調号：ファド以外フラット\n音名：レファラド\nドがフラット', 'm7': '調号：ファド以外フラット\n音名：レファラド\nファとドがフラット' },
             'G♭': { '△7': '調号：ファ以外フラット\n音名：ソシレファ', '7': '調号：ファ以外フラット\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファ以外フラット\n音名：ソシレファ\nシとファがフラット' },
-            'B': { '△7': '調号：シミ以外シャープ\n音名：ファラシレ', '7': '調号：シミ以外シャープ\n音名：ファラシレ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：ファラシレ\nレとラがフラット' },
-            'E': { '△7': '調号：ファソドレがシャープ\n音名：ミソシレ', '7': '調号：ファソドレがシャープ\n音名：ミソシレ\nレがフラット', 'm7': '調号：ファソドレがシャープ\n音名：ミソシレ\nソとレがフラット' },
-            'A': { '△7': '調号：ドファソがシャープ\n音名：ラドミソ', '7': '調号：ドファソがシャープ\n音名：ラドミソ\nソがフラット', 'm7': '調号：ドファソがシャープ\n音名：ラドミソ\nドとソがフラット' },
-            'D': { '△7': '調号：ファドがシャープ\n音名：レファラド', '7': '調号：ファドがシャープ\n音名：レファラド\nドがフラット', 'm7': '調号：ファドがシャープ\n音名：レファラド\nファとドがフラット' },
-            'G': { '△7': '調号：ファがシャープ\n音名：ソシレファ', '7': '調号：ファがシャープ\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファがシャープ\n音名：ソシレファ\nシとファがフラット' }
+            'B': { '△7': '調号：シミ以外シャープ\n音名：ファラシレ', '7': '調号：シミ以外シャープ\n音名：ファラシレ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：ファラシレ\nラとレがフラット' },
+            'E': { '△7': '調号：ファソドレがシャープ\n音名：ミソシレ', '7': '調号：ファソドレがシャープ\n音名：ミソシレ\nレがフラット', 'm7': '調号：ファソドレがシャープ\n音名：ミソシレ\nレとソがフラット' },
+            'A': { '△7': '調号：ドファソがシャープ\n音名：ミソラド', '7': '調号：ドファソがシャープ\n音名：ミソラド\nソがフラット', 'm7': '調号：ドファソがシャープ\n音名：ミソラド\nソとドがフラット' },
+            'D': { '△7': '調号：ファドがシャープ\n音名：レファラド', '7': '調号：ファドがシャープ\n音名：レファラド\nドがフラット', 'm7': '調号：ファドがシャープ\n音名：レファラド\nドとファがフラット' },
+            'G': { '△7': '調号：ファがシャープ\n音名：ソシレファ', '7': '調号：ファがシャープ\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファがシャープ\n音名：ソシレファ\nファとシがフラット' }
         };
 
         const speedTrainingSecondInversionAnswers = {
@@ -813,6 +840,42 @@
                 }
             }, [currentQuestion, speedTrainingActive, speedTrainingResult, isTempoMode, bpm, handleSpeedTrainingOk, speedTrainingAwaitingNext]);
 
+            const updateBpm = useCallback((delta) => {
+                setBpm(prev => {
+                    const next = prev + delta;
+                    return Math.min(300, Math.max(1, next));
+                });
+            }, []);
+
+            // Keyboard shortcuts for BPM
+            useEffect(() => {
+                if (!isTempoMode) return;
+
+                const handleKeyDown = (e) => {
+                    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                         e.preventDefault();
+                    }
+
+                    switch(e.key) {
+                        case 'ArrowUp':
+                            updateBpm(1);
+                            break;
+                        case 'ArrowDown':
+                            updateBpm(-1);
+                            break;
+                        case 'ArrowRight':
+                            updateBpm(10);
+                            break;
+                        case 'ArrowLeft':
+                            updateBpm(-10);
+                            break;
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [isTempoMode, updateBpm]);
+
             const completedCount = useMemo(() => {
                 return Object.values(questionStats).reduce((sum, val) => sum + (val.asked > 0 ? 1 : 0), 0);
             }, [questionStats]);
@@ -943,14 +1006,20 @@
                             {isTempoMode && (
                                 <div className="tempo-input-wrapper">
                                     <span style={{fontWeight: 600, color: '#232b3a'}}>{translations[language].bpm}:</span>
-                                    <input
-                                        type="number"
-                                        className="tempo-input"
-                                        value={bpm}
-                                        onChange={e => setBpm(Math.max(1, Number(e.target.value)))}
-                                        min="1"
-                                        max="300"
-                                    />
+                                    <div className="tempo-controls">
+                                        <button className="tempo-btn" onClick={() => updateBpm(-10)}>-10</button>
+                                        <button className="tempo-btn" onClick={() => updateBpm(-1)}>-1</button>
+                                        <input
+                                            type="number"
+                                            className="tempo-input"
+                                            value={bpm}
+                                            onChange={e => setBpm(Math.max(1, Number(e.target.value)))}
+                                            min="1"
+                                            max="300"
+                                        />
+                                        <button className="tempo-btn" onClick={() => updateBpm(1)}>+1</button>
+                                        <button className="tempo-btn" onClick={() => updateBpm(10)}>+10</button>
+                                    </div>
                                     <span className="tempo-note">{translations[language].tempoDescription}</span>
                                 </div>
                             )}
