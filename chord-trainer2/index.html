@@ -117,7 +117,7 @@
         .control-label {
             font-size: 1.05rem;
             color: #232b3a;
-            font-weight: 700; /* Bold to match screenshot */
+            font-weight: 700;
             margin: 0;
         }
 
@@ -127,11 +127,11 @@
             align-items: center;
         }
 
-        /* Input Group for Random (Screenshot style) */
+        /* Input Group for Random */
         .input-group {
             display: flex;
             align-items: center;
-            border: 1px solid #d1d5db; /* Light gray border */
+            border: 1px solid #d1d5db;
             border-radius: 6px;
             background: #fff;
             overflow: hidden;
@@ -164,7 +164,7 @@
         .random-btn {
             border: none;
             background: transparent;
-            color: #2563eb; /* Blue text */
+            color: #2563eb;
             font-weight: 700;
             font-size: 0.9rem;
             padding: 0 12px;
@@ -177,16 +177,15 @@
             background-color: #f9fafb;
         }
 
-        /* Grey Action Buttons (Select All / Clear) */
         .grey-action-btn {
-            background: #f3f4f6; /* Very light gray */
+            background: #f3f4f6;
             border: none;
             border-radius: 6px;
             padding: 0 12px;
             height: 36px;
             font-size: 0.85rem;
             font-weight: 700;
-            color: #374151; /* Dark gray text */
+            color: #374151;
             cursor: pointer;
             transition: background 0.2s;
             white-space: nowrap;
@@ -222,7 +221,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #fff; /* White bg for keys as per screenshot might be better, but keeping light gray for consistency unless requested */
+            background: #fff;
             border: 1px solid #e0e6ef;
             border-radius: 10px;
             padding: 8px 12px;
@@ -238,7 +237,6 @@
         }
 
         .checkbox-label input[type="checkbox"] {
-             /* Customize checkbox if needed, using standard for now */
              transform: scale(1.2);
         }
 
@@ -286,6 +284,27 @@
         }
         .speed-secondary-button:hover {
             background: #149f85;
+        }
+
+        /* New Grading Buttons */
+        .grade-button-group {
+            display: flex;
+            gap: 12px;
+            flex-grow: 1;
+        }
+        .grade-correct-btn {
+            background: #1abc9c;
+            color: #fff;
+        }
+        .grade-correct-btn:hover {
+            background: #149f85;
+        }
+        .grade-incorrect-btn {
+            background: #e74c3c;
+            color: #fff;
+        }
+        .grade-incorrect-btn:hover {
+            background: #c0392b;
         }
 
         .speed-chord-display {
@@ -443,7 +462,7 @@
             'A♭': { '△7': '調号：ラシレミがフラット\n音名：ラドミソ', '7': '調号：ラシレミがフラット\n音名：ラドミソ\nソがフラット', 'm7': '調号：ラシレミがフラット\n音名：ラドミソ\nドとソがフラット' },
             'D♭': { '△7': '調号：ファド以外フラット\n音名：レファラド', '7': '調号：ファド以外フラット\n音名：レファラド\nドがフラット', 'm7': '調号：ファド以外フラット\n音名：レファラド\nファとドがフラット' },
             'G♭': { '△7': '調号：ファ以外フラット\n音名：ソシレファ', '7': '調号：ファ以外フラット\n音名：ソシレファ\nファがフラット', 'm7': '調号：ファ以外フラット\n音名：ソシレファ\nシとファがフラット' },
-            'B': { '△7': '調号：シミ以外シャープ\n音名：シレファラ', '7': '調号：シミ以外シャープ\n音名：シレファラ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：シレファラ\nレとラがフラット' },
+            'B': { '△7': '調号：シミ以外シャープ\n音名：ファラシレ', '7': '調号：シミ以外シャープ\n音名：ファラシレ\nラがフラット', 'm7': '調号：シミ以外シャープ\n音名：ファラシレ\nレとラがフラット' },
             'E': { '△7': '調号：ファソドレがシャープ\n音名：ミソシレ', '7': '調号：ファソドレがシャープ\n音名：ミソシレ\nレがフラット', 'm7': '調号：ファソドレがシャープ\n音名：ミソシレ\nソとレがフラット' },
             'A': { '△7': '調号：ドファソがシャープ\n音名：ラドミソ', '7': '調号：ドファソがシャープ\n音名：ラドミソ\nソがフラット', 'm7': '調号：ドファソがシャープ\n音名：ラドミソ\nドとソがフラット' },
             'D': { '△7': '調号：ファドがシャープ\n音名：レファラド', '7': '調号：ファドがシャープ\n音名：レファラド\nドがフラット', 'm7': '調号：ファドがシャープ\n音名：レファラド\nファとドがフラット' },
@@ -485,6 +504,7 @@
                 speedTrainingError: 'Please select at least one key and chord type.',
                 questionProgress: 'Question Progress',
                 questionCount: 'Times Asked',
+                questionAccuracy: 'Accuracy (Correct/Asked)',
                 questionReset: 'Reset Counts',
                 seconds: 'seconds',
                 random: 'Random',
@@ -492,7 +512,9 @@
                 deselectAll: 'Clear',
                 tempoMode: 'Tempo Mode',
                 tempoDescription: 'Auto-reveal answer after 4 beats.',
-                bpm: 'BPM'
+                bpm: 'BPM',
+                correct: 'Correct',
+                incorrect: 'Incorrect'
             },
             ja: {
                 speedTrainingTitle: 'コード演奏スピードアップ',
@@ -513,6 +535,7 @@
                 speedTrainingError: '少なくとも1つのキーとコードタイプを選択してください。',
                 questionProgress: '出題状況',
                 questionCount: '出題回数',
+                questionAccuracy: '正答率 (正解/出題)',
                 questionReset: 'リセット',
                 seconds: '秒',
                 random: 'ランダム',
@@ -520,7 +543,9 @@
                 deselectAll: '全解除',
                 tempoMode: 'テンポモード',
                 tempoDescription: 'BPMに合わせて4拍経過後に自動で正解を表示します。',
-                bpm: 'BPM'
+                bpm: 'BPM',
+                correct: '正解',
+                incorrect: '不正解'
             }
         };
 
@@ -553,21 +578,47 @@
             return shuffled;
         };
 
-        const generateSpeedTrainingQueue = (roots, symbols, voicings) => {
+        const getQuestionKey = (question) =>
+            `${question.voicing}-${question.symbol}-${question.root}`;
+
+        // Weighted random generation based on stats
+        const generateSpeedTrainingQueue = (roots, symbols, voicings, stats = {}) => {
             if (roots.length === 0 || symbols.length === 0 || voicings.length === 0) return [];
-            const combos = [];
+            
+            let weightedCombos = [];
+            
             roots.forEach(root => {
                 symbols.forEach(symbol => {
                     voicings.forEach(voicing => {
-                        combos.push({ root, symbol, voicing });
+                        const combo = { root, symbol, voicing };
+                        const key = getQuestionKey(combo);
+                        const stat = stats[key] || { asked: 0, correct: 0 };
+                        
+                        // Default weight
+                        let copies = 1;
+                        
+                        // If we have data, increase weight for lower accuracy
+                        if (stat.asked > 0) {
+                            const accuracy = stat.correct / stat.asked;
+                            if (accuracy < 0.5) {
+                                copies = 4; // Very hard: 4x chance
+                            } else if (accuracy < 0.7) {
+                                copies = 3; // Hard: 3x chance
+                            } else if (accuracy < 0.9) {
+                                copies = 2; // Medium: 2x chance
+                            }
+                        }
+                        
+                        // Add weighted copies to the "deck"
+                        for(let i=0; i<copies; i++) {
+                             weightedCombos.push(combo);
+                        }
                     });
                 });
             });
-            return shuffleArray(combos);
+            
+            return shuffleArray(weightedCombos);
         };
-
-        const getQuestionKey = (question) =>
-            `${question.voicing}-${question.symbol}-${question.root}`;
 
         // Main App Component
         function App() {
@@ -582,6 +633,8 @@
             const [speedTrainingResult, setSpeedTrainingResult] = useState(null);
             const [speedTrainingAwaitingNext, setSpeedTrainingAwaitingNext] = useState(false);
             const [speedTrainingError, setSpeedTrainingError] = useState('');
+            
+            // Stats now stores { asked: number, correct: number }
             const [questionStats, setQuestionStats] = useState({});
             
             // Random Selection State
@@ -596,9 +649,15 @@
                 [speedTrainingVoicing]
             );
 
+            // Wrap regenerateQueue to include current stats
             const regenerateQueue = useCallback(
-                () => generateSpeedTrainingQueue(speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions),
-                [speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions]
+                () => generateSpeedTrainingQueue(
+                    speedTrainingSelectedRoots, 
+                    speedTrainingSelectedSymbols, 
+                    voicingOptions,
+                    questionStats // Pass stats for weighting
+                ),
+                [speedTrainingSelectedRoots, speedTrainingSelectedSymbols, voicingOptions, questionStats]
             );
 
             const displayedCombos = useMemo(() => {
@@ -663,11 +722,14 @@
                 setSpeedTrainingResult(null);
                 setSpeedTrainingAwaitingNext(false);
                 setSpeedTrainingStartTime(Date.now());
+                
+                // Only increment "asked" here
                 setQuestionStats(prev => {
                     const key = getQuestionKey(question);
+                    const currentStat = prev[key] || { asked: 0, correct: 0 };
                     return {
                         ...prev,
-                        [key]: (prev[key] || 0) + 1
+                        [key]: { ...currentStat, asked: currentStat.asked + 1 }
                     };
                 });
             }, []);
@@ -715,6 +777,27 @@
                 });
             }, [recordQuestionPresentation, regenerateQueue]);
 
+            // New: Handle Grading in Tempo Mode
+            const handleGrading = useCallback((isCorrect) => {
+                 if (!currentQuestion) return;
+                 
+                 setQuestionStats(prev => {
+                    const key = getQuestionKey(currentQuestion);
+                    const currentStat = prev[key] || { asked: 1, correct: 0 }; // Should exist since it was asked
+                    return {
+                        ...prev,
+                        [key]: { 
+                            ...currentStat, 
+                            correct: currentStat.correct + (isCorrect ? 1 : 0) 
+                        }
+                    };
+                });
+                
+                // Move to next immediately
+                handleSpeedTrainingNext();
+            }, [currentQuestion, handleSpeedTrainingNext]);
+
+
             // Auto-Answer Timer Effect
             useEffect(() => {
                 if (speedTrainingActive && currentQuestion && !speedTrainingResult && isTempoMode && !speedTrainingAwaitingNext) {
@@ -731,7 +814,7 @@
             }, [currentQuestion, speedTrainingActive, speedTrainingResult, isTempoMode, bpm, handleSpeedTrainingOk, speedTrainingAwaitingNext]);
 
             const completedCount = useMemo(() => {
-                return Object.values(questionStats).reduce((sum, val) => sum + (val > 0 ? 1 : 0), 0);
+                return Object.values(questionStats).reduce((sum, val) => sum + (val.asked > 0 ? 1 : 0), 0);
             }, [questionStats]);
 
             return (
@@ -881,9 +964,20 @@
                             </button>
                             {speedTrainingActive && currentQuestion && (
                                 speedTrainingAwaitingNext ? (
-                                    <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingNext}>
-                                        {translations[language].speedTrainingNext}
-                                    </button>
+                                    isTempoMode ? (
+                                        <div className="grade-button-group">
+                                            <button className="speed-button grade-correct-btn" onClick={() => handleGrading(true)}>
+                                                {translations[language].correct}
+                                            </button>
+                                            <button className="speed-button grade-incorrect-btn" onClick={() => handleGrading(false)}>
+                                                {translations[language].incorrect}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingNext}>
+                                            {translations[language].speedTrainingNext}
+                                        </button>
+                                    )
                                 ) : (
                                     <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingOk}>
                                         {translations[language].speedTrainingOk}
@@ -938,18 +1032,22 @@
                                             <th className="stats-th">{translations[language].speedTrainingChordTypes}</th>
                                             <th className="stats-th">{translations[language].speedTrainingSelectChords}</th>
                                             <th className="stats-th">{translations[language].questionCount}</th>
+                                            <th className="stats-th">{translations[language].questionAccuracy}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {displayedCombos.map(combo => {
                                             const key = getQuestionKey(combo);
-                                            const count = questionStats[key] || 0;
+                                            const stat = questionStats[key] || { asked: 0, correct: 0 };
                                             return (
                                                 <tr key={key}>
                                                     <td className="stats-td">{getSpeedTrainingVoicingLabel(combo.voicing, language)}</td>
                                                     <td className="stats-td">{combo.symbol}</td>
                                                     <td className="stats-td">{combo.root}</td>
-                                                    <td className="stats-td">{count}</td>
+                                                    <td className="stats-td">{stat.asked}</td>
+                                                    <td className="stats-td">
+                                                        {stat.asked > 0 ? `${stat.correct}/${stat.asked} (${Math.round(stat.correct/stat.asked*100)}%)` : '-'}
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
