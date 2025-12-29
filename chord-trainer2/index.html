@@ -285,6 +285,15 @@
         .speed-secondary-button:hover {
             background: #149f85;
         }
+        
+        .pdf-button {
+            background: #8e44ad;
+            color: #fff;
+            margin-left: auto;
+        }
+        .pdf-button:hover {
+            background: #732d91;
+        }
 
         /* New Grading Buttons */
         .grade-button-group {
@@ -448,7 +457,157 @@
             font-size: 0.85rem;
             color: #6b7688;
         }
+
+        /* PDF PREVIEW MODAL STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 800px;
+            height: 90%;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e6ef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f7fafd;
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #232b3a;
+        }
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7688;
+        }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #525659; /* Standard PDF viewer background color */
+        }
+        .preview-page {
+            background: #fff;
+            width: 210mm; /* A4 width */
+            min-height: 297mm; /* A4 height */
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            font-family: 'Times New Roman', serif;
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e0e6ef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: #fff;
+        }
+
+        /* Styles for the worksheet content inside preview and print */
+        .worksheet-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #000;
+        }
+        .worksheet-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 10px;
+            color: #000;
+        }
+        .worksheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            color: #000;
+        }
+        .worksheet-table th, .worksheet-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        .worksheet-table th {
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+        .worksheet-col-no { width: 40px; text-align: center; }
+        .worksheet-col-chord { width: 100px; text-align: center; font-weight: bold; }
+        .worksheet-col-voicing { width: 80px; text-align: center; font-size: 10px; }
+        .worksheet-col-answer {  }
+
+        /* PRINT STYLES - Only show the preview-page content */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .modal-overlay, .modal-content, .modal-body {
+                background: #fff;
+                width: 100%;
+                height: auto;
+                position: static;
+                display: block;
+                overflow: visible;
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+            .preview-page, .preview-page * {
+                visibility: visible;
+            }
+            .preview-page {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+            .modal-header, .modal-footer {
+                display: none;
+            }
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+        }
         
+        @media (max-width: 800px) {
+             .preview-page {
+                 width: 100%;
+                 min-height: auto;
+                 padding: 10px;
+             }
+        }
+
         @media (max-width: 600px) {
             .header {
                 flex-direction: column;
@@ -543,7 +702,16 @@
                 tempoDescription: 'Auto-reveal answer after 4 beats.',
                 bpm: 'BPM',
                 correct: 'Correct',
-                incorrect: 'Incorrect'
+                incorrect: 'Incorrect',
+                generatePdf: 'Generate 100 Qs PDF',
+                worksheetTitle: 'Chord Tone 100 Questions Challenge',
+                name: 'Name:',
+                date: 'Date:',
+                score: 'Score:',
+                keySignature: 'Key Sig',
+                chordTones: 'Chord Tones',
+                closePreview: 'Close',
+                print: 'Print'
             },
             ja: {
                 speedTrainingTitle: 'コード演奏スピードアップ',
@@ -574,7 +742,16 @@
                 tempoDescription: 'BPMに合わせて4拍経過後に自動で正解を表示します。',
                 bpm: 'BPM',
                 correct: '正解',
-                incorrect: '不正解'
+                incorrect: '不正解',
+                generatePdf: '100本ノック問題集を作成 (PDF)',
+                worksheetTitle: 'コードトーン 100本ノック',
+                name: '名前:',
+                date: '日付:',
+                score: '点数:',
+                keySignature: '調号',
+                chordTones: '構成音',
+                closePreview: '閉じる',
+                print: '印刷する'
             }
         };
 
@@ -662,6 +839,8 @@
             const [speedTrainingResult, setSpeedTrainingResult] = useState(null);
             const [speedTrainingAwaitingNext, setSpeedTrainingAwaitingNext] = useState(false);
             const [speedTrainingError, setSpeedTrainingError] = useState('');
+            const [worksheetData, setWorksheetData] = useState([]);
+            const [isPreviewOpen, setIsPreviewOpen] = useState(false);
             
             // Stats now stores { asked: number, correct: number }
             const [questionStats, setQuestionStats] = useState({});
@@ -672,6 +851,16 @@
             // Tempo Mode States
             const [isTempoMode, setIsTempoMode] = useState(false);
             const [bpm, setBpm] = useState(80);
+
+            // URL param check for PDF feature
+            const [showPdfButton, setShowPdfButton] = useState(false);
+
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('pdf')) {
+                    setShowPdfButton(true);
+                }
+            }, []);
 
             const voicingOptions = useMemo(
                 () => getVoicingOptions(speedTrainingVoicing),
@@ -882,251 +1071,351 @@
                 return Object.values(questionStats).reduce((sum, val) => sum + (val.asked > 0 ? 1 : 0), 0);
             }, [questionStats]);
 
+            // Generate Worksheet Data
+            const generateWorksheet = useCallback(() => {
+                const allRoots = defaultSpeedTrainingRoots;
+                const allSymbols = speedTrainingChordSymbols;
+                const allVoicings = ['root', 'second'];
+                
+                const questions = [];
+                let pool = [];
+                
+                // Full combo gen
+                allRoots.forEach(root => {
+                    allSymbols.forEach(symbol => {
+                        allVoicings.forEach(voicing => {
+                            pool.push({ root, symbol, voicing });
+                        });
+                    });
+                });
+
+                pool = shuffleArray(pool);
+                
+                // Fill up to 100
+                while(questions.length < 100) {
+                    if (pool.length === 0) {
+                         let newPool = [];
+                         allRoots.forEach(root => {
+                            allSymbols.forEach(symbol => {
+                                allVoicings.forEach(voicing => {
+                                    newPool.push({ root, symbol, voicing });
+                                });
+                            });
+                        });
+                        pool = shuffleArray(newPool);
+                    }
+                    questions.push(pool.pop());
+                }
+
+                setWorksheetData(questions);
+                setIsPreviewOpen(true);
+            }, []);
+
+            const closePreview = () => setIsPreviewOpen(false);
+            const printPreview = () => window.print();
+
             return (
-                <div className="bg">
-                    <header className="header">
-                        <div className="title-box">
-                            <h1 className="main-title">
-                                <span role="img" aria-label="music">🎵</span> {translations[language].speedTrainingTitle}
-                            </h1>
-                            <div className="sub-title">{translations[language].speedTrainingDescription}</div>
-                        </div>
-                        <div className="lang-box">
-                            <select className="lang-select" value={language} onChange={e => setLanguage(e.target.value)}>
-                                <option value="en">English</option>
-                                <option value="ja">日本語</option>
-                            </select>
-                        </div>
-                    </header>
-
-                    <div className="card">
-                        <h2 className="speed-section-title">{translations[language].speedTrainingTitle}</h2>
-                        <p className="speed-description">{translations[language].speedTrainingDescription}</p>
-
-                        <div className="control-label">{translations[language].speedTrainingVoicing}</div>
-                        <div className="speed-radio-group">
-                            <label className="speed-radio-label">
-                                <input
-                                    type="radio"
-                                    name="speedVoicing"
-                                    checked={speedTrainingVoicing === 'root'}
-                                    onChange={() => setSpeedTrainingVoicing('root')}
-                                    style={{marginRight: '6px'}}
-                                />
-                                {translations[language].speedTrainingRootPosition}
-                            </label>
-                            <label className="speed-radio-label">
-                                <input
-                                    type="radio"
-                                    name="speedVoicing"
-                                    checked={speedTrainingVoicing === 'second'}
-                                    onChange={() => setSpeedTrainingVoicing('second')}
-                                    style={{marginRight: '6px'}}
-                                />
-                                {translations[language].speedTrainingSecondInversion}
-                            </label>
-                            <label className="speed-radio-label">
-                                <input
-                                    type="radio"
-                                    name="speedVoicing"
-                                    checked={speedTrainingVoicing === 'mix'}
-                                    onChange={() => setSpeedTrainingVoicing('mix')}
-                                    style={{marginRight: '6px'}}
-                                />
-                                {translations[language].speedTrainingMix}
-                            </label>
-                        </div>
-
-                        <div className="control-label">{translations[language].speedTrainingChordTypes}</div>
-                        <div className="checkbox-grid">
-                            {speedTrainingChordSymbols.map(symbol => (
-                                <label key={symbol} className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={speedTrainingSelectedSymbols.includes(symbol)}
-                                        onChange={e => handleSpeedTrainingSymbolChange(symbol, e.target.checked)}
-                                        style={{marginRight: '8px'}}
-                                    />
-                                    {symbol}
-                                </label>
-                            ))}
-                        </div>
-
-                        <div className="control-header">
-                            <div className="control-label">
-                                {translations[language].speedTrainingSelectChords}
+                <div className="app-root">
+                    <div className="bg">
+                        <header className="header">
+                            <div className="title-box">
+                                <h1 className="main-title">
+                                    <span role="img" aria-label="music">🎵</span> {translations[language].speedTrainingTitle}
+                                </h1>
+                                <div className="sub-title">{translations[language].speedTrainingDescription}</div>
                             </div>
-                            <div className="key-controls">
-                                <div className="input-group">
-                                    <input 
-                                        type="number" 
-                                        className="random-count-input" 
-                                        value={randomCount} 
-                                        onChange={(e) => setRandomCount(Math.max(1, Math.min(12, Number(e.target.value))))}
-                                        min="1" 
-                                        max="12"
-                                    />
-                                    <div className="input-divider"></div>
-                                    <button className="random-btn" onClick={handleRandomSelectKeys}>
-                                        {translations[language].random}
-                                    </button>
-                                </div>
-                                <button className="grey-action-btn" onClick={handleSelectAllKeys}>
-                                    {translations[language].selectAll}
-                                </button>
-                                <button className="grey-action-btn" onClick={handleDeselectAllKeys}>
-                                    {translations[language].deselectAll}
-                                </button>
+                            <div className="lang-box">
+                                <select className="lang-select" value={language} onChange={e => setLanguage(e.target.value)}>
+                                    <option value="en">English</option>
+                                    <option value="ja">日本語</option>
+                                </select>
                             </div>
-                        </div>
-                        <div className="checkbox-grid">
-                            {defaultSpeedTrainingRoots.map(root => (
-                                <label key={root} className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={speedTrainingSelectedRoots.includes(root)}
-                                        onChange={e => handleSpeedTrainingRootChange(root, e.target.checked)}
-                                        style={{marginRight: '8px'}}
-                                    />
-                                    {root}
-                                </label>
-                            ))}
-                        </div>
+                        </header>
 
-                        {/* Tempo Settings Section */}
-                        <div className="tempo-container">
-                             <label className="speed-radio-label">
-                                <input
-                                    type="checkbox"
-                                    checked={isTempoMode}
-                                    onChange={e => setIsTempoMode(e.target.checked)}
-                                    style={{marginRight: '8px', transform: 'scale(1.2)'}}
-                                />
-                                {translations[language].tempoMode}
-                            </label>
-                            
-                            {isTempoMode && (
-                                <div className="tempo-input-wrapper">
-                                    <span style={{fontWeight: 600, color: '#232b3a'}}>{translations[language].bpm}:</span>
-                                    <div className="tempo-controls">
-                                        <button className="tempo-btn" onClick={() => updateBpm(-10)}>-10</button>
-                                        <button className="tempo-btn" onClick={() => updateBpm(-1)}>-1</button>
+                        <div className="card">
+                            <h2 className="speed-section-title">{translations[language].speedTrainingTitle}</h2>
+                            <p className="speed-description">{translations[language].speedTrainingDescription}</p>
+
+                            <div className="control-label">{translations[language].speedTrainingVoicing}</div>
+                            <div className="speed-radio-group">
+                                <label className="speed-radio-label">
+                                    <input
+                                        type="radio"
+                                        name="speedVoicing"
+                                        checked={speedTrainingVoicing === 'root'}
+                                        onChange={() => setSpeedTrainingVoicing('root')}
+                                        style={{marginRight: '6px'}}
+                                    />
+                                    {translations[language].speedTrainingRootPosition}
+                                </label>
+                                <label className="speed-radio-label">
+                                    <input
+                                        type="radio"
+                                        name="speedVoicing"
+                                        checked={speedTrainingVoicing === 'second'}
+                                        onChange={() => setSpeedTrainingVoicing('second')}
+                                        style={{marginRight: '6px'}}
+                                    />
+                                    {translations[language].speedTrainingSecondInversion}
+                                </label>
+                                <label className="speed-radio-label">
+                                    <input
+                                        type="radio"
+                                        name="speedVoicing"
+                                        checked={speedTrainingVoicing === 'mix'}
+                                        onChange={() => setSpeedTrainingVoicing('mix')}
+                                        style={{marginRight: '6px'}}
+                                    />
+                                    {translations[language].speedTrainingMix}
+                                </label>
+                            </div>
+
+                            <div className="control-label">{translations[language].speedTrainingChordTypes}</div>
+                            <div className="checkbox-grid">
+                                {speedTrainingChordSymbols.map(symbol => (
+                                    <label key={symbol} className="checkbox-label">
                                         <input
-                                            type="number"
-                                            className="tempo-input"
-                                            value={bpm}
-                                            onChange={e => setBpm(Math.max(1, Number(e.target.value)))}
-                                            min="1"
-                                            max="300"
+                                            type="checkbox"
+                                            checked={speedTrainingSelectedSymbols.includes(symbol)}
+                                            onChange={e => handleSpeedTrainingSymbolChange(symbol, e.target.checked)}
+                                            style={{marginRight: '8px'}}
                                         />
-                                        <button className="tempo-btn" onClick={() => updateBpm(1)}>+1</button>
-                                        <button className="tempo-btn" onClick={() => updateBpm(10)}>+10</button>
-                                    </div>
-                                    <span className="tempo-note">{translations[language].tempoDescription}</span>
+                                        {symbol}
+                                    </label>
+                                ))}
+                            </div>
+
+                            <div className="control-header">
+                                <div className="control-label">
+                                    {translations[language].speedTrainingSelectChords}
                                 </div>
-                            )}
-                        </div>
-
-                        {speedTrainingError && <div className="speed-error-text">{speedTrainingError}</div>}
-
-                        <div className="speed-training-actions">
-                            <button className="speed-button speed-primary-button" onClick={handleSpeedTrainingStart}>
-                                {translations[language].speedTrainingStart}
-                            </button>
-                            {speedTrainingActive && currentQuestion && (
-                                speedTrainingAwaitingNext ? (
-                                    isTempoMode ? (
-                                        <div className="grade-button-group">
-                                            <button className="speed-button grade-correct-btn" onClick={() => handleGrading(true)}>
-                                                {translations[language].correct}
-                                            </button>
-                                            <button className="speed-button grade-incorrect-btn" onClick={() => handleGrading(false)}>
-                                                {translations[language].incorrect}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingNext}>
-                                            {translations[language].speedTrainingNext}
+                                <div className="key-controls">
+                                    <div className="input-group">
+                                        <input 
+                                            type="number" 
+                                            className="random-count-input" 
+                                            value={randomCount} 
+                                            onChange={(e) => setRandomCount(Math.max(1, Math.min(12, Number(e.target.value))))}
+                                            min="1" 
+                                            max="12"
+                                        />
+                                        <div className="input-divider"></div>
+                                        <button className="random-btn" onClick={handleRandomSelectKeys}>
+                                            {translations[language].random}
                                         </button>
-                                    )
-                                ) : (
-                                    <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingOk}>
-                                        {translations[language].speedTrainingOk}
+                                    </div>
+                                    <button className="grey-action-btn" onClick={handleSelectAllKeys}>
+                                        {translations[language].selectAll}
                                     </button>
-                                )
-                            )}
-                        </div>
+                                    <button className="grey-action-btn" onClick={handleDeselectAllKeys}>
+                                        {translations[language].deselectAll}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="checkbox-grid">
+                                {defaultSpeedTrainingRoots.map(root => (
+                                    <label key={root} className="checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            checked={speedTrainingSelectedRoots.includes(root)}
+                                            onChange={e => handleSpeedTrainingRootChange(root, e.target.checked)}
+                                            style={{marginRight: '8px'}}
+                                        />
+                                        {root}
+                                    </label>
+                                ))}
+                            </div>
 
-                        {speedTrainingActive && currentQuestion && (
-                            <React.Fragment>
-                                <div className="speed-chord-display">
-                                    {currentQuestion.root}{currentQuestion.symbol}
-                                </div>
-                                <div className="speed-voicing-hint">
-                                    {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
-                                </div>
-                                {speedTrainingResult && (
-                                    <div className="speed-result-box">
-                                        <div style={{fontWeight: 700}}>{translations[language].speedTrainingResult}</div>
-                                        <div style={{marginTop: '8px'}}>
-                                            {translations[language].speedTrainingTimeTaken}: {speedTrainingResult.reactionSeconds} {translations[language].seconds}
+                            {/* Tempo Settings Section */}
+                            <div className="tempo-container">
+                                 <label className="speed-radio-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={isTempoMode}
+                                        onChange={e => setIsTempoMode(e.target.checked)}
+                                        style={{marginRight: '8px', transform: 'scale(1.2)'}}
+                                    />
+                                    {translations[language].tempoMode}
+                                </label>
+                                
+                                {isTempoMode && (
+                                    <div className="tempo-input-wrapper">
+                                        <span style={{fontWeight: 600, color: '#232b3a'}}>{translations[language].bpm}:</span>
+                                        <div className="tempo-controls">
+                                            <button className="tempo-btn" onClick={() => updateBpm(-10)}>-10</button>
+                                            <button className="tempo-btn" onClick={() => updateBpm(-1)}>-1</button>
+                                            <input
+                                                type="number"
+                                                className="tempo-input"
+                                                value={bpm}
+                                                onChange={e => setBpm(Math.max(1, Number(e.target.value)))}
+                                                min="1"
+                                                max="300"
+                                            />
+                                            <button className="tempo-btn" onClick={() => updateBpm(1)}>+1</button>
+                                            <button className="tempo-btn" onClick={() => updateBpm(10)}>+10</button>
                                         </div>
-                                        <div style={{marginTop: '8px'}}>
-                                            {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
-                                        </div>
-                                        <div style={{marginTop: '8px', fontWeight: 600}}>
-                                            {translations[language].speedTrainingAnswer}
-                                        </div>
-                                        <div>
-                                            {speedTrainingResult.answer.split('\n').map((line, idx) => (
-                                                <div key={idx}>{line}</div>
-                                            ))}
-                                        </div>
+                                        <span className="tempo-note">{translations[language].tempoDescription}</span>
                                     </div>
                                 )}
-                            </React.Fragment>
-                        )}
+                            </div>
 
-                        {displayedCombos.length > 0 && (
-                            <React.Fragment>
-                                <div className="label-row">
-                                    <div className="label-text">{translations[language].questionProgress}</div>
-                                    <button className="reset-button" onClick={handleResetStats}>{translations[language].questionReset}</button>
-                                    <span className="progress-count">
-                                        {completedCount}/{displayedCombos.length}
-                                    </span>
-                                </div>
-                                <table className="stats-table">
-                                    <thead>
-                                        <tr>
-                                            <th className="stats-th">{translations[language].speedTrainingVoicing}</th>
-                                            <th className="stats-th">{translations[language].speedTrainingChordTypes}</th>
-                                            <th className="stats-th">{translations[language].speedTrainingSelectChords}</th>
-                                            <th className="stats-th">{translations[language].questionCount}</th>
-                                            <th className="stats-th">{translations[language].questionAccuracy}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {displayedCombos.map(combo => {
-                                            const key = getQuestionKey(combo);
-                                            const stat = questionStats[key] || { asked: 0, correct: 0 };
-                                            return (
-                                                <tr key={key}>
-                                                    <td className="stats-td">{getSpeedTrainingVoicingLabel(combo.voicing, language)}</td>
-                                                    <td className="stats-td">{combo.symbol}</td>
-                                                    <td className="stats-td">{combo.root}</td>
-                                                    <td className="stats-td">{stat.asked}</td>
-                                                    <td className="stats-td">
-                                                        {stat.asked > 0 ? `${stat.correct}/${stat.asked} (${Math.round(stat.correct/stat.asked*100)}%)` : '-'}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </React.Fragment>
-                        )}
+                            {speedTrainingError && <div className="speed-error-text">{speedTrainingError}</div>}
+
+                            <div className="speed-training-actions">
+                                <button className="speed-button speed-primary-button" onClick={handleSpeedTrainingStart}>
+                                    {translations[language].speedTrainingStart}
+                                </button>
+                                {speedTrainingActive && currentQuestion && (
+                                    speedTrainingAwaitingNext ? (
+                                        isTempoMode ? (
+                                            <div className="grade-button-group">
+                                                <button className="speed-button grade-correct-btn" onClick={() => handleGrading(true)}>
+                                                    {translations[language].correct}
+                                                </button>
+                                                <button className="speed-button grade-incorrect-btn" onClick={() => handleGrading(false)}>
+                                                    {translations[language].incorrect}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingNext}>
+                                                {translations[language].speedTrainingNext}
+                                            </button>
+                                        )
+                                    ) : (
+                                        <button className="speed-button speed-secondary-button" onClick={handleSpeedTrainingOk}>
+                                            {translations[language].speedTrainingOk}
+                                        </button>
+                                    )
+                                )}
+                                {showPdfButton && (
+                                    <button className="speed-button pdf-button" onClick={generateWorksheet}>
+                                        {translations[language].generatePdf}
+                                    </button>
+                                )}
+                            </div>
+
+                            {speedTrainingActive && currentQuestion && (
+                                <React.Fragment>
+                                    <div className="speed-chord-display">
+                                        {currentQuestion.root}{currentQuestion.symbol}
+                                    </div>
+                                    <div className="speed-voicing-hint">
+                                        {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
+                                    </div>
+                                    {speedTrainingResult && (
+                                        <div className="speed-result-box">
+                                            <div style={{fontWeight: 700}}>{translations[language].speedTrainingResult}</div>
+                                            <div style={{marginTop: '8px'}}>
+                                                {translations[language].speedTrainingTimeTaken}: {speedTrainingResult.reactionSeconds} {translations[language].seconds}
+                                            </div>
+                                            <div style={{marginTop: '8px'}}>
+                                                {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
+                                            </div>
+                                            <div style={{marginTop: '8px', fontWeight: 600}}>
+                                                {translations[language].speedTrainingAnswer}
+                                            </div>
+                                            <div>
+                                                {speedTrainingResult.answer.split('\n').map((line, idx) => (
+                                                    <div key={idx}>{line}</div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            )}
+
+                            {displayedCombos.length > 0 && (
+                                <React.Fragment>
+                                    <div className="label-row">
+                                        <div className="label-text">{translations[language].questionProgress}</div>
+                                        <button className="reset-button" onClick={handleResetStats}>{translations[language].questionReset}</button>
+                                        <span className="progress-count">
+                                            {completedCount}/{displayedCombos.length}
+                                        </span>
+                                    </div>
+                                    <table className="stats-table">
+                                        <thead>
+                                            <tr>
+                                                <th className="stats-th">{translations[language].speedTrainingVoicing}</th>
+                                                <th className="stats-th">{translations[language].speedTrainingChordTypes}</th>
+                                                <th className="stats-th">{translations[language].speedTrainingSelectChords}</th>
+                                                <th className="stats-th">{translations[language].questionCount}</th>
+                                                <th className="stats-th">{translations[language].questionAccuracy}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {displayedCombos.map(combo => {
+                                                const key = getQuestionKey(combo);
+                                                const stat = questionStats[key] || { asked: 0, correct: 0 };
+                                                return (
+                                                    <tr key={key}>
+                                                        <td className="stats-td">{getSpeedTrainingVoicingLabel(combo.voicing, language)}</td>
+                                                        <td className="stats-td">{combo.symbol}</td>
+                                                        <td className="stats-td">{combo.root}</td>
+                                                        <td className="stats-td">{stat.asked}</td>
+                                                        <td className="stats-td">
+                                                            {stat.asked > 0 ? `${stat.correct}/${stat.asked} (${Math.round(stat.correct/stat.asked*100)}%)` : '-'}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </React.Fragment>
+                            )}
+                        </div>
                     </div>
+
+                    {/* PDF PREVIEW MODAL */}
+                    {isPreviewOpen && (
+                        <div className="modal-overlay" onClick={closePreview}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <div className="modal-title">{translations[language].generatePdf}</div>
+                                    <button className="modal-close-btn" onClick={closePreview}>&times;</button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="preview-page">
+                                        <div className="worksheet-title">{translations[language].worksheetTitle}</div>
+                                        <div className="worksheet-info">
+                                            <div>{translations[language].name} ____________________</div>
+                                            <div>{translations[language].date} ____________________</div>
+                                            <div>{translations[language].score} ______ / 100</div>
+                                        </div>
+                                        <table className="worksheet-table">
+                                            <thead>
+                                                <tr>
+                                                    <th className="worksheet-col-no">No.</th>
+                                                    <th className="worksheet-col-chord">Chord</th>
+                                                    <th className="worksheet-col-voicing">Voicing</th>
+                                                    <th className="worksheet-col-answer">{translations[language].keySignature}</th>
+                                                    <th className="worksheet-col-answer">{translations[language].chordTones}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {worksheetData.map((item, index) => (
+                                                    <tr key={index}>
+                                                        <td style={{textAlign:'center'}}>{index + 1}</td>
+                                                        <td style={{textAlign:'center', fontSize: '14px', fontWeight: 'bold'}}>{item.root}{item.symbol}</td>
+                                                        <td style={{textAlign:'center'}}>{getSpeedTrainingVoicingLabel(item.voicing, language)}</td>
+                                                        <td></td>
+                                                        <td></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div className="modal-footer">
+                                    <button className="grey-action-btn" onClick={closePreview}>{translations[language].closePreview}</button>
+                                    <button className="speed-button speed-primary-button" style={{minWidth: '120px'}} onClick={printPreview}>
+                                        {translations[language].print}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -1136,3 +1425,5 @@
     </script>
 </body>
 </html>
+
+
