@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハノン フレーズ暗記</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f3f4f6;
+            touch-action: manipulation; /* スマホでの操作性向上 */
+        }
+        .note-card {
+            transition: all 0.3s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* チェックボックスのカスタムスタイル */
+        .custom-checkbox:checked + div {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-8 px-4 text-gray-800">
+
+    <!-- ヘッダー -->
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-indigo-700 mb-2">🎹 ハノン暗記クイズ</h1>
+        <p class="text-sm text-gray-600">フレーズの最初の音から全体を思い出そう</p>
+    </header>
+
+    <div class="w-full max-w-lg bg-white rounded-xl shadow-lg p-6 mb-6">
+        
+        <!-- 設定エリア -->
+        <div class="mb-6 border-b pb-6">
+            <!-- 練習番号選択 (新規追加) -->
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">練習番号</h2>
+            <div class="flex gap-2 mb-6">
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="exercise" value="hanon1" class="peer sr-only">
+                    <div class="text-center py-2 px-3 rounded-lg border border-gray-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
+                        ハノン1
+                    </div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="exercise" value="hanon2" class="peer sr-only" checked>
+                    <div class="text-center py-2 px-3 rounded-lg border border-gray-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
+                        ハノン2
+                    </div>
+                </label>
+            </div>
+
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">パターン選択</h2>
+            <div class="flex gap-2 mb-4">
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="direction" value="ascending" class="peer sr-only">
+                    <div class="text-center py-2 px-3 rounded-lg border border-gray-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm">
+                        上昇のみ
+                    </div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="direction" value="descending" class="peer sr-only">
+                    <div class="text-center py-2 px-3 rounded-lg border border-gray-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm">
+                        下降のみ
+                    </div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="direction" value="both" class="peer sr-only" checked>
+                    <div class="text-center py-2 px-3 rounded-lg border border-gray-300 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm">
+                        両方
+                    </div>
+                </label>
+            </div>
+
+            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">出題する音 (開始音)</h2>
+            <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                <!-- チェックボックス生成用コンテナ -->
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="ド" class="custom-checkbox sr-only" checked>
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">ド</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="レ" class="custom-checkbox sr-only" checked>
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">レ</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="ミ" class="custom-checkbox sr-only" checked>
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">ミ</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="ファ" class="custom-checkbox sr-only">
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">ファ</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="ソ" class="custom-checkbox sr-only">
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">ソ</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="ラ" class="custom-checkbox sr-only">
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">ラ</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="notes" value="シ" class="custom-checkbox sr-only">
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors">シ</div>
+                </label>
+            </div>
+
+            <!-- 設定反映ボタン (新規追加) -->
+            <button id="apply-settings-btn" class="mt-6 w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg shadow transition-transform active:scale-95 text-sm">
+                設定を反映して新しい問題へ
+            </button>
+        </div>
+
+        <!-- クイズエリア -->
+        <div id="quiz-area" class="text-center relative min-h-[250px] flex flex-col justify-center">
+            
+            <!-- 問題表示 -->
+            <div id="question-container">
+                <div class="mb-2 space-x-2">
+                    <span id="exercise-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                        ハノン2
+                    </span>
+                    <span id="direction-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">
+                        パターン
+                    </span>
+                </div>
+                <div class="text-gray-500 text-sm mb-1">開始音</div>
+                <div id="start-note" class="text-6xl font-black text-indigo-900 mb-6">?</div>
+            </div>
+
+            <!-- アクションボタン -->
+            <button id="show-answer-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow transition-transform active:scale-95 text-lg">
+                正解を見る
+            </button>
+
+            <!-- 答え表示 (最初は非表示) -->
+            <div id="answer-container" class="hidden mt-6 bg-indigo-50 p-6 rounded-lg border-2 border-indigo-100 fade-in">
+                <p class="text-xs text-indigo-500 font-bold mb-2 uppercase">Phrase</p>
+                <div id="phrase-text" class="text-2xl font-bold text-gray-800 leading-relaxed tracking-wider">
+                    <!-- ここに答えが入る -->
+                </div>
+                
+                <button id="next-btn" class="mt-6 w-full bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-600 font-bold py-3 px-6 rounded-lg transition-transform active:scale-95">
+                    次の問題へ
+                </button>
+            </div>
+
+            <!-- エラーメッセージ用 -->
+            <div id="error-message" class="hidden text-red-500 font-bold mt-4">
+                少なくとも1つの音符を選択してください。
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-gray-400 text-xs mt-auto">
+        Hanon Exercise Quiz
+    </footer>
+
+    <script>
+        // データ定義
+        const exercises = {
+            hanon1: {
+                name: 'ハノン1',
+                ascending: {
+                    'ド': 'ドミファソ　ラソファミ',
+                    'レ': 'レファソラ　シラソファ',
+                    'ミ': 'ミソラシ　ドシラソ',
+                    'ファ': 'ファラシド　レドシラ',
+                    'ソ': 'ソシドレ　ミレドシ',
+                    'ラ': 'ラドレミ　ファミレド',
+                    'シ': 'シレミファ　ソファミレ'
+                },
+                descending: {
+                    'ソ': 'ソミレド　シドレミ',
+                    'ファ': 'ファレドシ　ラシドレ',
+                    'ミ': 'ミドシラ　ソラシド',
+                    'レ': 'レシラソ　ファソラシ',
+                    'ド': 'ドラソファ　ミファソラ',
+                    'シ': 'シソファミ　レミファソ',
+                    'ラ': 'ラファミレ　ドレミファ'
+                }
+            },
+            hanon2: {
+                name: 'ハノン2',
+                ascending: {
+                    'ド': 'ドミラソ ファソファミ',
+                    'レ': 'レファシラ ソラソファ',
+                    'ミ': 'ミソドシ ラシラソ',
+                    'ファ': 'ファラレド シドシラ',
+                    'ソ': 'ソシミレ ドレドシ',
+                    'ラ': 'ラドファミ レミレド',
+                    'シ': 'シレソファ ミファミレ'
+                },
+                descending: {
+                    'ソ': 'ソレシド レドレミ',
+                    'ファ': 'ファドラシ ドシドレ',
+                    'ミ': 'ミシソラ シラシド',
+                    'レ': 'レラファソ ラソラシ',
+                    'ド': 'ドソミファ ソファソラ',
+                    'シ': 'シファレミ ファミファソ',
+                    'ラ': 'ラミドレ ミレミファ'
+                }
+            }
+        };
+
+        // DOM要素
+        const startNoteEl = document.getElementById('start-note');
+        const directionBadgeEl = document.getElementById('direction-badge');
+        const exerciseBadgeEl = document.getElementById('exercise-badge');
+        const showAnswerBtn = document.getElementById('show-answer-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const applySettingsBtn = document.getElementById('apply-settings-btn'); // 追加
+        const answerContainer = document.getElementById('answer-container');
+        const phraseTextEl = document.getElementById('phrase-text');
+        const questionContainer = document.getElementById('question-container');
+        const errorMessageEl = document.getElementById('error-message');
+        
+        // 設定入力要素
+        const exerciseRadios = document.getElementsByName('exercise');
+        const directionRadios = document.getElementsByName('direction');
+        const noteCheckboxes = document.getElementsByName('notes');
+
+        // 状態管理
+        let currentQuestion = null;
+
+        // 初期化
+        function init() {
+            showAnswerBtn.addEventListener('click', showAnswer);
+            nextBtn.addEventListener('click', generateQuestion);
+            applySettingsBtn.addEventListener('click', generateQuestion); // 追加
+            
+            // ラジオボタン変更時のイベントリスナーを追加して、変更時に即時反映されるようにする
+            // ユーザー体験向上のため、設定変更したら即新しい問題へ
+            const allRadios = [...exerciseRadios, ...directionRadios];
+            allRadios.forEach(radio => {
+                radio.addEventListener('change', generateQuestion);
+            });
+
+            // 初回ロード時は問題を生成
+            generateQuestion();
+        }
+
+        // 現在の設定を取得
+        function getSettings() {
+            let exercise = 'hanon2'; // デフォルト
+            for (const radio of exerciseRadios) {
+                if (radio.checked) {
+                    exercise = radio.value;
+                    break;
+                }
+            }
+
+            let direction = 'both';
+            for (const radio of directionRadios) {
+                if (radio.checked) {
+                    direction = radio.value;
+                    break;
+                }
+            }
+
+            const selectedNotes = [];
+            for (const cb of noteCheckboxes) {
+                if (cb.checked) {
+                    selectedNotes.push(cb.value);
+                }
+            }
+
+            return { exercise, direction, selectedNotes };
+        }
+
+        // 問題生成ロジック
+        function generateQuestion() {
+            const { exercise, direction, selectedNotes } = getSettings();
+            const currentExerciseData = exercises[exercise];
+
+            if (selectedNotes.length === 0) {
+                errorMessageEl.classList.remove('hidden');
+                questionContainer.classList.add('opacity-50');
+                showAnswerBtn.disabled = true;
+                return;
+            } else {
+                errorMessageEl.classList.add('hidden');
+                questionContainer.classList.remove('opacity-50');
+                showAnswerBtn.disabled = false;
+            }
+
+            // UIリセット
+            answerContainer.classList.add('hidden');
+            showAnswerBtn.classList.remove('hidden');
+            
+            // 問題プールを作成
+            let pool = [];
+
+            // 上昇を追加
+            if (direction === 'ascending' || direction === 'both') {
+                selectedNotes.forEach(note => {
+                    if (currentExerciseData.ascending[note]) {
+                        pool.push({
+                            exerciseName: currentExerciseData.name,
+                            type: 'ascending',
+                            startNote: note,
+                            phrase: currentExerciseData.ascending[note],
+                            label: '上昇パターン'
+                        });
+                    }
+                });
+            }
+
+            // 下降を追加
+            if (direction === 'descending' || direction === 'both') {
+                selectedNotes.forEach(note => {
+                    if (currentExerciseData.descending[note]) {
+                        pool.push({
+                            exerciseName: currentExerciseData.name,
+                            type: 'descending',
+                            startNote: note,
+                            phrase: currentExerciseData.descending[note],
+                            label: '下降パターン'
+                        });
+                    }
+                });
+            }
+
+            // ランダムに1つ選択
+            if (pool.length > 0) {
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                currentQuestion = pool[randomIndex];
+                renderQuestion();
+            } else {
+                // 該当データがない場合（例：下降のみ選択したが、該当する開始音がない場合など）
+                // ただし、現在は上昇・下降でキーが異なる（ド～シ vs ソ～ラ）ため、
+                // 選択音符によってはプールが空になる可能性がある。
+                // 例：音符「ド」だけ選択して「下降（ドで始まる下降）」を選ぶと
+                // ハノン2の下降は「ド」始まりがあるが、もし無いパターンがあれば空になる。
+                // 今回のデータセットでは網羅されているが、念のため処理を入れるならここ。
+            }
+        }
+
+        // 問題表示
+        function renderQuestion() {
+            if (!currentQuestion) return;
+
+            startNoteEl.textContent = currentQuestion.startNote;
+            exerciseBadgeEl.textContent = currentQuestion.exerciseName;
+            
+            // パターンバッジのスタイル設定
+            directionBadgeEl.textContent = currentQuestion.label;
+            if (currentQuestion.type === 'ascending') {
+                directionBadgeEl.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700';
+            } else {
+                directionBadgeEl.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700';
+            }
+        }
+
+        // 正解表示
+        function showAnswer() {
+            if (!currentQuestion) return;
+
+            // フレーズを見やすく整形（空白で改行など）
+            // 全角スペースまたは半角スペースで分割
+            const parts = currentQuestion.phrase.split(/[\s　]+/);
+            
+            if (parts.length === 2) {
+                // 変更: 横並びに配置し、矢印でつなぐ
+                phraseTextEl.innerHTML = `
+                    <div class="flex flex-wrap justify-center items-center gap-2 sm:gap-3">
+                        <span class="whitespace-nowrap">${parts[0]}</span>
+                        <span class="text-indigo-400 font-bold">⇒</span>
+                        <span class="whitespace-nowrap">${parts[1]}</span>
+                    </div>
+                `;
+            } else {
+                phraseTextEl.textContent = currentQuestion.phrase;
+            }
+
+            showAnswerBtn.classList.add('hidden');
+            answerContainer.classList.remove('hidden');
+        }
+
+        // スタート
+        init();
+
+    </script>
+</body>
+</html>
