@@ -85,6 +85,23 @@
       .profile-image img { max-width:100%; }
     }
     h2[id] { scroll-margin-top: 200px; }
+
+    /* Button Style for Training Section */
+    .btn-training {
+      display: inline-block;
+      background: #111;
+      color: #fff;
+      padding: 15px 40px;
+      text-decoration: none;
+      border-radius: 50px;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-training:hover {
+      background: #444;
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
   </style>
   <meta content="Matsuken Music Lab | 自作曲 &amp; カバー作品集" property="og:title"/>
   <meta content="オリジナル楽曲、AI生成音楽、カバー＆弾いてみた動画など、YouTubeで公開中の作品をまとめました。" property="og:description"/>
@@ -116,6 +133,9 @@
     </a>
     <a href="#bluebeat">
      Blue Beat
+    </a>
+    <a href="#training">
+     Training
     </a>
     <a href="#profile">
      Profile
@@ -690,6 +710,21 @@
      </div>
     </div>
    </div>
+
+   <h2 id="training">
+    Music Training Hub
+   </h2>
+   <div style="text-align:center; margin: 0 auto 60px auto; max-width: 800px; padding: 0 20px;">
+    <p style="font-size:1.1em; line-height:1.8; color:#444; margin-bottom:30px;">
+     日々の音楽練習をより効率的に行うために開発した、Webブラウザで動作するトレーニングツールのコレクションです。<br>
+     ギターの指板暗記やピアノのコードワーク、五線譜の読み取りや音楽理論の基礎など、基礎力を底上げするための自作アプリをまとめています。<br>
+     ゲーム感覚で反復練習ができるツールを中心に、隙間時間を活用してスキルアップを目指すためのハブページとして公開しています。
+    </p>
+    <a href="https://matsuken92.github.io/music-training-list.html" class="btn-training" target="_blank">
+     <i class="fas fa-laptop-code" style="margin-right:10px;"></i>トレーニングツール集を見る
+    </a>
+   </div>
+
   </main>
   <section class="profile-section" id="profile">
    <div class="profile-container">
