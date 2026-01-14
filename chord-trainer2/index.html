@@ -1255,11 +1255,15 @@
 
                 const rootName = currentQuestion.root.replace('♭', 'フラット').replace('♯', 'シャープ');
                 const symbolName = currentQuestion.symbol.replace('△7', 'メジャーセブンス').replace('m7', 'マイナーセブンス').replace('7', 'セブンス');
-                const voicingName = currentQuestion.voicing === 'root' ? 'ルートポジション' : '第2転回形';
 
-                const text = `${rootName}${symbolName}、${voicingName}`;
-                setAiMessage(text);
-                speak(text);
+                const voicingNameDisplay = currentQuestion.voicing === 'root' ? 'ルートポジション' : '第2転回形';
+                const voicingNameSpeech = currentQuestion.voicing === 'root' ? 'ルートポジション' : 'だいに てんかいけい';
+
+                const textDisplay = `${rootName}${symbolName}、${voicingNameDisplay}`;
+                const textSpeech = `${rootName}${symbolName}、${voicingNameSpeech}`;
+
+                setAiMessage(textDisplay);
+                speak(textSpeech);
 
             }, [currentQuestion, speedTrainingResult, isAiMode, speak]);
 
