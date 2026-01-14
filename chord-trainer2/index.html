@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Chord Practice App">
     <title>Chord Practice</title>
-    
+
     <!-- React & Babel for single file execution -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -149,6 +150,7 @@
             padding: 0;
             -moz-appearance: textfield;
         }
+
         .random-count-input::-webkit-outer-spin-button,
         .random-count-input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -173,6 +175,7 @@
             transition: background 0.2s;
             white-space: nowrap;
         }
+
         .random-btn:hover {
             background-color: #f9fafb;
         }
@@ -190,6 +193,7 @@
             transition: background 0.2s;
             white-space: nowrap;
         }
+
         .grey-action-btn:hover {
             background: #e5e7eb;
         }
@@ -231,13 +235,13 @@
             user-select: none;
             transition: all 0.2s;
         }
-        
+
         .checkbox-label:hover {
             border-color: #cbd5e1;
         }
 
         .checkbox-label input[type="checkbox"] {
-             transform: scale(1.2);
+            transform: scale(1.2);
         }
 
         .speed-error-text {
@@ -270,9 +274,11 @@
             background: #4a9eff;
             color: #fff;
         }
+
         .speed-primary-button:hover {
             background: #2f7edb;
         }
+
         .speed-primary-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -282,15 +288,17 @@
             background: #1abc9c;
             color: #fff;
         }
+
         .speed-secondary-button:hover {
             background: #149f85;
         }
-        
+
         .pdf-button {
             background: #8e44ad;
             color: #fff;
             margin-left: auto;
         }
+
         .pdf-button:hover {
             background: #732d91;
         }
@@ -301,17 +309,21 @@
             gap: 12px;
             flex-grow: 1;
         }
+
         .grade-correct-btn {
             background: #1abc9c;
             color: #fff;
         }
+
         .grade-correct-btn:hover {
             background: #149f85;
         }
+
         .grade-incorrect-btn {
             background: #e74c3c;
             color: #fff;
         }
+
         .grade-incorrect-btn:hover {
             background: #c0392b;
         }
@@ -368,6 +380,7 @@
             font-weight: 600;
             cursor: pointer;
         }
+
         .reset-button:hover {
             background: #dfe7ff;
         }
@@ -412,16 +425,19 @@
             gap: 12px;
             flex-wrap: wrap;
         }
+
         .tempo-input-wrapper {
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
         .tempo-controls {
             display: flex;
             align-items: center;
             gap: 4px;
         }
+
         .tempo-btn {
             background: #fff;
             border: 1px solid #e0e6ef;
@@ -434,9 +450,11 @@
             min-width: 36px;
             transition: background 0.2s;
         }
+
         .tempo-btn:hover {
             background: #f5f7fb;
         }
+
         .tempo-input {
             width: 50px;
             padding: 6px;
@@ -445,11 +463,14 @@
             text-align: center;
             font-weight: 600;
             font-size: 1rem;
-            -moz-appearance: textfield; /* Remove spin buttons for Firefox */
+            -moz-appearance: textfield;
+            /* Remove spin buttons for Firefox */
         }
+
         .tempo-input::-webkit-outer-spin-button,
         .tempo-input::-webkit-inner-spin-button {
-            -webkit-appearance: none; /* Remove spin buttons for Chrome/Safari */
+            -webkit-appearance: none;
+            /* Remove spin buttons for Chrome/Safari */
             margin: 0;
         }
 
@@ -465,12 +486,13 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
+
         .modal-content {
             background: #fff;
             width: 90%;
@@ -480,8 +502,9 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
+
         .modal-header {
             padding: 16px 24px;
             border-bottom: 1px solid #e0e6ef;
@@ -490,11 +513,13 @@
             align-items: center;
             background: #f7fafd;
         }
+
         .modal-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: #232b3a;
         }
+
         .modal-close-btn {
             background: transparent;
             border: none;
@@ -502,22 +527,28 @@
             cursor: pointer;
             color: #6b7688;
         }
+
         .modal-body {
             flex: 1;
             overflow-y: auto;
             padding: 24px;
-            background: #525659; /* Standard PDF viewer background color */
+            background: #525659;
+            /* Standard PDF viewer background color */
         }
+
         .preview-page {
             background: #fff;
-            width: 210mm; /* A4 width */
-            min-height: 297mm; /* A4 height */
+            width: 210mm;
+            /* A4 width */
+            min-height: 297mm;
+            /* A4 height */
             margin: 0 auto;
             padding: 20mm;
             box-sizing: border-box;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             font-family: 'Times New Roman', serif;
         }
+
         .modal-footer {
             padding: 16px 24px;
             border-top: 1px solid #e0e6ef;
@@ -535,6 +566,7 @@
             margin-bottom: 20px;
             color: #000;
         }
+
         .worksheet-info {
             display: flex;
             justify-content: space-between;
@@ -543,32 +575,54 @@
             padding-bottom: 10px;
             color: #000;
         }
+
         .worksheet-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
             color: #000;
         }
-        .worksheet-table th, .worksheet-table td {
+
+        .worksheet-table th,
+        .worksheet-table td {
             border: 1px solid #000;
             padding: 8px;
             text-align: left;
         }
+
         .worksheet-table th {
             background-color: #f0f0f0;
             text-align: center;
         }
-        .worksheet-col-no { width: 40px; text-align: center; }
-        .worksheet-col-chord { width: 100px; text-align: center; font-weight: bold; }
-        .worksheet-col-voicing { width: 80px; text-align: center; font-size: 10px; }
-        .worksheet-col-answer {  }
+
+        .worksheet-col-no {
+            width: 40px;
+            text-align: center;
+        }
+
+        .worksheet-col-chord {
+            width: 100px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .worksheet-col-voicing {
+            width: 80px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .worksheet-col-answer {}
 
         /* PRINT STYLES - Only show the preview-page content */
         @media print {
             body * {
                 visibility: hidden;
             }
-            .modal-overlay, .modal-content, .modal-body {
+
+            .modal-overlay,
+            .modal-content,
+            .modal-body {
                 background: #fff;
                 width: 100%;
                 height: auto;
@@ -579,9 +633,12 @@
                 padding: 0;
                 margin: 0;
             }
-            .preview-page, .preview-page * {
+
+            .preview-page,
+            .preview-page * {
                 visibility: visible;
             }
+
             .preview-page {
                 width: 100%;
                 margin: 0;
@@ -591,21 +648,24 @@
                 left: 0;
                 top: 0;
             }
-            .modal-header, .modal-footer {
+
+            .modal-header,
+            .modal-footer {
                 display: none;
             }
+
             @page {
                 size: A4;
                 margin: 1.5cm;
             }
         }
-        
+
         @media (max-width: 800px) {
-             .preview-page {
-                 width: 100%;
-                 min-height: auto;
-                 padding: 10px;
-             }
+            .preview-page {
+                width: 100%;
+                min-height: auto;
+                padding: 10px;
+            }
         }
 
         @media (max-width: 600px) {
@@ -613,23 +673,96 @@
                 flex-direction: column;
                 gap: 10px;
             }
+
             .lang-box {
                 align-self: flex-end;
-                margin-top: -40px; 
+                margin-top: -40px;
             }
+
             .main-title {
                 font-size: 1.8rem;
             }
+
             .control-header {
                 justify-content: space-between;
             }
+
             .key-controls {
                 flex-wrap: wrap;
                 justify-content: flex-end;
             }
         }
+
+        /* AI Instructor Styles */
+        .ai-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            min-height: 120px;
+        }
+
+        .ai-character {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .ai-character.speaking {
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+        .ai-bubble {
+            background: #fff;
+            border: 2px solid #4a9eff;
+            border-radius: 16px;
+            padding: 12px 20px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 80%;
+            text-align: center;
+            font-weight: 600;
+            color: #232b3a;
+        }
+
+        .ai-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #4a9eff transparent transparent transparent;
+        }
+
+        .ai-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #4a9eff;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 0.95rem;
+            background: #eef6ff;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
     </style>
 </head>
+
 <body>
     <div id="root"></div>
 
@@ -711,7 +844,15 @@
                 keySignature: 'Key Sig',
                 chordTones: 'Chord Tones',
                 closePreview: 'Close',
-                print: 'Print'
+                print: 'Print',
+                aiMode: 'Speech Mode',
+                aiGreeting: 'Hello! Let\'s practice together!',
+                aiQuestionPrefix: 'Next is ',
+                aiAnswerPrefix: 'The answer is ',
+                speechSpeed: 'Speech Speed',
+                speedStandard: 'Standard',
+                speedFast: 'Fast',
+                speedFaster: 'Faster'
             },
             ja: {
                 speedTrainingTitle: 'コード演奏スピードアップ',
@@ -751,7 +892,15 @@
                 keySignature: '調号',
                 chordTones: '構成音',
                 closePreview: '閉じる',
-                print: '印刷する'
+                print: '印刷する',
+                aiMode: '発話モード',
+                aiGreeting: 'こんにちは！一緒に練習しましょう！',
+                aiQuestionPrefix: '次は、',
+                aiAnswerPrefix: '正解は、',
+                speechSpeed: '話す速さ',
+                speedStandard: '標準',
+                speedFast: '速い',
+                speedFaster: 'もっと速い'
             }
         };
 
@@ -790,19 +939,19 @@
         // Weighted random generation based on stats
         const generateSpeedTrainingQueue = (roots, symbols, voicings, stats = {}) => {
             if (roots.length === 0 || symbols.length === 0 || voicings.length === 0) return [];
-            
+
             let weightedCombos = [];
-            
+
             roots.forEach(root => {
                 symbols.forEach(symbol => {
                     voicings.forEach(voicing => {
                         const combo = { root, symbol, voicing };
                         const key = getQuestionKey(combo);
                         const stat = stats[key] || { asked: 0, correct: 0 };
-                        
+
                         // Default weight
                         let copies = 1;
-                        
+
                         // If we have data, increase weight for lower accuracy
                         if (stat.asked > 0) {
                             const accuracy = stat.correct / stat.asked;
@@ -814,16 +963,80 @@
                                 copies = 2; // Medium: 2x chance
                             }
                         }
-                        
+
                         // Add weighted copies to the "deck"
-                        for(let i=0; i<copies; i++) {
-                             weightedCombos.push(combo);
+                        for (let i = 0; i < copies; i++) {
+                            weightedCombos.push(combo);
                         }
                     });
                 });
             });
-            
+
             return shuffleArray(weightedCombos);
+        };
+
+        // Pronunciation Mappings
+        const rootPronunciations = {
+            'C': 'シー', 'F': 'エフ', 'B♭': 'ビーフラット', 'E♭': 'イーフラット',
+            'A♭': 'エーフラット', 'D♭': 'ディーフラット', 'G♭': 'ジーフラット',
+            'B': 'ビー', 'E': 'イー', 'A': 'エー', 'D': 'ディー', 'G': 'ジー'
+        };
+
+        const symbolPronunciations = {
+            '△7': 'メジャーセブンス',
+            '7': 'セブンス',
+            'm7': 'マイナーセブンス'
+        };
+
+        // Speech Hook
+        const useSpeech = (language) => {
+            const [isSpeaking, setIsSpeaking] = useState(false);
+            const [rate, setRate] = useState(1.0);
+
+            const speak = useCallback((text) => {
+                if (!window.speechSynthesis) return;
+
+                // Cancel current speech
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = language === 'ja' ? 'ja-JP' : 'en-US';
+                utterance.rate = rate;
+                utterance.pitch = 1.0;
+
+                utterance.onstart = () => setIsSpeaking(true);
+                utterance.onend = () => setIsSpeaking(false);
+                utterance.onerror = () => setIsSpeaking(false);
+
+                window.speechSynthesis.speak(utterance);
+            }, [language, rate]);
+
+            const cancel = useCallback(() => {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    setIsSpeaking(false);
+                }
+            }, []);
+
+            return { speak, cancel, isSpeaking, rate, setRate };
+        };
+
+        const AICharacter = ({ isSpeaking, message, onClick }) => {
+            return (
+                <div className="ai-section">
+                    <div className="ai-bubble">
+                        {message}
+                    </div>
+                    <div
+                        className={`ai-character ${isSpeaking ? 'speaking' : ''}`}
+                        onClick={onClick}
+                        role="button"
+                        aria-label="AI Instructor"
+                    >
+                        👩‍🏫
+                    </div>
+                </div>
+            );
         };
 
         // Main App Component
@@ -841,10 +1054,10 @@
             const [speedTrainingError, setSpeedTrainingError] = useState('');
             const [worksheetData, setWorksheetData] = useState([]);
             const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-            
+
             // Stats now stores { asked: number, correct: number }
             const [questionStats, setQuestionStats] = useState({});
-            
+
             // Random Selection State
             const [randomCount, setRandomCount] = useState(4);
 
@@ -854,6 +1067,11 @@
 
             // URL param check for PDF feature
             const [showPdfButton, setShowPdfButton] = useState(false);
+
+            // AI Mode State
+            const [isAiMode, setIsAiMode] = useState(false);
+            const [aiMessage, setAiMessage] = useState('');
+            const { speak, cancel, isSpeaking, rate, setRate } = useSpeech(language);
 
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
@@ -870,8 +1088,8 @@
             // Wrap regenerateQueue to include current stats
             const regenerateQueue = useCallback(
                 () => generateSpeedTrainingQueue(
-                    speedTrainingSelectedRoots, 
-                    speedTrainingSelectedSymbols, 
+                    speedTrainingSelectedRoots,
+                    speedTrainingSelectedSymbols,
                     voicingOptions,
                     questionStats // Pass stats for weighting
                 ),
@@ -940,7 +1158,7 @@
                 setSpeedTrainingResult(null);
                 setSpeedTrainingAwaitingNext(false);
                 setSpeedTrainingStartTime(Date.now());
-                
+
                 // Only increment "asked" here
                 setQuestionStats(prev => {
                     const key = getQuestionKey(question);
@@ -997,24 +1215,98 @@
 
             // New: Handle Grading in Tempo Mode
             const handleGrading = useCallback((isCorrect) => {
-                 if (!currentQuestion) return;
-                 
-                 setQuestionStats(prev => {
+                if (!currentQuestion) return;
+
+                setQuestionStats(prev => {
                     const key = getQuestionKey(currentQuestion);
                     const currentStat = prev[key] || { asked: 1, correct: 0 }; // Should exist since it was asked
                     return {
                         ...prev,
-                        [key]: { 
-                            ...currentStat, 
-                            correct: currentStat.correct + (isCorrect ? 1 : 0) 
+                        [key]: {
+                            ...currentStat,
+                            correct: currentStat.correct + (isCorrect ? 1 : 0)
                         }
                     };
                 });
-                
+
                 // Move to next immediately
                 handleSpeedTrainingNext();
             }, [currentQuestion, handleSpeedTrainingNext]);
 
+
+            // AI Speech Logic
+            useEffect(() => {
+                if (!isAiMode) {
+                    cancel();
+                    return;
+                }
+
+                // Greeting when AI mode is turned on
+                if (isAiMode && !speedTrainingActive) {
+                    setAiMessage(translations[language].aiGreeting || "Let's practice!");
+                    // Optional: speak(translations[language].aiGreeting);
+                }
+
+            }, [isAiMode, speedTrainingActive, language, cancel]);
+
+            // Speak Question
+            useEffect(() => {
+                if (!isAiMode || !currentQuestion || speedTrainingResult) return;
+
+                const rootName = currentQuestion.root.replace('♭', 'フラット').replace('♯', 'シャープ');
+                const symbolName = currentQuestion.symbol.replace('△7', 'メジャーセブンス').replace('m7', 'マイナーセブンス').replace('7', 'セブンス');
+                const voicingName = currentQuestion.voicing === 'root' ? 'ルートポジション' : '第2転回形';
+
+                const text = `${rootName}${symbolName}、${voicingName}`;
+                setAiMessage(text);
+                speak(text);
+
+            }, [currentQuestion, speedTrainingResult, isAiMode, speak]);
+
+            // Speak Answer
+            useEffect(() => {
+                if (!isAiMode || !speedTrainingResult) return;
+
+                // Parse answer text for better speech
+                let answerText = speedTrainingResult.answer;
+
+                // Construct compact speech: [Chord Name], [Key Sig]. [Notes]. [Accidentals].
+                const rootPron = rootPronunciations[currentQuestion.root] || currentQuestion.root;
+                const symbolPron = symbolPronunciations[currentQuestion.symbol] || currentQuestion.symbol;
+                const chordName = `${rootPron}${symbolPron}`;
+
+                // Process answer lines
+                // Format: "調号：xxx\n音名：yyy\n(zzz)"
+                const lines = answerText.split('\n');
+                let speechParts = [chordName];
+
+                lines.forEach(line => {
+                    if (line.startsWith('調号：')) {
+                        const content = line.replace('調号：', '');
+                        // Handle "なし" case naturally if needed, but user requested simple concatenation
+                        speechParts.push(content);
+                    } else if (line.startsWith('音名：')) {
+                        const content = line.replace('音名：', '');
+                        speechParts.push(content);
+                    } else {
+                        // Accidentals line (e.g., "レがフラット")
+                        speechParts.push(line);
+                    }
+                });
+
+                // Join with pauses
+                const speakText = speechParts.join('、');
+
+                // Visual message can remain simple or match speech. 
+                // User said "文字の表示はそのままで良い", so we keep the visual message as "正解！" + text?
+                // Actually, let's update the bubble to show the compact text or just "正解！"
+                // The previous implementation showed the modified text.
+                // Let's show the compact text in the bubble as it matches what is heard.
+                setAiMessage(speakText);
+
+                speak(speakText);
+
+            }, [speedTrainingResult, isAiMode, speak, currentQuestion]);
 
             // Auto-Answer Timer Effect
             useEffect(() => {
@@ -1022,11 +1314,11 @@
                     // Calculate wait time: (60 seconds / BPM) * 4 beats * 1000ms
                     const msPerBeat = (60 / Math.max(1, bpm)) * 1000;
                     const waitTime = msPerBeat * 4;
-                    
+
                     const timer = setTimeout(() => {
                         handleSpeedTrainingOk();
                     }, waitTime);
-                    
+
                     return () => clearTimeout(timer);
                 }
             }, [currentQuestion, speedTrainingActive, speedTrainingResult, isTempoMode, bpm, handleSpeedTrainingOk, speedTrainingAwaitingNext]);
@@ -1044,10 +1336,10 @@
 
                 const handleKeyDown = (e) => {
                     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                         e.preventDefault();
+                        e.preventDefault();
                     }
 
-                    switch(e.key) {
+                    switch (e.key) {
                         case 'ArrowUp':
                             updateBpm(1);
                             break;
@@ -1076,10 +1368,10 @@
                 const allRoots = defaultSpeedTrainingRoots;
                 const allSymbols = speedTrainingChordSymbols;
                 const allVoicings = ['root', 'second'];
-                
+
                 const questions = [];
                 let pool = [];
-                
+
                 // Full combo gen
                 allRoots.forEach(root => {
                     allSymbols.forEach(symbol => {
@@ -1090,12 +1382,12 @@
                 });
 
                 pool = shuffleArray(pool);
-                
+
                 // Fill up to 100
-                while(questions.length < 100) {
+                while (questions.length < 100) {
                     if (pool.length === 0) {
-                         let newPool = [];
-                         allRoots.forEach(root => {
+                        let newPool = [];
+                        allRoots.forEach(root => {
                             allSymbols.forEach(symbol => {
                                 allVoicings.forEach(voicing => {
                                     newPool.push({ root, symbol, voicing });
@@ -1144,7 +1436,7 @@
                                         name="speedVoicing"
                                         checked={speedTrainingVoicing === 'root'}
                                         onChange={() => setSpeedTrainingVoicing('root')}
-                                        style={{marginRight: '6px'}}
+                                        style={{ marginRight: '6px' }}
                                     />
                                     {translations[language].speedTrainingRootPosition}
                                 </label>
@@ -1154,7 +1446,7 @@
                                         name="speedVoicing"
                                         checked={speedTrainingVoicing === 'second'}
                                         onChange={() => setSpeedTrainingVoicing('second')}
-                                        style={{marginRight: '6px'}}
+                                        style={{ marginRight: '6px' }}
                                     />
                                     {translations[language].speedTrainingSecondInversion}
                                 </label>
@@ -1164,7 +1456,7 @@
                                         name="speedVoicing"
                                         checked={speedTrainingVoicing === 'mix'}
                                         onChange={() => setSpeedTrainingVoicing('mix')}
-                                        style={{marginRight: '6px'}}
+                                        style={{ marginRight: '6px' }}
                                     />
                                     {translations[language].speedTrainingMix}
                                 </label>
@@ -1178,7 +1470,7 @@
                                             type="checkbox"
                                             checked={speedTrainingSelectedSymbols.includes(symbol)}
                                             onChange={e => handleSpeedTrainingSymbolChange(symbol, e.target.checked)}
-                                            style={{marginRight: '8px'}}
+                                            style={{ marginRight: '8px' }}
                                         />
                                         {symbol}
                                     </label>
@@ -1191,12 +1483,12 @@
                                 </div>
                                 <div className="key-controls">
                                     <div className="input-group">
-                                        <input 
-                                            type="number" 
-                                            className="random-count-input" 
-                                            value={randomCount} 
+                                        <input
+                                            type="number"
+                                            className="random-count-input"
+                                            value={randomCount}
                                             onChange={(e) => setRandomCount(Math.max(1, Math.min(12, Number(e.target.value))))}
-                                            min="1" 
+                                            min="1"
                                             max="12"
                                         />
                                         <div className="input-divider"></div>
@@ -1219,7 +1511,7 @@
                                             type="checkbox"
                                             checked={speedTrainingSelectedRoots.includes(root)}
                                             onChange={e => handleSpeedTrainingRootChange(root, e.target.checked)}
-                                            style={{marginRight: '8px'}}
+                                            style={{ marginRight: '8px' }}
                                         />
                                         {root}
                                     </label>
@@ -1228,19 +1520,19 @@
 
                             {/* Tempo Settings Section */}
                             <div className="tempo-container">
-                                 <label className="speed-radio-label">
+                                <label className="speed-radio-label">
                                     <input
                                         type="checkbox"
                                         checked={isTempoMode}
                                         onChange={e => setIsTempoMode(e.target.checked)}
-                                        style={{marginRight: '8px', transform: 'scale(1.2)'}}
+                                        style={{ marginRight: '8px', transform: 'scale(1.2)' }}
                                     />
                                     {translations[language].tempoMode}
                                 </label>
-                                
+
                                 {isTempoMode && (
                                     <div className="tempo-input-wrapper">
-                                        <span style={{fontWeight: 600, color: '#232b3a'}}>{translations[language].bpm}:</span>
+                                        <span style={{ fontWeight: 600, color: '#232b3a' }}>{translations[language].bpm}:</span>
                                         <div className="tempo-controls">
                                             <button className="tempo-btn" onClick={() => updateBpm(-10)}>-10</button>
                                             <button className="tempo-btn" onClick={() => updateBpm(-1)}>-1</button>
@@ -1259,6 +1551,60 @@
                                     </div>
                                 )}
                             </div>
+
+                            {/* AI Mode Toggle */}
+                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                <label className="ai-toggle-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={isAiMode}
+                                        onChange={e => setIsAiMode(e.target.checked)}
+                                        style={{ transform: 'scale(1.2)' }}
+                                    />
+                                    {translations[language].aiMode || 'AI Instructor Mode'}
+                                </label>
+
+                                {isAiMode && (
+                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#eef6ff', padding: '6px 12px', borderRadius: '20px' }}>
+                                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#4a9eff' }}>{translations[language].speechSpeed}:</span>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer', color: '#232b3a' }}>
+                                            <input
+                                                type="radio"
+                                                name="speechRate"
+                                                checked={rate === 1.0}
+                                                onChange={() => setRate(1.0)}
+                                            />
+                                            {translations[language].speedStandard}
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer', color: '#232b3a' }}>
+                                            <input
+                                                type="radio"
+                                                name="speechRate"
+                                                checked={rate === 1.5}
+                                                onChange={() => setRate(1.5)}
+                                            />
+                                            {translations[language].speedFast}
+                                        </label>
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', cursor: 'pointer', color: '#232b3a' }}>
+                                            <input
+                                                type="radio"
+                                                name="speechRate"
+                                                checked={rate === 2.0}
+                                                onChange={() => setRate(2.0)}
+                                            />
+                                            {translations[language].speedFaster}
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+
+                            {isAiMode && (
+                                <AICharacter
+                                    isSpeaking={isSpeaking}
+                                    message={aiMessage}
+                                    onClick={() => speak(aiMessage)}
+                                />
+                            )}
 
                             {speedTrainingError && <div className="speed-error-text">{speedTrainingError}</div>}
 
@@ -1305,14 +1651,14 @@
                                     </div>
                                     {speedTrainingResult && (
                                         <div className="speed-result-box">
-                                            <div style={{fontWeight: 700}}>{translations[language].speedTrainingResult}</div>
-                                            <div style={{marginTop: '8px'}}>
+                                            <div style={{ fontWeight: 700 }}>{translations[language].speedTrainingResult}</div>
+                                            <div style={{ marginTop: '8px' }}>
                                                 {translations[language].speedTrainingTimeTaken}: {speedTrainingResult.reactionSeconds} {translations[language].seconds}
                                             </div>
-                                            <div style={{marginTop: '8px'}}>
+                                            <div style={{ marginTop: '8px' }}>
                                                 {translations[language].speedTrainingVoicing}: {getSpeedTrainingVoicingLabel(currentQuestion.voicing, language)}
                                             </div>
-                                            <div style={{marginTop: '8px', fontWeight: 600}}>
+                                            <div style={{ marginTop: '8px', fontWeight: 600 }}>
                                                 {translations[language].speedTrainingAnswer}
                                             </div>
                                             <div>
@@ -1355,7 +1701,7 @@
                                                         <td className="stats-td">{combo.root}</td>
                                                         <td className="stats-td">{stat.asked}</td>
                                                         <td className="stats-td">
-                                                            {stat.asked > 0 ? `${stat.correct}/${stat.asked} (${Math.round(stat.correct/stat.asked*100)}%)` : '-'}
+                                                            {stat.asked > 0 ? `${stat.correct}/${stat.asked} (${Math.round(stat.correct / stat.asked * 100)}%)` : '-'}
                                                         </td>
                                                     </tr>
                                                 );
@@ -1396,9 +1742,9 @@
                                             <tbody>
                                                 {worksheetData.map((item, index) => (
                                                     <tr key={index}>
-                                                        <td style={{textAlign:'center'}}>{index + 1}</td>
-                                                        <td style={{textAlign:'center', fontSize: '14px', fontWeight: 'bold'}}>{item.root}{item.symbol}</td>
-                                                        <td style={{textAlign:'center'}}>{getSpeedTrainingVoicingLabel(item.voicing, language)}</td>
+                                                        <td style={{ textAlign: 'center' }}>{index + 1}</td>
+                                                        <td style={{ textAlign: 'center', fontSize: '14px', fontWeight: 'bold' }}>{item.root}{item.symbol}</td>
+                                                        <td style={{ textAlign: 'center' }}>{getSpeedTrainingVoicingLabel(item.voicing, language)}</td>
                                                         <td></td>
                                                         <td></td>
                                                     </tr>
@@ -1409,7 +1755,7 @@
                                 </div>
                                 <div className="modal-footer">
                                     <button className="grey-action-btn" onClick={closePreview}>{translations[language].closePreview}</button>
-                                    <button className="speed-button speed-primary-button" style={{minWidth: '120px'}} onClick={printPreview}>
+                                    <button className="speed-button speed-primary-button" style={{ minWidth: '120px' }} onClick={printPreview}>
                                         {translations[language].print}
                                     </button>
                                 </div>
@@ -1424,6 +1770,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
-
-
