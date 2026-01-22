@@ -23,6 +23,7 @@
             
             /* Layout */
             --controls-width: 340px;
+            --handle-width: 30px; /* ドラッグハンドルの幅 */
         }
 
         body {
@@ -117,7 +118,7 @@
         }
 
         .header-spacer {
-            width: var(--controls-width);
+            width: calc(var(--controls-width) + var(--handle-width)); /* ハンドル分広げる */
             flex-shrink: 0;
         }
 
@@ -149,12 +150,38 @@
             background-color: #fafafa;
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            cursor: default; /* デフォルトカーソル */
         }
 
         .control-row:hover {
             background-color: #fff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        /* ドラッグ中のスタイル */
+        .control-row.dragging {
+            opacity: 0.5;
+            background-color: #e3f2fd;
+            border: 2px dashed #4a90e2;
+        }
+
+        /* ドラッグハンドル */
+        .drag-handle {
+            width: var(--handle-width);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            color: #bbb;
+            font-size: 1.2rem;
+            user-select: none;
+        }
+        .drag-handle:hover {
+            color: #666;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
         }
 
         .inputs-area {
@@ -163,7 +190,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding-left: 15px;
+            padding-left: 0; /* ハンドルがあるので左パディング削除 */
             box-sizing: border-box;
         }
 
@@ -224,7 +251,7 @@
 
         /* Note Circle Styles */
         .note-circle {
-            width: 24px;  /* 少し大きくして文字が入るように */
+            width: 24px;  
             height: 24px;
             border-radius: 50%;
             background-color: var(--note-inactive);
@@ -238,19 +265,17 @@
             align-items: center;
             font-size: 0.7rem;
             font-weight: bold;
-            color: #fff; /* 文字色は白 */
+            color: #fff;
             overflow: hidden;
         }
         
-        /* 非アクティブ時は文字を見せない、または薄くする */
         .note-circle:empty {
-            /* 文字がない場合 */
         }
 
         .active-chord .note-circle {
             background-color: var(--note-active-chord);
             border-color: #e64a19;
-            transform: scale(1.1); /* 文字表示時はあまり拡大しすぎない */
+            transform: scale(1.1);
             box-shadow: 0 0 5px rgba(255, 112, 67, 0.5);
         }
 
@@ -305,14 +330,16 @@
         @media (max-width: 768px) {
             :root {
                 --controls-width: 260px;
+                --handle-width: 20px;
             }
             .container { padding: 15px; }
             .header-note-name { font-size: 0.7rem; }
             select { font-size: 0.8rem; padding: 4px; max-width: 70px; }
             .variation-select { min-width: 80px; max-width: 100px; }
-            .inputs-area { padding-left: 5px; gap: 4px; }
+            .inputs-area { gap: 4px; }
             .note-circle { width: 18px; height: 18px; font-size: 0.5rem; }
             .settings-bar { flex-direction: column; gap: 10px; align-items: center; }
+            .drag-handle { font-size: 1rem; }
         }
     </style>
 </head>
@@ -494,10 +521,36 @@
     function addNewRow(initialType = 'chord', initialRoot = 0, initialVar = null) {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'control-row';
+        rowDiv.draggable = true; // 行全体をドラッグ可能にする
+
+        // -----------------------
+        // ドラッグイベントリスナー
+        // -----------------------
+        rowDiv.addEventListener('dragstart', (e) => {
+            // セレクトボックスやボタン上でのドラッグ開始は、要素の操作を優先するためキャンセルする場合もあるが、
+            // 今回はハンドル以外のドラッグを制御する
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'BUTTON') {
+                e.preventDefault();
+                return;
+            }
+            rowDiv.classList.add('dragging');
+        });
+
+        rowDiv.addEventListener('dragend', () => {
+            rowDiv.classList.remove('dragging');
+        });
 
         // -----------------------
         // 左側: コントロールエリア
         // -----------------------
+        
+        // ドラッグハンドル
+        const handle = document.createElement('div');
+        handle.className = 'drag-handle';
+        handle.innerHTML = '&#10247;'; // 点字パターン (U+283F) or '⋮⋮'
+        handle.title = 'Drag to reorder';
+        rowDiv.appendChild(handle);
+
         const inputsArea = document.createElement('div');
         inputsArea.className = 'inputs-area';
 
@@ -652,6 +705,41 @@
         label.textContent = labelText;
         div.appendChild(label);
         return div;
+    }
+
+    // --- Drag and Drop Container Logic ---
+    rowsContainer.addEventListener('dragover', e => {
+        e.preventDefault(); // ドロップ許可
+        const afterElement = getDragAfterElement(rowsContainer, e.clientY);
+        const draggable = document.querySelector('.dragging');
+        if (draggable) {
+            if (afterElement == null) {
+                rowsContainer.appendChild(draggable);
+            } else {
+                rowsContainer.insertBefore(draggable, afterElement);
+            }
+        }
+    });
+
+    /**
+     * マウス位置に基づき、どの要素の直後にドロップすべきかを計算する
+     */
+    function getDragAfterElement(container, y) {
+        // ドラッグされていない要素のみ取得
+        const draggableElements = [...container.querySelectorAll('.control-row:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            // カーソル位置と要素の中心との距離（offset）
+            const offset = y - box.top - box.height / 2;
+            
+            // offsetが負（カーソルが要素中心より上）かつ、これまでの最大値より大きい場合
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
     // --- アプリケーション開始 ---
