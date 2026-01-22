@@ -47,7 +47,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             max-width: 600px;
         }
@@ -58,9 +58,10 @@
             align-items: center;
             justify-content: center;
             width: 100%;
+            flex-wrap: wrap; 
         }
 
-        /* Radio Buttons */
+        /* Radio Buttons for Mode */
         .mode-switch {
             display: flex;
             background: #333;
@@ -94,6 +95,26 @@
             color: #fff;
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Sound Switch (Checkbox style) */
+        .sound-switch {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #aaa;
+            cursor: pointer;
+            user-select: none;
+        }
+        .sound-switch input {
+            margin-right: 6px;
+            accent-color: #2a9d8f; 
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .sound-switch:hover {
+            color: #fff;
         }
 
         .btn {
@@ -292,6 +313,14 @@
                 </label>
             </div>
         </div>
+
+        <div class="controls-row">
+            <label class="sound-switch">
+                <input type="checkbox" id="sound-enabled" onchange="toggleSound(this.checked)">
+                <span>🔊 タップ音を鳴らす</span>
+            </label>
+        </div>
+
         <div id="root-display" class="root-display"></div>
     </div>
 
@@ -305,6 +334,59 @@
     </div>
 
 <script>
+    // --- Audio Context Setup ---
+    let audioCtx = null;
+    let isSoundEnabled = false; // デフォルトOFF
+    
+    // 各弦の開放弦の周波数 (1弦 E4 -> 6弦 E2)
+    const OPEN_STRING_FREQS = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41]; 
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    window.toggleSound = function(enabled) {
+        isSoundEnabled = enabled;
+        if (enabled && !audioCtx) {
+            initAudio(); // ONにしたタイミングでコンテキスト準備
+        }
+    };
+
+    function playTone(stringIndex, fret) {
+        if (!isSoundEnabled) return; // 音設定OFFなら何もしない
+        
+        initAudio();
+        
+        // 周波数計算: Base * 2^(fret/12)
+        const baseFreq = OPEN_STRING_FREQS[stringIndex];
+        const freq = baseFreq * Math.pow(2, fret / 12);
+        
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.type = 'triangle'; // 三角波
+        osc.frequency.value = freq;
+        
+        // エンベロープ
+        const now = audioCtx.currentTime;
+        const duration = 1.0;
+        
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02); // アタック
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // ディケイ
+        
+        osc.start(now);
+        osc.stop(now + duration);
+    }
+
     // --- 設定 ---
     const stringTuning = [4, 11, 7, 2, 9, 4]; // E B G D A E
     const MAX_FRET = 12; 
@@ -398,6 +480,10 @@
     };
 
     function handleFretClick(s, f, cell) {
+        // --- 音を鳴らす (設定チェックは関数内で実施) ---
+        playTone(s, f);
+
+        // --- ロジック ---
         const clickedNoteVal = (stringTuning[s] + f) % 12;
         const existingMarker = cell.querySelector('.note-marker');
         
@@ -423,8 +509,7 @@
             const rootName = ROOT_NAMES_BASE[rootNoteValue];
             rootDisplayEl.textContent = `Root: ${rootName}`;
             
-            // マーカー追加 (ルートは常にR表示でも良いが、Noteモードなら音名を表示)
-            // ここではRを優先しつつ、updateAllMarkersでモードに合わせる
+            // マーカー追加
             createMarkerInCell(cell, 0); // 0 = Interval 0 (Root)
             
             statusMsgEl.textContent = "他の場所をタップすると情報が表示されます";
@@ -441,7 +526,7 @@
         // Interval 0 はルート扱い
         const type = (interval === 0) ? 'root' : 'interval';
         marker.className = `note-marker ${type}`;
-        marker.dataset.interval = interval; // データ属性に度数を保持
+        marker.dataset.interval = interval; 
         
         // テキスト決定
         marker.textContent = getLabelForInterval(interval);
