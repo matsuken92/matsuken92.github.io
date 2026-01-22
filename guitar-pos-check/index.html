@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ギター指板：相対度数ビジュアライザー</title>
+    <style>
+        :root {
+            --fret-color: #d4a373;
+            --fret-dark: #a9845b;
+            --string-color: #c0c0c0;
+            --bg-color: #222;
+            --text-color: #fff;
+            
+            --marker-root: #e63946; /* Red for Root */
+            --marker-interval: #4361ee; /* Blue for Intervals */
+            
+            /* Visual Settings - Compact Mode */
+            /* 以前の40pxから約60%の25pxに変更しました */
+            --row-height: 25px; 
+            /* 行の高さに合わせてマーカーも小さく調整 */
+            --marker-size: 20px; 
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 15px;
+            text-align: center;
+            color: #f1faee;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #555;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover { background: #777; transform: translateY(-1px); }
+        .btn-reset { background-color: #e63946; }
+        .btn-reset:hover { background-color: #ff4d5a; }
+
+        .status-msg {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+            height: 1.2em;
+            text-align: center;
+        }
+
+        /* --- Fretboard Container --- */
+        .fretboard-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto; 
+            padding-bottom: 30px; /* フレット番号用の余白 */
+            display: flex;
+            justify-content: flex-start; 
+            
+            scrollbar-width: thin;
+            scrollbar-color: #555 #222;
+        }
+
+        .fretboard-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .fretboard-wrapper::-webkit-scrollbar-track {
+            background: #222;
+        }
+        .fretboard-wrapper::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        /* --- Fretboard Grid --- */
+        .fretboard {
+            display: grid;
+            grid-template-columns: 50px repeat(12, 1fr);
+            grid-template-rows: repeat(6, var(--row-height));
+            
+            border-top: 4px solid #111;
+            border-bottom: 4px solid #111;
+            background-color: var(--fret-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+            
+            min-width: 1000px; 
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .fret {
+            border-right: 3px solid rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .fret:active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .fret.fret-0 {
+            background-color: #1a1a1a; 
+            border-right: 8px solid #ddd; 
+        }
+        .fret.fret-12 {
+            border-right: none;
+        }
+
+        /* 弦 */
+        .string-line {
+            position: absolute;
+            left: 0; right: 0; top: 50%;
+            background-color: var(--string-color);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            z-index: 1;
+            pointer-events: none;
+            transform: translateY(-50%);
+        }
+
+        .fret[data-string="0"] .string-line { height: 1px; }
+        .fret[data-string="1"] .string-line { height: 1.5px; }
+        .fret[data-string="2"] .string-line { height: 2px; }
+        .fret[data-string="3"] .string-line { height: 2.5px; }
+        .fret[data-string="4"] .string-line { height: 3px; }
+        .fret[data-string="5"] .string-line { height: 3.5px; }
+
+        /* フレット番号 */
+        .fret-number {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.8rem;
+            color: #888;
+            width: 100%;
+            text-align: center;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        /* ポジションマーク */
+        .inlay {
+            position: absolute;
+            width: 14px; height: 14px; /* 少し小さく */
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            z-index: 0;
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            top: 100%; 
+        }
+
+        /* --- Markers --- */
+        .note-marker {
+            width: var(--marker-size);
+            height: var(--marker-size);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem; /* フォントも小さく */
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; 
+        }
+
+        .note-marker.root {
+            background-color: var(--marker-root);
+            border: 2px solid #fff;
+            /* ルート用の枠線分だけ少し大きく */
+            width: calc(var(--marker-size) + 4px);
+            height: calc(var(--marker-size) + 4px);
+            z-index: 11;
+            font-size: 0.75rem;
+        }
+
+        .note-marker.interval {
+            background-color: var(--marker-interval);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎸 ギター指板：相対度数ビジュアライザー</h1>
+
+    <div class="status-msg" id="status-msg">指板をタップしてルート音(R)を設定してください</div>
+
+    <div class="controls">
+        <button class="btn btn-reset" onclick="resetBoard()">リセット</button>
+    </div>
+
+    <!-- Fretboard Area -->
+    <div class="fretboard-wrapper">
+        <div class="fretboard" id="fretboard">
+            <!-- JSでグリッドを生成 -->
+        </div>
+    </div>
+
+<script>
+    // --- 設定 ---
+    const stringTuning = [4, 11, 7, 2, 9, 4]; // E B G D A E
+    const MAX_FRET = 12; 
+
+    const INTERVAL_NAMES = [
+        "R",   // 0
+        "♭2",  // 1
+        "2",   // 2
+        "♭3",  // 3
+        "3",   // 4
+        "4",   // 5
+        "♭5",  // 6
+        "5",   // 7
+        "♭6",  // 8
+        "6",   // 9
+        "♭7",  // 10
+        "7"    // 11
+    ];
+
+    let rootNoteValue = null; 
+    
+    const fretboardEl = document.getElementById('fretboard');
+    const statusMsgEl = document.getElementById('status-msg');
+
+    function init() {
+        renderFretboard();
+    }
+
+    function renderFretboard() {
+        fretboardEl.innerHTML = '';
+        
+        for (let s = 0; s < 6; s++) {
+            for (let f = 0; f <= MAX_FRET; f++) {
+                const cell = document.createElement('div');
+                cell.className = `fret fret-${f}`;
+                cell.dataset.string = s; 
+                cell.dataset.fret = f;
+                
+                cell.onclick = (e) => handleFretClick(s, f, cell);
+
+                const line = document.createElement('div');
+                line.className = 'string-line';
+                cell.appendChild(line);
+
+                // ポジションマーク (3, 5, 7, 9)
+                if (s === 2 && [3, 5, 7, 9].includes(f)) {
+                     const inlay = document.createElement('div');
+                     inlay.className = 'inlay';
+                     cell.appendChild(inlay);
+                }
+                
+                // 12フレット (ダブルドット)
+                if (f === 12) {
+                    if (s === 1 || s === 3) {
+                        const inlay = document.createElement('div');
+                        inlay.className = 'inlay';
+                        cell.appendChild(inlay);
+                    }
+                }
+
+                // フレット番号
+                if (s === 5) {
+                    const num = document.createElement('div');
+                    num.className = 'fret-number';
+                    num.innerText = f;
+                    cell.appendChild(num);
+                }
+                
+                fretboardEl.appendChild(cell);
+            }
+        }
+    }
+
+    function handleFretClick(s, f, cell) {
+        const clickedNoteVal = (stringTuning[s] + f) % 12;
+        const existingMarker = cell.querySelector('.note-marker');
+        
+        if (existingMarker) {
+            const wasRoot = existingMarker.classList.contains('root');
+            existingMarker.remove();
+            if (wasRoot) resetBoard();
+            return;
+        }
+
+        if (rootNoteValue === null) {
+            rootNoteValue = clickedNoteVal;
+            addMarker(cell, "R", "root");
+            statusMsgEl.textContent = "他の場所をタップすると度数が表示されます";
+            statusMsgEl.style.color = "#4cc9f0";
+        } else {
+            const interval = (clickedNoteVal - rootNoteValue + 12) % 12;
+            const label = INTERVAL_NAMES[interval];
+            
+            if (interval === 0) {
+                 addMarker(cell, "R", "interval");
+            } else {
+                addMarker(cell, label, "interval");
+            }
+        }
+    }
+
+    function addMarker(cell, text, type) {
+        const marker = document.createElement('div');
+        marker.className = `note-marker ${type}`;
+        marker.textContent = text;
+        cell.appendChild(marker);
+    }
+
+    window.resetBoard = function() {
+        const markers = document.querySelectorAll('.note-marker');
+        markers.forEach(m => m.remove());
+        
+        rootNoteValue = null;
+        statusMsgEl.textContent = "指板をタップしてルート音(R)を設定してください";
+        statusMsgEl.style.color = "#aaa";
+    };
+
+    init();
+
+</script>
+</body>
+</html>
+
