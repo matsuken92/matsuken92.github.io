@@ -18,6 +18,7 @@
             /* Notes */
             --note-active-chord: #ff7043;
             --note-active-scale: #42a5f5;
+            --note-active-key: #66bb6a;   /* Keyの色 (緑) */
             --note-inactive: #f0f0f0;
             --note-border: #dcdcdc;
             
@@ -286,6 +287,13 @@
             box-shadow: 0 0 5px rgba(66, 165, 245, 0.5);
         }
 
+        .active-key .note-circle {
+            background-color: var(--note-active-key);
+            border-color: #2e7d32;
+            transform: scale(1.1);
+            box-shadow: 0 0 5px rgba(102, 187, 106, 0.5);
+        }
+
         .delete-btn {
             background: none;
             border: none;
@@ -457,6 +465,14 @@
             'Blues': [ 
                 {n:0, s:'R'}, {n:3, s:'b3'}, {n:5, s:'4'}, {n:6, s:'b5'}, {n:7, s:'5'}, {n:10, s:'b7'} 
             ]
+        },
+        key: {
+            'Major': [ 
+                {n:0, s:'R'}, {n:2, s:'2'}, {n:4, s:'3'}, {n:5, s:'4'}, {n:7, s:'5'}, {n:9, s:'6'}, {n:11, s:'7'} 
+            ],
+            'Minor': [ 
+                {n:0, s:'R'}, {n:2, s:'2'}, {n:3, s:'b3'}, {n:5, s:'4'}, {n:7, s:'5'}, {n:8, s:'b6'}, {n:10, s:'b7'} 
+            ]
         }
     };
 
@@ -567,7 +583,7 @@
         // Type Select
         const typeGroup = createInputGroup('Type');
         const typeSelect = document.createElement('select');
-        typeSelect.innerHTML = `<option value="chord">Chord</option><option value="scale">Scale</option>`;
+        typeSelect.innerHTML = `<option value="chord">Chord</option><option value="scale">Scale</option><option value="key">Key</option>`;
         typeSelect.value = initialType;
         typeGroup.appendChild(typeSelect);
         inputsArea.appendChild(typeGroup);
@@ -664,15 +680,17 @@
             // 表示更新
             noteCircles.forEach((circle, idx) => {
                 // クラスと内容をリセット
-                circle.parentElement.classList.remove('active-chord', 'active-scale');
+                circle.parentElement.classList.remove('active-chord', 'active-scale', 'active-key');
                 circle.textContent = ''; 
 
                 if (idx in activeNoteMap) {
                     // アクティブ化
                     if (type === 'chord') {
                         circle.parentElement.classList.add('active-chord');
-                    } else {
+                    } else if (type === 'scale') {
                         circle.parentElement.classList.add('active-scale');
+                    } else if (type === 'key') {
+                        circle.parentElement.classList.add('active-key');
                     }
 
                     // 文字表示
