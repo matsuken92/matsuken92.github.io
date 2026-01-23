@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ギター指板：相対度数ビジュアライザー</title>
+    <style>
+        :root {
+            --fret-color: #d4a373;
+            --fret-dark: #a9845b;
+            --string-color: #c0c0c0;
+            --bg-color: #222;
+            --text-color: #fff;
+            
+            --marker-root: #e63946; /* Red for Root */
+            --marker-interval: #4361ee; /* Blue for Intervals */
+            
+            /* Visual Settings - Compact Mode */
+            --row-height: 25px; 
+            --marker-size: 20px; 
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 10px;
+            text-align: center;
+            color: #f1faee;
+        }
+
+        .controls-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            flex-wrap: wrap; 
+        }
+
+        /* Radio Buttons for Mode */
+        .mode-switch {
+            display: flex;
+            background: #333;
+            border-radius: 20px;
+            padding: 3px;
+            user-select: none;
+        }
+
+        .mode-switch label {
+            padding: 6px 16px;
+            cursor: pointer;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            color: #aaa;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .mode-switch input[type="radio"] {
+            display: none;
+        }
+
+        .mode-switch input[type="radio"]:checked + span {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .mode-switch label.active {
+            background: #555;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Sound Switch (Checkbox style) */
+        .sound-switch {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #aaa;
+            cursor: pointer;
+            user-select: none;
+        }
+        .sound-switch input {
+            margin-right: 6px;
+            accent-color: #2a9d8f; 
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .sound-switch:hover {
+            color: #fff;
+        }
+
+        .btn {
+            background: #555;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover { background: #777; transform: translateY(-1px); }
+        .btn-reset { background-color: #e63946; }
+        .btn-reset:hover { background-color: #ff4d5a; }
+
+        /* ルート音表示用のスタイル */
+        .root-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--marker-root);
+            min-height: 1.5rem; 
+            text-shadow: 0 0 5px rgba(230, 57, 70, 0.4);
+            margin-top: 5px;
+        }
+
+        .status-msg {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: #aaa;
+            height: 1.2em;
+            text-align: center;
+        }
+
+        /* --- Fretboard Container --- */
+        .fretboard-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto; 
+            padding-bottom: 30px; 
+            display: flex;
+            justify-content: flex-start; 
+            
+            scrollbar-width: thin;
+            scrollbar-color: #555 #222;
+        }
+
+        .fretboard-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+        .fretboard-wrapper::-webkit-scrollbar-track {
+            background: #222;
+        }
+        .fretboard-wrapper::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 4px;
+        }
+
+        /* --- Fretboard Grid --- */
+        .fretboard {
+            display: grid;
+            grid-template-columns: 50px repeat(12, 1fr);
+            grid-template-rows: repeat(6, var(--row-height));
+            
+            border-top: 4px solid #111;
+            border-bottom: 4px solid #111;
+            background-color: var(--fret-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+            
+            min-width: 1000px; 
+            margin: 0 auto;
+            user-select: none;
+        }
+
+        .fret {
+            border-right: 3px solid rgba(0,0,0,0.3);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .fret:active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .fret.fret-0 {
+            background-color: #1a1a1a; 
+            border-right: 8px solid #ddd; 
+        }
+        .fret.fret-12 {
+            border-right: none;
+        }
+
+        /* 弦 */
+        .string-line {
+            position: absolute;
+            left: 0; right: 0; top: 50%;
+            background-color: var(--string-color);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            z-index: 1;
+            pointer-events: none;
+            transform: translateY(-50%);
+        }
+
+        .fret[data-string="0"] .string-line { height: 1px; }
+        .fret[data-string="1"] .string-line { height: 1.5px; }
+        .fret[data-string="2"] .string-line { height: 2px; }
+        .fret[data-string="3"] .string-line { height: 2.5px; }
+        .fret[data-string="4"] .string-line { height: 3px; }
+        .fret[data-string="5"] .string-line { height: 3.5px; }
+
+        /* フレット番号 */
+        .fret-number {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.8rem;
+            color: #888;
+            width: 100%;
+            text-align: center;
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        /* ポジションマーク */
+        .inlay {
+            position: absolute;
+            width: 14px; height: 14px; 
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 50%;
+            z-index: 0;
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            top: 100%; 
+        }
+
+        /* --- Markers --- */
+        .note-marker {
+            width: var(--marker-size);
+            height: var(--marker-size);
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; 
+        }
+
+        .note-marker.root {
+            background-color: var(--marker-root);
+            border: 2px solid #fff;
+            width: calc(var(--marker-size) + 4px);
+            height: calc(var(--marker-size) + 4px);
+            z-index: 11;
+            font-size: 0.75rem;
+        }
+
+        .note-marker.interval {
+            background-color: var(--marker-interval);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎸 ギター指板：相対度数ビジュアライザー</h1>
+
+    <div class="controls-container">
+        <div class="controls-row">
+            <button class="btn btn-reset" onclick="resetBoard()">リセット</button>
+            
+            <div class="mode-switch">
+                <label id="lbl-interval" class="active">
+                    <input type="radio" name="dispMode" value="interval" checked onchange="changeDisplayMode('interval')">
+                    <span>度数</span>
+                </label>
+                <label id="lbl-note">
+                    <input type="radio" name="dispMode" value="note" onchange="changeDisplayMode('note')">
+                    <span>実音</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="controls-row">
+            <label class="sound-switch">
+                <input type="checkbox" id="sound-enabled" onchange="toggleSound(this.checked)">
+                <span>🔊 タップ音を鳴らす</span>
+            </label>
+        </div>
+
+        <div id="root-display" class="root-display"></div>
+    </div>
+
+    <div class="status-msg" id="status-msg">指板をタップしてルート音(R)を設定してください</div>
+
+    <!-- Fretboard Area -->
+    <div class="fretboard-wrapper">
+        <div class="fretboard" id="fretboard">
+            <!-- JSでグリッドを生成 -->
+        </div>
+    </div>
+
+<script>
+    // --- Audio Context Setup ---
+    let audioCtx = null;
+    let isSoundEnabled = false; // デフォルトOFF
+    
+    // 各弦の開放弦の周波数 (1弦 E4 -> 6弦 E2)
+    const OPEN_STRING_FREQS = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41]; 
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    window.toggleSound = function(enabled) {
+        isSoundEnabled = enabled;
+        if (enabled && !audioCtx) {
+            initAudio(); // ONにしたタイミングでコンテキスト準備
+        }
+    };
+
+    function playTone(stringIndex, fret) {
+        if (!isSoundEnabled) return; // 音設定OFFなら何もしない
+        
+        initAudio();
+        
+        // 周波数計算: Base * 2^(fret/12)
+        const baseFreq = OPEN_STRING_FREQS[stringIndex];
+        const freq = baseFreq * Math.pow(2, fret / 12);
+        
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.type = 'triangle'; // 三角波
+        osc.frequency.value = freq;
+        
+        // エンベロープ
+        const now = audioCtx.currentTime;
+        const duration = 1.0;
+        
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02); // アタック
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration); // ディケイ
+        
+        osc.start(now);
+        osc.stop(now + duration);
+    }
+
+    // --- 設定 ---
+    const stringTuning = [4, 11, 7, 2, 9, 4]; // E B G D A E
+    const MAX_FRET = 12; 
+
+    // 度数名
+    const INTERVAL_NAMES = [
+        "R", "♭2", "2", "♭3", "3", "4", "♭5", "5", "♭6", "6", "♭7", "7"
+    ];
+
+    // ルート音判定用の基本音名 (ユーザー指定: 基本フラット系)
+    const ROOT_NAMES_BASE = [
+        "C", "D♭", "D", "E♭", "E", "F", 
+        "G♭", "G", "A♭", "A", "B♭", "B"
+    ];
+
+    // 音名表示用データ (シャープ系 / フラット系)
+    const NOTES_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    const NOTES_FLAT  = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+    // ♯系にするルート音のインデックス (C=0, G=7, D=2, A=9, E=4, B=11)
+    const SHARP_ROOT_INDICES = [0, 7, 2, 9, 4, 11];
+
+    // State
+    let rootNoteValue = null; 
+    let displayMode = 'interval'; // 'interval' or 'note'
+    let currentScaleType = 'flat'; // 'flat' or 'sharp'
+
+    const fretboardEl = document.getElementById('fretboard');
+    const statusMsgEl = document.getElementById('status-msg');
+    const rootDisplayEl = document.getElementById('root-display');
+    const lblInterval = document.getElementById('lbl-interval');
+    const lblNote = document.getElementById('lbl-note');
+
+    function init() {
+        renderFretboard();
+    }
+
+    function renderFretboard() {
+        fretboardEl.innerHTML = '';
+        
+        for (let s = 0; s < 6; s++) {
+            for (let f = 0; f <= MAX_FRET; f++) {
+                const cell = document.createElement('div');
+                cell.className = `fret fret-${f}`;
+                cell.dataset.string = s; 
+                cell.dataset.fret = f;
+                
+                cell.onclick = (e) => handleFretClick(s, f, cell);
+
+                const line = document.createElement('div');
+                line.className = 'string-line';
+                cell.appendChild(line);
+
+                if (s === 2 && [3, 5, 7, 9].includes(f)) {
+                     const inlay = document.createElement('div');
+                     inlay.className = 'inlay';
+                     cell.appendChild(inlay);
+                }
+                if (f === 12 && (s === 1 || s === 3)) {
+                    const inlay = document.createElement('div');
+                    inlay.className = 'inlay';
+                    cell.appendChild(inlay);
+                }
+                if (s === 5) {
+                    const num = document.createElement('div');
+                    num.className = 'fret-number';
+                    num.innerText = f;
+                    cell.appendChild(num);
+                }
+                
+                fretboardEl.appendChild(cell);
+            }
+        }
+    }
+
+    // 表示モード切り替え
+    window.changeDisplayMode = function(mode) {
+        displayMode = mode;
+        
+        // スタイル更新
+        if (mode === 'interval') {
+            lblInterval.classList.add('active');
+            lblNote.classList.remove('active');
+        } else {
+            lblInterval.classList.remove('active');
+            lblNote.classList.add('active');
+        }
+
+        // 既存のマーカーを更新
+        updateAllMarkers();
+    };
+
+    function handleFretClick(s, f, cell) {
+        // --- 音を鳴らす (設定チェックは関数内で実施) ---
+        playTone(s, f);
+
+        // --- ロジック ---
+        const clickedNoteVal = (stringTuning[s] + f) % 12;
+        const existingMarker = cell.querySelector('.note-marker');
+        
+        if (existingMarker) {
+            const wasRoot = existingMarker.classList.contains('root');
+            existingMarker.remove();
+            if (wasRoot) resetBoard();
+            return;
+        }
+
+        if (rootNoteValue === null) {
+            // --- ルート設定 ---
+            rootNoteValue = clickedNoteVal;
+            
+            // スケールタイプ判定 (指定の6音は♯系、それ以外は♭系)
+            if (SHARP_ROOT_INDICES.includes(rootNoteValue)) {
+                currentScaleType = 'sharp';
+            } else {
+                currentScaleType = 'flat';
+            }
+
+            // ルート音表示
+            const rootName = ROOT_NAMES_BASE[rootNoteValue];
+            rootDisplayEl.textContent = `Root: ${rootName}`;
+            
+            // マーカー追加
+            createMarkerInCell(cell, 0); // 0 = Interval 0 (Root)
+            
+            statusMsgEl.textContent = "他の場所をタップすると情報が表示されます";
+            statusMsgEl.style.color = "#4cc9f0";
+        } else {
+            // --- 相対音設定 ---
+            const interval = (clickedNoteVal - rootNoteValue + 12) % 12;
+            createMarkerInCell(cell, interval);
+        }
+    }
+
+    function createMarkerInCell(cell, interval) {
+        const marker = document.createElement('div');
+        // Interval 0 はルート扱い
+        const type = (interval === 0) ? 'root' : 'interval';
+        marker.className = `note-marker ${type}`;
+        marker.dataset.interval = interval; 
+        
+        // テキスト決定
+        marker.textContent = getLabelForInterval(interval);
+        
+        cell.appendChild(marker);
+    }
+
+    function updateAllMarkers() {
+        const markers = document.querySelectorAll('.note-marker');
+        markers.forEach(marker => {
+            const interval = parseInt(marker.dataset.interval);
+            marker.textContent = getLabelForInterval(interval);
+        });
+    }
+
+    function getLabelForInterval(interval) {
+        // 度数モード
+        if (displayMode === 'interval') {
+            return INTERVAL_NAMES[interval];
+        } 
+        // 音名モード
+        else {
+            if (rootNoteValue === null) return "";
+            
+            // 現在の音の実音値 (0-11)
+            const noteVal = (rootNoteValue + interval) % 12;
+            
+            // スケールタイプに応じて配列を選択
+            const names = (currentScaleType === 'sharp') ? NOTES_SHARP : NOTES_FLAT;
+            return names[noteVal];
+        }
+    }
+
+    window.resetBoard = function() {
+        const markers = document.querySelectorAll('.note-marker');
+        markers.forEach(m => m.remove());
+        
+        rootNoteValue = null;
+        rootDisplayEl.textContent = "";
+        
+        statusMsgEl.textContent = "指板をタップしてルート音(R)を設定してください";
+        statusMsgEl.style.color = "#aaa";
+    };
+
+    init();
+
+</script>
+</body>
+</html>
+
