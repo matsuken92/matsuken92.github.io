@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,54 +12,33 @@
             background-color: #f3f4f6;
             touch-action: manipulation;
         }
-
-        .note-card {
-            transition: all 0.3s ease;
-        }
-
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
-
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .custom-checkbox:checked+div {
+        .custom-checkbox:checked + div {
             background-color: #4f46e5;
             color: white;
             border-color: #4f46e5;
         }
-
+        
         /* 変化記号の装飾スタイル */
         .acc-flat {
-            border-bottom: 3px solid #9333ea;
-            /* 紫の下線 */
+            border-bottom: 3px solid #9333ea; /* 紫の下線 */
             padding-bottom: 1px;
-            color: #6b21a8;
-            /* 文字色も少し紫に */
+            color: #6b21a8; 
         }
-
         .acc-sharp {
-            border-top: 3px solid #2563eb;
-            /* 青の上線 */
+            border-top: 3px solid #2563eb; /* 青の上線 */
             padding-top: 1px;
             color: #1e40af;
-            /* 文字色も少し青に */
             display: inline-block;
-            /* border-topを綺麗に出すため */
             line-height: 1.2;
         }
-
-        /* セレクトボックスのスタイル */
+        
         select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -72,7 +50,6 @@
         }
     </style>
 </head>
-
 <body class="min-h-screen flex flex-col items-center py-8 px-4 text-gray-800">
 
     <!-- ヘッダー -->
@@ -82,16 +59,15 @@
     </header>
 
     <div class="w-full max-w-lg bg-white rounded-xl shadow-lg p-6 mb-6">
-
+        
         <!-- 共通設定エリア -->
         <div class="mb-6 border-b border-gray-100 pb-4">
             <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">共通設定</h2>
-
-            <!-- キー選択 (新規追加) -->
+            
+            <!-- キー選択 -->
             <div class="mb-4">
                 <label class="block text-xs font-bold text-gray-500 mb-1">Key (調)</label>
-                <select id="key-select"
-                    class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 font-bold">
+                <select id="key-select" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2.5 font-bold">
                     <option value="C" selected>C (ハ長調)</option>
                     <option value="Db">D♭ (変ニ長調)</option>
                     <option value="D">D (ニ長調)</option>
@@ -111,15 +87,13 @@
             <div class="flex gap-2 mb-3">
                 <label class="flex-1 cursor-pointer">
                     <input type="radio" name="exercise" value="hanon1" class="peer sr-only">
-                    <div
-                        class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
+                    <div class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
                         ハノン1
                     </div>
                 </label>
                 <label class="flex-1 cursor-pointer">
                     <input type="radio" name="exercise" value="hanon2" class="peer sr-only" checked>
-                    <div
-                        class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
+                    <div class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-sm font-bold">
                         ハノン2
                     </div>
                 </label>
@@ -129,100 +103,55 @@
             <div class="flex gap-2">
                 <label class="flex-1 cursor-pointer">
                     <input type="radio" name="direction" value="ascending" class="peer sr-only" checked>
-                    <div
-                        class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
+                    <div class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
                         上昇のみ
                     </div>
                 </label>
                 <label class="flex-1 cursor-pointer">
                     <input type="radio" name="direction" value="descending" class="peer sr-only">
-                    <div
-                        class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
+                    <div class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
                         下降のみ
                     </div>
                 </label>
                 <label class="flex-1 cursor-pointer">
                     <input type="radio" name="direction" value="both" class="peer sr-only">
-                    <div
-                        class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
+                    <div class="text-center py-2 px-2 rounded-lg border border-gray-200 bg-gray-50 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 transition-colors text-xs sm:text-sm">
                         両方
                     </div>
                 </label>
             </div>
-
-            <!-- 発話モード (新規追加) -->
-            <div class="mt-4 flex items-center">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="speech-toggle" class="sr-only peer">
-                    <div
-                        class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600">
-                    </div>
-                    <span class="ms-2 text-xs font-bold text-gray-500">発話モード (正解時に読み上げ)</span>
-                </label>
-            </div>
         </div>
-
 
         <!-- モード切替タブ -->
         <div class="flex border-b border-gray-200 mb-6">
-            <button id="tab-random"
-                class="flex-1 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors">
+            <button id="tab-random" class="flex-1 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 focus:outline-none transition-colors">
                 ランダム出題
             </button>
-            <button id="tab-manual"
-                class="flex-1 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600 border-b-2 border-transparent hover:border-gray-300 focus:outline-none transition-colors">
+            <button id="tab-manual" class="flex-1 py-2 text-sm font-medium text-gray-500 hover:text-indigo-600 border-b-2 border-transparent hover:border-gray-300 focus:outline-none transition-colors">
                 指定トレーニング
             </button>
         </div>
 
         <!-- タブコンテンツ: ランダム設定 -->
         <div id="panel-random" class="mb-6">
-            <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">出題パターン (第n音から開始)</h2>
-            <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4">
+            <h2 id="random-notes-title" class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">出題パターン</h2>
+            
+            <!-- ランダム設定用チェックボックスコンテナ (JSで生成) -->
+            <div id="random-notes-container" class="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-4">
+                <!-- 生成される要素の例:
                 <label class="cursor-pointer">
                     <input type="checkbox" name="notes" value="0" class="custom-checkbox sr-only" checked>
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ド
-                    </div>
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ド</div>
                 </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="1" class="custom-checkbox sr-only" checked>
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">レ
-                    </div>
-                </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="2" class="custom-checkbox sr-only" checked>
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ミ
-                    </div>
-                </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="3" class="custom-checkbox sr-only">
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ファ
-                    </div>
-                </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="4" class="custom-checkbox sr-only">
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ソ
-                    </div>
-                </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="5" class="custom-checkbox sr-only">
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">ラ
-                    </div>
-                </label>
-                <label class="cursor-pointer">
-                    <input type="checkbox" name="notes" value="6" class="custom-checkbox sr-only">
-                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">シ
-                    </div>
-                </label>
+                -->
             </div>
-
+            
             <div class="text-xs text-gray-400 mb-2 flex items-center justify-between">
                 <span>※全パターンが均等に出題されます</span>
                 <span id="pool-status" class="bg-gray-100 px-2 py-1 rounded">残り: -</span>
             </div>
 
-            <button id="apply-settings-btn"
-                class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg shadow transition-transform active:scale-95 text-sm">
+            <button id="apply-settings-btn" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-6 rounded-lg shadow transition-transform active:scale-95 text-sm">
                 ランダム設定反映・リセット
             </button>
         </div>
@@ -233,80 +162,58 @@
                 <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wide">パターンを選んで出題</h2>
                 <label class="inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="instant-check" class="sr-only peer">
-                    <div
-                        class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600">
-                    </div>
+                    <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                     <span class="ms-2 text-xs font-bold text-gray-700">即時答え合わせ</span>
                 </label>
             </div>
-
-            <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                <button onclick="manualQuestion(0)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">ド</button>
-                <button onclick="manualQuestion(1)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">レ</button>
-                <button onclick="manualQuestion(2)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">ミ</button>
-                <button onclick="manualQuestion(3)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">ファ</button>
-                <button onclick="manualQuestion(4)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">ソ</button>
-                <button onclick="manualQuestion(5)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">ラ</button>
-                <button onclick="manualQuestion(6)"
-                    class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all">シ</button>
+            
+            <!-- 指定トレーニング用ボタンコンテナ (JSで生成) -->
+            <div id="manual-buttons-container" class="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                <!-- 生成される要素の例:
+                <button onclick="manualQuestion(0)" class="...">ド</button>
+                -->
             </div>
-            <p class="text-xs text-gray-400 mt-2 text-center">※ド=第1音、レ=第2音...として出題されます</p>
+            <p id="manual-mode-hint" class="text-xs text-gray-400 mt-2 text-center"></p>
         </div>
 
         <!-- クイズエリア -->
         <div id="quiz-area" class="text-center relative min-h-[250px] flex flex-col justify-center">
-
+            
             <!-- 問題表示 -->
             <div id="question-container">
                 <div class="mb-2 space-x-1">
-                    <span id="key-badge"
-                        class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">
+                    <span id="key-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">
                         Key: C
                     </span>
-                    <span id="exercise-badge"
-                        class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                    <span id="exercise-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
                         ハノン2
                     </span>
-                    <span id="direction-badge"
-                        class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">
+                    <span id="direction-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-700">
                         パターン
                     </span>
                 </div>
                 <div class="text-gray-500 text-sm mb-1">開始音</div>
-                <div id="start-note"
-                    class="text-5xl sm:text-6xl font-black text-indigo-900 mb-6 min-h-[1.2em] flex items-center justify-center">
-                    ?</div>
+                <div id="start-note" class="text-5xl sm:text-6xl font-black text-indigo-900 mb-6 min-h-[1.2em] flex items-center justify-center">?</div>
             </div>
 
             <!-- アクションボタン -->
-            <button id="show-answer-btn"
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow transition-transform active:scale-95 text-lg">
+            <button id="show-answer-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg shadow transition-transform active:scale-95 text-lg">
                 正解を見る
             </button>
 
             <!-- 答え表示 (最初は非表示) -->
-            <div id="answer-container"
-                class="hidden mt-6 bg-indigo-50 p-4 sm:p-6 rounded-lg border-2 border-indigo-100 fade-in">
+            <div id="answer-container" class="hidden mt-6 bg-indigo-50 p-4 sm:p-6 rounded-lg border-2 border-indigo-100 fade-in">
                 <p class="text-xs text-indigo-500 font-bold mb-2 uppercase">Phrase</p>
-                <div id="phrase-text"
-                    class="text-xl sm:text-2xl font-bold text-gray-800 leading-relaxed tracking-wider">
+                <div id="phrase-text" class="text-xl sm:text-2xl font-bold text-gray-800 leading-relaxed tracking-wider">
                     <!-- ここに答えが入る -->
                 </div>
-
-                <button id="next-btn"
-                    class="mt-6 w-full bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-600 font-bold py-3 px-6 rounded-lg transition-transform active:scale-95">
+                
+                <button id="next-btn" class="mt-6 w-full bg-white hover:bg-gray-50 text-indigo-600 border-2 border-indigo-600 font-bold py-3 px-6 rounded-lg transition-transform active:scale-95">
                     次の問題へ
                 </button>
 
-                <!-- 記号の凡例 (移動) -->
-                <div
-                    class="mt-4 pt-4 border-t border-indigo-100 text-xs text-gray-500 flex items-center justify-center gap-4">
+                <!-- 記号の凡例 -->
+                <div class="mt-4 pt-4 border-t border-indigo-100 text-xs text-gray-500 flex items-center justify-center gap-4">
                     <span class="flex items-center"><span class="acc-flat font-bold mr-1">音</span> : ♭(フラット)</span>
                     <span class="flex items-center"><span class="acc-sharp font-bold mr-1">音</span> : ♯(シャープ)</span>
                 </div>
@@ -325,91 +232,31 @@
 
     <script>
         // 音階定義（12キー）
-        // notes: そのキーの [第1音, 第2音, ..., 第7音]
-        // a: accidental (flat/sharp/null)
         const keys = {
-            'C': {
-                name: 'C', notes: [
-                    { t: 'ド', a: null }, { t: 'レ', a: null }, { t: 'ミ', a: null }, { t: 'ファ', a: null }, { t: 'ソ', a: null }, { t: 'ラ', a: null }, { t: 'シ', a: null }
-                ]
-            },
-            'Db': {
-                name: 'D♭', notes: [
-                    { t: 'レ', a: 'flat' }, { t: 'ミ', a: 'flat' }, { t: 'ファ', a: null }, { t: 'ソ', a: 'flat' }, { t: 'ラ', a: 'flat' }, { t: 'シ', a: 'flat' }, { t: 'ド', a: null }
-                ]
-            },
-            'D': {
-                name: 'D', notes: [
-                    { t: 'レ', a: null }, { t: 'ミ', a: null }, { t: 'ファ', a: 'sharp' }, { t: 'ソ', a: null }, { t: 'ラ', a: null }, { t: 'シ', a: null }, { t: 'ド', a: 'sharp' }
-                ]
-            },
-            'Eb': {
-                name: 'E♭', notes: [
-                    { t: 'ミ', a: 'flat' }, { t: 'ファ', a: null }, { t: 'ソ', a: null }, { t: 'ラ', a: 'flat' }, { t: 'シ', a: 'flat' }, { t: 'ド', a: null }, { t: 'レ', a: null }
-                ]
-            },
-            'E': {
-                name: 'E', notes: [
-                    { t: 'ミ', a: null }, { t: 'ファ', a: 'sharp' }, { t: 'ソ', a: 'sharp' }, { t: 'ラ', a: null }, { t: 'シ', a: null }, { t: 'ド', a: 'sharp' }, { t: 'レ', a: 'sharp' }
-                ]
-            },
-            'F': {
-                name: 'F', notes: [
-                    { t: 'ファ', a: null }, { t: 'ソ', a: null }, { t: 'ラ', a: null }, { t: 'シ', a: 'flat' }, { t: 'ド', a: null }, { t: 'レ', a: null }, { t: 'ミ', a: null }
-                ]
-            },
-            'Gb': {
-                name: 'G♭', notes: [
-                    { t: 'ソ', a: 'flat' }, { t: 'ラ', a: 'flat' }, { t: 'シ', a: 'flat' }, { t: 'ド', a: 'flat' }, { t: 'レ', a: 'flat' }, { t: 'ミ', a: 'flat' }, { t: 'ファ', a: null }
-                ]
-            },
-            'G': {
-                name: 'G', notes: [
-                    { t: 'ソ', a: null }, { t: 'ラ', a: null }, { t: 'シ', a: null }, { t: 'ド', a: null }, { t: 'レ', a: null }, { t: 'ミ', a: null }, { t: 'ファ', a: 'sharp' }
-                ]
-            },
-            'Ab': {
-                name: 'A♭', notes: [
-                    { t: 'ラ', a: 'flat' }, { t: 'シ', a: 'flat' }, { t: 'ド', a: null }, { t: 'レ', a: 'flat' }, { t: 'ミ', a: 'flat' }, { t: 'ファ', a: null }, { t: 'ソ', a: null }
-                ]
-            },
-            'A': {
-                name: 'A', notes: [
-                    { t: 'ラ', a: null }, { t: 'シ', a: null }, { t: 'ド', a: 'sharp' }, { t: 'レ', a: null }, { t: 'ミ', a: null }, { t: 'ファ', a: 'sharp' }, { t: 'ソ', a: 'sharp' }
-                ]
-            },
-            'Bb': {
-                name: 'B♭', notes: [
-                    { t: 'シ', a: 'flat' }, { t: 'ド', a: null }, { t: 'レ', a: null }, { t: 'ミ', a: 'flat' }, { t: 'ファ', a: null }, { t: 'ソ', a: null }, { t: 'ラ', a: null }
-                ]
-            },
-            'B': {
-                name: 'B', notes: [
-                    { t: 'シ', a: null }, { t: 'ド', a: 'sharp' }, { t: 'レ', a: 'sharp' }, { t: 'ミ', a: null }, { t: 'ファ', a: 'sharp' }, { t: 'ソ', a: 'sharp' }, { t: 'ラ', a: 'sharp' }
-                ]
-            }
+            'C': { name: 'C', notes: [{t:'ド',a:null},{t:'レ',a:null},{t:'ミ',a:null},{t:'ファ',a:null},{t:'ソ',a:null},{t:'ラ',a:null},{t:'シ',a:null}] },
+            'Db': { name: 'D♭', notes: [{t:'レ',a:'flat'},{t:'ミ',a:'flat'},{t:'ファ',a:null},{t:'ソ',a:'flat'},{t:'ラ',a:'flat'},{t:'シ',a:'flat'},{t:'ド',a:null}] },
+            'D': { name: 'D', notes: [{t:'レ',a:null},{t:'ミ',a:null},{t:'ファ',a:'sharp'},{t:'ソ',a:null},{t:'ラ',a:null},{t:'シ',a:null},{t:'ド',a:'sharp'}] },
+            'Eb': { name: 'E♭', notes: [{t:'ミ',a:'flat'},{t:'ファ',a:null},{t:'ソ',a:null},{t:'ラ',a:'flat'},{t:'シ',a:'flat'},{t:'ド',a:null},{t:'レ',a:null}] },
+            'E': { name: 'E', notes: [{t:'ミ',a:null},{t:'ファ',a:'sharp'},{t:'ソ',a:'sharp'},{t:'ラ',a:null},{t:'シ',a:null},{t:'ド',a:'sharp'},{t:'レ',a:'sharp'}] },
+            'F': { name: 'F', notes: [{t:'ファ',a:null},{t:'ソ',a:null},{t:'ラ',a:null},{t:'シ',a:'flat'},{t:'ド',a:null},{t:'レ',a:null},{t:'ミ',a:null}] },
+            'Gb': { name: 'G♭', notes: [{t:'ソ',a:'flat'},{t:'ラ',a:'flat'},{t:'シ',a:'flat'},{t:'ド',a:'flat'},{t:'レ',a:'flat'},{t:'ミ',a:'flat'},{t:'ファ',a:null}] },
+            'G': { name: 'G', notes: [{t:'ソ',a:null},{t:'ラ',a:null},{t:'シ',a:null},{t:'ド',a:null},{t:'レ',a:null},{t:'ミ',a:null},{t:'ファ',a:'sharp'}] },
+            'Ab': { name: 'A♭', notes: [{t:'ラ',a:'flat'},{t:'シ',a:'flat'},{t:'ド',a:null},{t:'レ',a:'flat'},{t:'ミ',a:'flat'},{t:'ファ',a:null},{t:'ソ',a:null}] },
+            'A': { name: 'A', notes: [{t:'ラ',a:null},{t:'シ',a:null},{t:'ド',a:'sharp'},{t:'レ',a:null},{t:'ミ',a:null},{t:'ファ',a:'sharp'},{t:'ソ',a:'sharp'}] },
+            'Bb': { name: 'B♭', notes: [{t:'シ',a:'flat'},{t:'ド',a:null},{t:'レ',a:null},{t:'ミ',a:'flat'},{t:'ファ',a:null},{t:'ソ',a:null},{t:'ラ',a:null}] },
+            'B': { name: 'B', notes: [{t:'シ',a:null},{t:'ド',a:'sharp'},{t:'レ',a:'sharp'},{t:'ミ',a:null},{t:'ファ',a:'sharp'},{t:'ソ',a:'sharp'},{t:'ラ',a:'sharp'}] }
         };
 
-        // ハノンのパターン定義 (度数: 0=第1音, 1=第2音... 6=第7音)
-        // 配列の値は、そのフレーズの相対的な動きを表す
         const patterns = {
             hanon1: {
                 name: 'ハノン1',
-                // 上昇: 1-3-4-5 6-5-4-3 (ドミファソ ラソファミ) -> Base=0, Index=[0, 2, 3, 4, 5, 4, 3, 2]
                 asc: [0, 2, 3, 4, 5, 4, 3, 2],
-                // 下降: 5-3-2-1 7-1-2-3 (ソミレド シドレミ) 
-                // 開始音オフセット: +4 (ドに対してソ)
-                // パターン: 開始音からの相対 [0, -2, -3, -4, -5, -4, -3, -2]
                 desc: [0, -2, -3, -4, -5, -4, -3, -2],
                 descOffset: 4
             },
             hanon2: {
                 name: 'ハノン2',
-                // 上昇: 1-3-6-5 4-5-4-3 (ドミラソ ファソファミ) -> Base=0, Index=[0, 2, 5, 4, 3, 4, 3, 2]
                 asc: [0, 2, 5, 4, 3, 4, 3, 2],
-                // 下降: 5-2-7-1 2-1-2-3 (ソレシド レドレミ)
-                // 開始音オフセット: +4 (ドに対してソ)
-                // パターン: 開始音からの相対 [0, -3, -5, -4, -3, -4, -3, -2]
                 desc: [0, -3, -5, -4, -3, -4, -3, -2],
                 descOffset: 4
             }
@@ -430,66 +277,80 @@
         const errorMessageEl = document.getElementById('error-message');
         const poolStatusEl = document.getElementById('pool-status');
         const instantCheckEl = document.getElementById('instant-check');
-        const speechToggleEl = document.getElementById('speech-toggle');
+        
+        const randomNotesContainer = document.getElementById('random-notes-container');
+        const manualButtonsContainer = document.getElementById('manual-buttons-container');
+        const manualModeHint = document.getElementById('manual-mode-hint');
 
-        // タブ要素
         const tabRandom = document.getElementById('tab-random');
         const tabManual = document.getElementById('tab-manual');
         const panelRandom = document.getElementById('panel-random');
         const panelManual = document.getElementById('panel-manual');
 
-        // 設定入力要素
         const exerciseRadios = document.getElementsByName('exercise');
         const directionRadios = document.getElementsByName('direction');
-        const noteCheckboxes = document.getElementsByName('notes');
 
         // 状態管理
         let currentQuestion = null;
-        let currentMode = 'random'; // 'random' or 'manual'
-        let questionPool = [];
-        let lastSettingsJSON = '';
+        let currentMode = 'random';
+        let questionPool = []; 
+        let lastSettingsJSON = ''; 
+        // 選択されている音のインデックスを保持（再描画時の復元用）
+        let selectedNoteIndices = new Set([0, 1, 2]); // 初期値: ドレミ
 
         // 初期化
         function init() {
             showAnswerBtn.addEventListener('click', showAnswer);
             nextBtn.addEventListener('click', handleNextQuestion);
             applySettingsBtn.addEventListener('click', forceResetRandom);
-
-            // タブ切り替え
+            
             tabRandom.addEventListener('click', () => switchMode('random'));
             tabManual.addEventListener('click', () => switchMode('manual'));
 
-            // 設定変更監視
             const commonInputs = [...exerciseRadios, ...directionRadios, keySelect];
             commonInputs.forEach(input => {
-                input.addEventListener('change', () => {
+                input.addEventListener('change', (e) => {
+                    // 方向変更時にデフォルト選択を変更する処理を追加
+                    if (e.target.name === 'direction') {
+                        setDefaultSelectionByDirection();
+                    }
+                    renderControlPanels(); // 設定変更時はUIを再描画
                     if (currentMode === 'random') {
                         forceResetRandom();
                     }
-                    // manualモード時は何もしない
                 });
             });
 
-            // 初回ロード
+            // 初期描画
+            renderControlPanels();
             forceResetRandom();
         }
 
-        // シャッフル
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        // 方向に応じたデフォルト選択を設定
+        function setDefaultSelectionByDirection() {
+            let direction = 'ascending';
+            for (const radio of directionRadios) {
+                if (radio.checked) {
+                    direction = radio.value;
+                    break;
+                }
             }
-            return array;
+
+            if (direction === 'descending') {
+                // 下降モード: ソ(0), ファ(6), ミ(5)
+                // ※並び順がソ・ファ・ミ...となっているため、これらが左端の3つになります
+                selectedNoteIndices = new Set([0, 6, 5]);
+            } else {
+                // 上昇・両方モード: ド(0), レ(1), ミ(2)
+                selectedNoteIndices = new Set([0, 1, 2]);
+            }
         }
 
-        // HTML生成ヘルパー: 音符と装飾
+        // HTML生成ヘルパー
         function getNoteHTML(keyKey, scaleIndex) {
-            // scaleIndexは 0-6の範囲に正規化する
-            // 負の値や7以上が来てもループするように
             const normalizedIndex = ((scaleIndex % 7) + 7) % 7;
             const noteData = keys[keyKey].notes[normalizedIndex];
-
+            
             let html = noteData.t;
             if (noteData.a === 'flat') {
                 html = `<span class="acc-flat">${html}</span>`;
@@ -499,10 +360,79 @@
             return html;
         }
 
-        // 設定取得
-        function getAllSettings() {
+        // コントロールパネルの動的生成
+        function renderControlPanels() {
+            const settings = getAllSettings(true); // true = UI生成前なのでDOMからは取得しない部分がある
+            const isDescendingOnly = settings.direction === 'descending';
+            const offset = (isDescendingOnly) ? 4 : 0; // 下降時は+4のオフセットで表示ラベルを計算
+
+            // 並び順の決定
+            // 通常: [0, 1, 2, 3, 4, 5, 6] (第1音〜第7音)
+            // 下降のみ: [0, 6, 5, 4, 3, 2, 1] 
+            // ※index 0のボタンは「ド」の位置(第1音)にあるが、下降時はStart音=ソ(第5音)になる。
+            // ユーザー要望「ソファミレドシラ」にするために、
+            // 「ソが出るボタン」を先頭に、「ファが出るボタン」を次に...と並べる。
+            // 「ソが出るボタン」は index=0 (start=0+4=4=Sol)
+            // 「ファが出るボタン」は index=6 (start=6+4=10->3=Fa)
+            const order = isDescendingOnly 
+                ? [0, 6, 5, 4, 3, 2, 1] 
+                : [0, 1, 2, 3, 4, 5, 6];
+
+            // 1. ランダム設定用チェックボックスの生成
+            randomNotesContainer.innerHTML = '';
+            order.forEach(idx => {
+                const startNoteIndex = (idx + offset) % 7;
+                const labelHTML = getNoteHTML(settings.key, startNoteIndex);
+                const isChecked = selectedNoteIndices.has(idx) ? 'checked' : '';
+
+                const label = document.createElement('label');
+                label.className = 'cursor-pointer';
+                label.innerHTML = `
+                    <input type="checkbox" name="notes" value="${idx}" class="custom-checkbox sr-only" ${isChecked}>
+                    <div class="text-center py-2 rounded border border-gray-300 font-bold transition-colors text-sm">${labelHTML}</div>
+                `;
+                
+                // チェック変更時にSetを更新
+                label.querySelector('input').addEventListener('change', (e) => {
+                    const val = parseInt(e.target.value);
+                    if (e.target.checked) {
+                        selectedNoteIndices.add(val);
+                    } else {
+                        selectedNoteIndices.delete(val);
+                    }
+                });
+                
+                randomNotesContainer.appendChild(label);
+            });
+
+            // 2. 指定トレーニング用ボタンの生成
+            manualButtonsContainer.innerHTML = '';
+            order.forEach(idx => {
+                const startNoteIndex = (idx + offset) % 7;
+                const labelHTML = getNoteHTML(settings.key, startNoteIndex);
+                
+                const btn = document.createElement('button');
+                // buttonのtype="button"を明示しないとフォームサブミットされる可能性があるため念のため
+                btn.type = 'button';
+                btn.className = 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 rounded border border-indigo-200 active:scale-95 transition-all';
+                btn.innerHTML = labelHTML;
+                btn.onclick = () => manualQuestion(idx);
+                
+                manualButtonsContainer.appendChild(btn);
+            });
+
+            // ヒント文の更新
+            if (isDescendingOnly) {
+                manualModeHint.textContent = "※表示されている音から始まる下降フレーズが出題されます";
+            } else {
+                manualModeHint.textContent = "※ド=第1音、レ=第2音...として出題されます";
+            }
+        }
+
+        // 設定取得 (skipNoteCheck: UI生成前はチェックボックスが無いのでスキップ)
+        function getAllSettings(skipNoteCheck = false) {
             const key = keySelect.value;
-            let exercise = 'hanon2';
+            let exercise = 'hanon2'; 
             for (const radio of exerciseRadios) {
                 if (radio.checked) {
                     exercise = radio.value;
@@ -518,54 +448,39 @@
                 }
             }
 
-            const selectedNotes = []; // ここにはインデックス(0-6)が入る
-            for (const cb of noteCheckboxes) {
-                if (cb.checked) {
-                    selectedNotes.push(parseInt(cb.value));
-                }
+            let selectedNotes = [];
+            if (!skipNoteCheck) {
+                // DOMから取得せず、同期しているSetから取得する（再描画対策）
+                selectedNotes = Array.from(selectedNoteIndices);
             }
 
             return { key, exercise, direction, selectedNotes };
         }
 
-        // フレーズ生成ロジック
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function generatePhraseData(settings, noteIndex, type) {
             const exerciseData = patterns[settings.exercise];
             const patternArr = (type === 'ascending') ? exerciseData.asc : exerciseData.desc;
-
-            // 開始音の決定
-            // 上昇: 選択した音そのもの (noteIndex)
-            // 下降: 選択した音 + オフセット (noteIndex + offset)
+            
             let startIndex = noteIndex;
             if (type === 'descending') {
                 startIndex = (noteIndex + exerciseData.descOffset) % 7;
             }
 
-            // フレーズHTML配列の生成
             const phraseParts = patternArr.map(relative => {
                 const targetIndex = startIndex + relative;
                 return getNoteHTML(settings.key, targetIndex);
             });
 
-            // 表示用に分割 (前半4音、後半4音)
             const firstHalf = phraseParts.slice(0, 4).join('');
             const secondHalf = phraseParts.slice(4).join('');
-
-            // 発話用テキスト生成
-            // 単純に音名をつなげる (例: "レファシラ ソラソファ")
-            const firstHalfSpeech = patternArr.slice(0, 4).map(relative => {
-                const targetIndex = startIndex + relative;
-                const normalizedIndex = ((targetIndex % 7) + 7) % 7;
-                return keys[settings.key].notes[normalizedIndex].t;
-            }).join('');
-
-            const secondHalfSpeech = patternArr.slice(4).map(relative => {
-                const targetIndex = startIndex + relative;
-                const normalizedIndex = ((targetIndex % 7) + 7) % 7;
-                return keys[settings.key].notes[normalizedIndex].t;
-            }).join('');
-
-            const speechText = `${firstHalfSpeech} ${secondHalfSpeech}`;
 
             return {
                 exerciseName: exerciseData.name,
@@ -578,12 +493,10 @@
                                 <span class="text-indigo-400 font-bold">⇒</span>
                                 <span class="whitespace-nowrap font-bold text-lg sm:text-2xl">${secondHalf}</span>
                             </div>`,
-                label: type === 'ascending' ? '上昇パターン' : '下降パターン',
-                speechText: speechText
+                label: type === 'ascending' ? '上昇パターン' : '下降パターン'
             };
         }
 
-        // プール生成
         function createQuestionPool(settings) {
             let newPool = [];
 
@@ -609,9 +522,12 @@
             generateRandomQuestion(true);
         }
 
-        // ランダム出題
         function generateRandomQuestion(forceReset = false) {
             const settings = getAllSettings();
+            // JSON stringifyの際、Setは空になるのでArrayにしてから比較が必要だが
+            // settings.selectedNotesは既にArrayになっている。
+            // ただし並び順が保証されないと等価比較できないのでソートする
+            settings.selectedNotes.sort(); 
             const currentSettingsJSON = JSON.stringify(settings);
 
             if (forceReset || currentSettingsJSON !== lastSettingsJSON) {
@@ -647,17 +563,16 @@
             }
         }
 
-        // 手動出題 (noteIndex: 0-6)
-        window.manualQuestion = function (noteIndex) {
+        window.manualQuestion = function(noteIndex) {
             const settings = getAllSettings();
-
+            
             let targetDirection = settings.direction;
             if (settings.direction === 'both') {
                 targetDirection = Math.random() < 0.5 ? 'ascending' : 'descending';
             }
 
             const questionData = generatePhraseData(settings, noteIndex, targetDirection);
-
+            
             currentQuestion = questionData;
             showAnswerBtn.disabled = false;
             showAnswerBtn.textContent = '正解を見る';
@@ -668,7 +583,6 @@
             }
         };
 
-        // 描画
         function renderQuestion() {
             if (!currentQuestion) return;
 
@@ -678,7 +592,7 @@
             startNoteEl.innerHTML = currentQuestion.startNoteHTML;
             exerciseBadgeEl.textContent = currentQuestion.exerciseName;
             keyBadgeEl.textContent = `Key: ${currentQuestion.keyName}`;
-
+            
             directionBadgeEl.textContent = currentQuestion.label;
             if (currentQuestion.type === 'ascending') {
                 directionBadgeEl.className = 'inline-block px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700';
@@ -687,7 +601,6 @@
             }
         }
 
-        // 正解表示
         function showAnswer() {
             if (!currentQuestion) return;
 
@@ -695,36 +608,14 @@
 
             showAnswerBtn.classList.add('hidden');
             answerContainer.classList.remove('hidden');
-
+            
             if (currentMode === 'manual') {
                 nextBtn.classList.add('hidden');
             } else {
                 nextBtn.classList.remove('hidden');
             }
-            if (currentMode === 'manual') {
-                nextBtn.classList.add('hidden');
-            } else {
-                nextBtn.classList.remove('hidden');
-            }
-
-            // 発話
-            if (speechToggleEl.checked) {
-                speakPhrase(currentQuestion.speechText);
-            }
         }
 
-        // 音声合成
-        function speakPhrase(text) {
-            if (!window.speechSynthesis) return;
-
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'ja-JP';
-            utterance.rate = 1.0; // 標準速度
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // モード切替
         function switchMode(mode) {
             currentMode = mode;
             if (mode === 'random') {
@@ -732,7 +623,7 @@
                 tabRandom.classList.remove('text-gray-500', 'border-transparent', 'font-medium');
                 tabManual.classList.remove('text-indigo-600', 'border-indigo-600', 'font-bold');
                 tabManual.classList.add('text-gray-500', 'border-transparent', 'font-medium');
-
+                
                 panelRandom.classList.remove('hidden');
                 panelManual.classList.add('hidden');
                 forceResetRandom();
@@ -744,7 +635,7 @@
 
                 panelManual.classList.remove('hidden');
                 panelRandom.classList.add('hidden');
-
+                
                 currentQuestion = null;
                 startNoteEl.textContent = '-';
                 answerContainer.classList.add('hidden');
@@ -758,5 +649,4 @@
 
     </script>
 </body>
-
 </html>
