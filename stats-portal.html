@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統計検定1級 学習ポータル</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f3f4f6; /* 落ち着いたグレーの背景 */
+        }
+        /* ホバー時のカード浮き上がりアニメーション */
+        .card-hover {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+
+    <!-- メインコンテナ -->
+    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+        
+        <!-- 全体のラッパー -->
+        <div class="max-w-4xl w-full">
+            
+            <!-- ヘッダー部分 -->
+            <header class="text-center mb-12">
+                <div class="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full mb-4">
+                    Statistics Certification Prep
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 tracking-tight">統計検定1級 学習ポータル</h1>
+                <p class="text-gray-600 text-lg">日々の公式確認・暗記学習の起点としてご活用ください。</p>
+            </header>
+
+            <!-- リンクカードのグリッド -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- 統計学公式 リンクカード -->
+                <a href="https://matsuken92.github.io/statistics-formula/" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-8 card-hover relative overflow-hidden group">
+                    <!-- 上部のアクセントカラー -->
+                    <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                    
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 text-3xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-3">統計学 公式暗記ツール</h2>
+                        <p class="text-gray-600 leading-relaxed">
+                            確率分布、推定、検定など、統計学特有の諸公式を確認・反復練習するためのツールです。
+                        </p>
+                    </div>
+                    <!-- 矢印アイコン -->
+                    <div class="absolute bottom-6 right-6 text-gray-300 group-hover:text-blue-500 transition-colors duration-300">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <!-- 数学公式 リンクカード -->
+                <a href="https://matsuken92.github.io/statistics-math-formula/" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-8 card-hover relative overflow-hidden group">
+                    <!-- 上部のアクセントカラー -->
+                    <div class="absolute top-0 left-0 w-full h-2 bg-emerald-500"></div>
+                    
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 text-3xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-square-root-variable"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-800 mb-3">数学 公式暗記ツール</h2>
+                        <p class="text-gray-600 leading-relaxed">
+                            微積分、線形代数、特殊関数など、統計学の深い理解と数理的展開に必須となる数学公式のツールです。
+                        </p>
+                    </div>
+                    <!-- 矢印アイコン -->
+                    <div class="absolute bottom-6 right-6 text-gray-300 group-hover:text-emerald-500 transition-colors duration-300">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+
+            </div>
+
+            <!-- フッター -->
+            <footer class="text-center mt-16 text-gray-400 text-sm">
+                <p>継続は力なり。統計検定1級合格に向けて頑張ってください！</p>
+            </footer>
+
+        </div>
+    </div>
+
+</body>
+</html>
