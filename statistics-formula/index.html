@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,37 +10,102 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
-        .card-flip { perspective: 1000px; }
-        .card-inner { transition: transform 0.4s; transform-style: preserve-3d; cursor: pointer; }
-        .card-inner.is-flipped { transform: rotateY(180deg); }
-        .card-front, .card-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.5rem; }
-        .card-back { transform: rotateY(180deg); }
-        .math-tight .katex-display { margin: 0.3em 0; }
-        .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
-        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        .animate-pop { animation: pop 0.3s ease-out; }
-        .modal-overlay { background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); }
+        .card-flip {
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            transition: transform 0.4s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.5rem;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .math-tight .katex-display {
+            margin: 0.3em 0;
+        }
+
+        .tap-highlight-none {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-pop {
+            animation: pop 0.3s ease-out;
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
         /* Custom Scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800 min-h-screen font-sans selection:bg-indigo-100 selection:text-indigo-900">
 
     <div class="max-w-xl mx-auto px-4 py-6">
         <!-- Progress Header -->
-        <header class="bg-white rounded-3xl shadow-sm p-6 mb-6 text-center border border-slate-100 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+        <header
+            class="bg-white rounded-3xl shadow-sm p-6 mb-6 text-center border border-slate-100 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+            </div>
             <h1 class="text-xl font-black text-slate-800 mb-1 tracking-tight">統計検定1級 究極暗記マスター</h1>
             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-4">Complete Edition V4.1</p>
-            
+
             <div class="flex flex-col items-center">
-                <div class="text-4xl font-mono font-black text-indigo-600 tracking-tighter" id="progress-ratio">0 / 0</div>
-                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Mastered / Total in Scope</div>
+                <div class="text-4xl font-mono font-black text-indigo-600 tracking-tighter" id="progress-ratio">0 / 0
+                </div>
+                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Mastered / Total in
+                    Scope</div>
                 <div class="w-full bg-slate-100 h-3 rounded-full mt-4 overflow-hidden ring-1 ring-slate-200">
-                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                    <div id="progress-bar"
+                        class="bg-gradient-to-r from-indigo-500 to-purple-600 h-full transition-all duration-700 ease-out"
+                        style="width: 0%"></div>
                 </div>
             </div>
         </header>
@@ -51,8 +117,10 @@
                     <span class="w-2 h-2 bg-indigo-500 rounded-full mr-2"></span>Target Scope
                 </h2>
                 <div class="flex gap-2">
-                    <button onclick="toggleListView()" class="text-[10px] text-indigo-600 font-bold px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 transition-colors">全リスト表示</button>
-                    <button onclick="resetAll()" class="text-[10px] text-rose-500 font-bold px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 transition-colors">リセット</button>
+                    <button onclick="toggleListView()"
+                        class="text-[10px] text-indigo-600 font-bold px-3 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 transition-colors">全リスト表示</button>
+                    <button onclick="resetAll()"
+                        class="text-[10px] text-rose-500 font-bold px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 transition-colors">リセット</button>
                 </div>
             </div>
             <div id="category-filters" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -63,39 +131,52 @@
         <!-- Flashcard Area -->
         <div id="deck-container" class="relative z-10">
             <div id="card-area" class="card-flip w-full h-[580px] mb-8 tap-highlight-none">
-                <div id="flashcard" class="card-inner relative w-full h-full shadow-2xl bg-white rounded-[2rem] border border-slate-200/60 group">
+                <div id="flashcard"
+                    class="card-inner relative w-full h-full shadow-2xl bg-white rounded-[2rem] border border-slate-200/60 group">
                     <!-- Front -->
-                    <div class="card-front absolute inset-0 p-8 flex flex-col items-center justify-center text-center bg-white rounded-[2rem]">
-                        <span id="card-category" class="absolute top-6 left-6 text-[10px] font-black px-3 py-1 bg-slate-100 text-slate-500 rounded-full uppercase tracking-tighter">CATEGORY</span>
+                    <div
+                        class="card-front absolute inset-0 p-8 flex flex-col items-center justify-center text-center bg-white rounded-[2rem]">
+                        <span id="card-category"
+                            class="absolute top-6 left-6 text-[10px] font-black px-3 py-1 bg-slate-100 text-slate-500 rounded-full uppercase tracking-tighter">CATEGORY</span>
                         <div class="flex-1 flex items-center justify-center w-full">
-                            <div id="card-question" class="text-2xl font-bold leading-relaxed text-slate-800 break-words w-full">
+                            <div id="card-question"
+                                class="text-2xl font-bold leading-relaxed text-slate-800 break-words w-full">
                                 読み込み中...
                             </div>
                         </div>
-                        <p class="absolute bottom-8 text-[10px] text-slate-300 font-bold tracking-[0.2em] uppercase animate-pulse">Tap to Flip</p>
+                        <p
+                            class="absolute bottom-8 text-[10px] text-slate-300 font-bold tracking-[0.2em] uppercase animate-pulse">
+                            Tap to Flip</p>
                     </div>
                     <!-- Back -->
-                    <div class="card-back absolute inset-0 p-6 flex flex-col items-center justify-start text-center bg-gradient-to-br from-indigo-50 to-white rounded-[2rem] overflow-hidden">
-                        <div class="w-full h-full overflow-y-auto custom-scroll pr-1 flex flex-col items-center pt-8 pb-16">
-                            <div id="card-answer" class="text-lg leading-relaxed text-indigo-900 w-full math-tight text-left px-2 mb-8">
+                    <div
+                        class="card-back absolute inset-0 p-6 flex flex-col items-center justify-start text-center bg-gradient-to-br from-indigo-50 to-white rounded-[2rem] overflow-hidden">
+                        <div
+                            class="w-full h-full overflow-y-auto custom-scroll pr-1 flex flex-col items-center pt-8 pb-16">
+                            <div id="card-answer"
+                                class="text-lg leading-relaxed text-indigo-900 w-full math-tight text-left px-2 mb-8">
                                 ANSWER
                             </div>
-                            <button id="exp-btn" class="w-full bg-white border border-indigo-100 text-indigo-600 text-xs font-bold px-6 py-4 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex items-center justify-center gap-2 group">
+                            <button id="exp-btn"
+                                class="w-full bg-white border border-indigo-100 text-indigo-600 text-xs font-bold px-6 py-4 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-300 transition-all flex items-center justify-center gap-2 group">
                                 <span>📚 解説と覚え方を見る</span>
                                 <span class="group-hover:translate-x-1 transition-transform">→</span>
                             </button>
                         </div>
-                        <p class="absolute bottom-4 text-[9px] text-indigo-200 font-bold tracking-widest uppercase">Tap to return</p>
+                        <p class="absolute bottom-4 text-[9px] text-indigo-200 font-bold tracking-widest uppercase">Tap
+                            to return</p>
                     </div>
                 </div>
             </div>
 
             <!-- Complete State -->
-            <div id="complete-view" class="hidden w-full h-[500px] bg-white rounded-[2rem] shadow-xl flex flex-col items-center justify-center text-center p-8 border-4 border-dashed border-indigo-100">
+            <div id="complete-view"
+                class="hidden w-full h-[500px] bg-white rounded-[2rem] shadow-xl flex flex-col items-center justify-center text-center p-8 border-4 border-dashed border-indigo-100">
                 <div class="text-7xl mb-6">🎉</div>
                 <h2 class="text-3xl font-black text-slate-800 mb-2">コンプリート！</h2>
                 <p class="text-sm text-slate-500 mb-8 font-medium">選択した範囲の公式をすべて習得しました。</p>
-                <button onclick="resetCurrentScope()" class="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all">
+                <button onclick="resetCurrentScope()"
+                    class="bg-indigo-600 text-white px-10 py-4 rounded-full font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all">
                     この範囲を復習する
                 </button>
             </div>
@@ -103,11 +184,13 @@
 
         <!-- Decision Buttons -->
         <div id="action-buttons" class="grid grid-cols-2 gap-4 max-w-lg mx-auto">
-            <button id="wrong-btn" class="bg-white border-2 border-slate-200 text-slate-500 py-5 rounded-2xl font-black shadow-sm active:scale-95 transition-all hover:bg-slate-50 hover:border-slate-300 flex flex-col items-center justify-center gap-1">
+            <button id="wrong-btn"
+                class="bg-white border-2 border-slate-200 text-slate-500 py-5 rounded-2xl font-black shadow-sm active:scale-95 transition-all hover:bg-slate-50 hover:border-slate-300 flex flex-col items-center justify-center gap-1">
                 <span class="text-lg">✕</span>
                 <span class="text-[10px] uppercase tracking-wider">Review Later</span>
             </button>
-            <button id="correct-btn" class="bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-indigo-200 active:scale-95 transition-all hover:bg-indigo-700 flex flex-col items-center justify-center gap-1">
+            <button id="correct-btn"
+                class="bg-indigo-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-indigo-200 active:scale-95 transition-all hover:bg-indigo-700 flex flex-col items-center justify-center gap-1">
                 <span class="text-lg">◯</span>
                 <span class="text-[10px] uppercase tracking-wider opacity-80">Mastered</span>
             </button>
@@ -116,18 +199,21 @@
 
     <!-- Explanation Modal -->
     <div id="exp-modal" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col relative overflow-hidden ring-1 ring-black/5">
+        <div
+            class="bg-white w-full max-w-xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col relative overflow-hidden ring-1 ring-black/5">
             <div class="p-6 border-b border-slate-100 bg-white sticky top-0 z-10 flex justify-between items-center">
                 <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
                     <span class="text-indigo-500">⚡</span>数式の徹底解剖
                 </h3>
-                <button onclick="closeExpModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors font-bold">&times;</button>
+                <button onclick="closeExpModal()"
+                    class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors font-bold">&times;</button>
             </div>
             <div id="exp-content" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll bg-slate-50/50">
                 <!-- JS Injected -->
             </div>
             <div class="p-4 bg-white border-t border-slate-100 sticky bottom-0 z-10">
-                <button onclick="closeExpModal()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold active:scale-[0.98] transition-transform shadow-lg shadow-indigo-100">
+                <button onclick="closeExpModal()"
+                    class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold active:scale-[0.98] transition-transform shadow-lg shadow-indigo-100">
                     理解した！
                 </button>
             </div>
@@ -136,13 +222,15 @@
 
     <!-- List View Modal -->
     <div id="list-view-modal" class="fixed inset-0 z-[100] hidden modal-overlay flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-3xl h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative">
+        <div
+            class="bg-white w-full max-w-3xl h-[90vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden relative">
             <header class="p-6 border-b border-slate-100 bg-white flex justify-between items-center sticky top-0 z-10">
                 <div>
                     <h2 class="font-black text-xl text-slate-800">全暗記項目リスト</h2>
                     <p class="text-[10px] text-slate-400 font-bold mt-1">COMPLETE LIST</p>
                 </div>
-                <button onclick="toggleListView()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors text-xl font-bold">&times;</button>
+                <button onclick="toggleListView()"
+                    class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors text-xl font-bold">&times;</button>
             </header>
             <div id="list-content" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50 custom-scroll"></div>
         </div>
@@ -150,229 +238,11 @@
 
     <script>
         // --- 究極の暗記データセット (画像内容完全網羅 + 詳細解説) ---
-        const masterData = [
-            // --- 0. 基礎 (画像 0.1-0.4) ---
-            { 
-                id: 1, cat: "0.基礎", 
-                q: "期待値・分散・共分散の基本恒等式", 
-                a: "$E[aX+b] = aE[X]+b$\n$Var(X) = E[X^2] - \\{E[X]\\}^2$\n$Var(aX+b) = a^2 Var(X)$\n$Cov(X,Y) = E[XY] - E[X]E[Y]$\n$Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y)$", 
-                exp: "【読み方】期待値は線形（a倍してb足す）。分散は定数項bを無視し、係数aを2乗して出す。共分散は「積の平均ひく平均の積」。和の分散は展開公式のように「2倍の共分散」がつく。\n\n【意味と汲み取り】期待値は「重心（位置）」なのでズレも拡大も反映する。分散は「広がり」なので平行移動しても変わらず、拡大すると面積的に2乗で効く。共分散は2変数の「連動性」を示す。\n\n【深掘り】1級では独立でない $X, Y$ の和の分散計算が頻出。$X, Y$ が独立なら $Cov(X,Y)=0$ となりピタゴラスの定理のように $V(X+Y)=V(X)+V(Y)$ が成り立つが、一般には成り立たない点に注意。",
-                mnem: "「期待は素直、分散はシカトして2乗。和の分散は展開公式」"
-            },
-            { 
-                id: 2, cat: "0.基礎", 
-                q: "条件付き期待値・分散 (塔の法則)", 
-                a: "$E[X] = E[E[X|Y]]$\n$Var(X) = E[Var(X|Y)] + Var(E[X|Y])$", 
-                exp: "【読み方】Xの期待値は「Yで条件付けた期待値」のさらに期待値。Xの分散は「条件付き分散の平均」たす「条件付き平均の分散」。\n\n【意味と汲み取り】複雑な確率変数Xを、扱いやすい条件Yで層別化して計算するテクニック。分散の式は「グループ内のバラつきの平均」＋「グループ間の平均値のバラつき」と解釈できる。\n\n【深掘り】混合分布（例：コインを投げて表なら正規分布A、裏なら正規分布Bに従う）の計算で必須。直接計算が困難な場合、まず条件付き期待値を計算してから全体に戻す。",
-                mnem: "「バラつきの分解：内なる平均(EV)、外なる個性(VE)」"
-            },
-            { 
-                id: 3, cat: "0.基礎", 
-                q: "ベイズの定理 & 条件付き密度", 
-                a: "$P(A|B) = \\frac{P(B|A)P(A)}{P(B)}$\n$f_{X|Y}(x|y) = \\frac{f_{X,Y}(x,y)}{f_Y(y)}$", 
-                exp: "【読み方】事後確率は尤度×事前確率に比例する。条件付き密度は同時密度を周辺密度で割ったもの。\n\n【意味と汲み取り】結果Bが得られた後に、原因Aの確率を更新する式。条件付き密度は、同時分布の「断面」を切り取り、その面積が1になるよう再正規化したもの。\n\n【深掘り】統計検定1級では、同時密度 $f(x,y)$ から周辺密度 $f(y)$ を積分で求め、その比として条件付き密度を導出する流れが頻出。",
-                mnem: "「事後＝尤度×事前。条件付きは同時÷周辺（知ってる方を分母へ）」"
-            },
-            { 
-                id: 4, cat: "0.基礎", 
-                q: "変数変換 (ヤコビアン)", 
-                a: "1次元: $f_Y(y) = f_X(x(y)) \\left|\\frac{dx}{dy}\\right|$\n多次元: $f_{\\mathbf{Y}}(\\mathbf{y}) = f_{\\mathbf{X}}(\\mathbf{x}(\\mathbf{y})) |\\det \\frac{\\partial \\mathbf{x}}{\\partial \\mathbf{y}}|$", 
-                exp: "【読み方】新密度は旧密度に関数を代入し、ヤコビ行列式の絶対値をかけたもの。\n\n【意味と汲み取り】確率の総和を1に保つための「空間の歪み補正係数」。変数を変換すると微小体積が変わるため、それを補正する。\n\n【深掘り】極座標変換 ($dx dy = r dr d\\theta$) や正規分布の線形変換で必須。手順は(1)旧変数を新変数で書く、(2)偏微分して行列式を計算、(3)絶対値をかけて代入。定義域の変換も忘れずに。",
-                mnem: "「新世界への入国税(ヤコビアン)。xをyで書いてから微分して絶対値！」"
-            },
-
-            // --- 1. 極限 (画像 1) ---
-            { 
-                id: 5, cat: "1.極限", 
-                q: "大数の法則・中心極限定理(CLT)", 
-                a: "LLN: $\\bar{X} \\xrightarrow{P} \\mu$\nCLT: $\\sqrt{n} \\frac{\\bar{X}-\\mu}{\\sigma} \\xrightarrow{d} N(0, 1)$", 
-                exp: "【読み方】標本平均は真の平均に確率収束する。標本平均の誤差をルートn倍すると標準正規分布に法則収束する。\n\n【意味】データが増えれば真実に近づく(LLN)。どんな分布でも（分散があれば）平均値の分布は正規分布になる(CLT)。\n\n【深掘り】統計的推測の根拠。漸近的な検定や信頼区間はすべてCLTに依存している。分母に $\\sqrt{n}$ があるのは、分散が $1/n$ で縮むのを引き伸ばして分布を固定するため。",
-                mnem: "「ルートn倍で誤差が正規化。最後はみんな正規分布」"
-            },
-            { 
-                id: 6, cat: "1.極限", 
-                q: "デルタ法 & Slutskyの定理", 
-                a: "Delta: $\\sqrt{n}(g(T) - g(\\theta)) \\Rightarrow N(0, \\{g'(\\theta)\\}^2 V)$\nSlutsky: $X_n \\Rightarrow X, Y_n \\to c \\implies X_n Y_n \\Rightarrow cX$", 
-                exp: "【読み方】関数の分散は、元の分散×微分の2乗。収束する変数は定数扱いしてよい。\n\n【意味】推定量の関数（例：対数オッズ）の分布を近似する手法。テイラー展開の1次近似に基づく。\n\n【深掘り】最尤推定量 $\\hat{\\theta}$ の分散が $1/nI$ だと分かった後、関数 $g(\\hat{\\theta})$ の分散を求める際に必須。",
-                mnem: "「関数を通すと誤差は微分の2乗倍。定数収束は代入OK」"
-            },
-
-            // --- 2. 分布 (画像 2.1-2.3 完全分割) ---
-            { 
-                id: 7, cat: "2.分布", 
-                q: "Bernoulli(p) ベルヌーイ分布", 
-                a: "$P(X=1)=p, P(X=0)=1-p$\n$E[X]=p, Var(X)=p(1-p)$", 
-                exp: "【読み方】成功確率pの試行。期待値p、分散p(1-p)。\n\n【意味】コイン投げ1回。統計分布の最小単位。\n\n【深掘り】特性関数 $1-p+pe^{it}$。すべての二項分布・多項分布の基礎。分散は $p=0.5$ で最大。",
-                mnem: "「期待は確率そのもの。分散は成功×失敗」"
-            },
-            { 
-                id: 8, cat: "2.分布", 
-                q: "Binomial(n, p) 二項分布", 
-                a: "$P(X=k) = \\binom{n}{k}p^k(1-p)^{n-k}$\n$E[X]=np, Var(X)=np(1-p)$", 
-                exp: "【読み方】n回中k回成功する確率。期待値np、分散npq。\n\n【意味】独立なベルヌーイ試行の和。正規分布近似（ラプラスの定理）やポアソン近似の元となる。\n\n【深掘り】再生性あり（同一pの場合）。最尤推定量は $\\hat{p}=X/n$。",
-                mnem: "「ベルヌーイをn回足しただけ。分散もn倍」"
-            },
-            { 
-                id: 9, cat: "2.分布", 
-                q: "Poisson(λ) ポアソン分布", 
-                a: "$P(X=k) = \\frac{e^{-\\lambda}\\lambda^k}{k!}$\n$E[X]=\\lambda, Var(X)=\\lambda$", 
-                exp: "【読み方】ラムダのk乗ワルkの階乗かけるeのマイナスラムダ。期待値・分散ともにλ。\n\n【意味】稀な事象の回数。二項分布で $n\\to\\infty, p\\to 0, np=\\lambda$ とした極限。\n\n【深掘り】再生性あり。期待値と分散が等しいのが最大の特徴（過分散のチェックに使われる）。",
-                mnem: "「ポアソンは丸ごとλ。期待も分散もλでおまかせ」"
-            },
-            { 
-                id: 10, cat: "2.分布", 
-                q: "Normal(μ, σ²) 正規分布", 
-                a: "$f(x) = \\frac{1}{\\sqrt{2\\pi}\\sigma} e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}$", 
-                exp: "【読み方】ルート2パイシグマ分の1、exp(-2シグマ2乗分の偏差2乗)。\n\n【意味】誤差の分布。CLTの終着点。自然界の基本分布。\n\n【深掘り】積率母関数 $\\exp(\\mu t + \\sigma^2 t^2 / 2)$。線形変換しても正規分布のまま（再生性）。",
-                mnem: "「2乗の指数関数。係数は積分して1になるための調整」"
-            },
-            { 
-                id: 11, cat: "2.分布", 
-                q: "Exponential(λ) 指数分布", 
-                a: "$f(x) = \\lambda e^{-\\lambda x} \\ (x \\ge 0)$\n$E[X]=1/\\lambda, Var(X)=1/\\lambda^2$", 
-                exp: "【読み方】ラムダ・イーのマイナスラムダx。期待値はラムダ分の1。\n\n【意味】ランダムな事象が起きるまでの「待ち時間」。無記憶性を持つ唯一の連続分布。\n\n【深掘り】ポアソン過程の発生間隔。幾何分布の連続版。ハザード関数が定数 $\\lambda$ になる。",
-                mnem: "「指数は待ち時間。頻度(λ)の逆数が平均待ち時間」"
-            },
-            { 
-                id: 12, cat: "2.分布", 
-                q: "Gamma(α, β) ガンマ分布", 
-                a: "$f(x) = \\frac{\\beta^\\alpha}{\\Gamma(\\alpha)}x^{\\alpha-1}e^{-\\beta x}$\n$E[X]=\\alpha/\\beta, Var(X)=\\alpha/\\beta^2$", 
-                exp: "【読み方】(画像定義準拠: shape α, rate β) 期待値はベータ分のアルファ。\n\n【意味】指数分布(1回待ち)の「α回待ち」バージョン。待ち時間の合計。\n\n【深掘り】カイ二乗分布の親。ベイズではポアソンの共役事前分布。定義式の定数項より、核 $x^{\\alpha-1}e^{-\\beta x}$ の形を覚えるのが最優先。",
-                mnem: "「指数分布をα個積み上げ。期待値は1個分(1/β)×α」"
-            },
-            { 
-                id: 13, cat: "2.分布", 
-                q: "Beta(α, β) ベータ分布", 
-                a: "$f(x) \\propto x^{\\alpha-1}(1-x)^{\\beta-1}$\n$E[X] = \\frac{\\alpha}{\\alpha+\\beta}$", 
-                exp: "【読み方】期待値はアルファ＋ベータ分のアルファ。\n\n【意味】確率 $p$ の分布。定義域は $[0, 1]$。成功数 $\\alpha$、失敗数 $\\beta$ のイメージ。\n\n【深掘り】二項分布の共役事前分布。一様分布は $Beta(1,1)$。順序統計量 $X_{(k)}$ はベータ分布に従う。",
-                mnem: "「ベータは割合。自分の重み(α)を全体(α+β)で割る」"
-            },
-            { 
-                id: 14, cat: "2.分布", 
-                q: "χ²(ν) カイ二乗分布", 
-                a: "$\\chi^2_\\nu \\sim Gamma(\\nu/2, 1/2)$\n$Z_1^2 + \\dots + Z_\\nu^2 \\sim \\chi^2_\\nu$", 
-                exp: "【読み方】自由度ν。標準正規分布の2乗和。\n\n【意味】分散の分布。期待値は $\\nu$、分散は $2\\nu$。\n\n【深掘り】正規母集団の不偏分散 $S^2$ は $(n-1)S^2/\\sigma^2 \\sim \\chi^2_{n-1}$ に従う。適合度検定の基礎。",
-                mnem: "「正規の2乗和。期待値は自由度そのまま」"
-            },
-            { 
-                id: 15, cat: "2.分布", 
-                q: "t(ν) 分布", 
-                a: "$T = \\frac{Z}{\\sqrt{U/\\nu}}, \\ Z \\sim N(0,1), U \\sim \\chi^2_\\nu$", 
-                exp: "【読み方】正規分布を、ルート(カイ二乗÷自由度)で割ったもの。\n\n【意味】母分散が未知の時の平均の検定に使う。裾が正規分布より厚い。\n\n【深掘り】$n \\to \\infty$ で標準正規分布に一致。定義式の分母は、標準偏差の推定量に対応している。",
-                mnem: "「tはシグマの代わりにSを使う。正規をカイ二乗で補正」"
-            },
-            { 
-                id: 16, cat: "2.分布", 
-                q: "F(ν1, ν2) 分布", 
-                a: "$F = \\frac{U_1/\\nu_1}{U_2/\\nu_2}, \\ U_i \\sim \\chi^2_{\\nu_i}$", 
-                exp: "【読み方】カイ二乗÷自由度の比。\n\n【意味】分散の比の検定（等分散性の検定、ANOVA）に使う。\n\n【深掘り】$t_\\nu^2 = F(1, \\nu)$ の関係がある。回帰分析のF検定もこの理屈（回帰による分散 vs 誤差による分散）。",
-                mnem: "「Fは分散比。カイ二乗同士の割り算」"
-            },
-            { 
-                id: 17, cat: "2.分布", 
-                q: "正規標本分布の定理 (超重要)", 
-                a: "$\\bar{X} \\sim N(\\mu, \\sigma^2/n)$\n$(n-1)S^2/\\sigma^2 \\sim \\chi^2_{n-1}$\n$\\bar{X} \\perp S^2$ (独立)", 
-                exp: "【読み方】標本平均は正規分布。不偏分散の定数倍はカイ二乗分布。平均と分散は独立。\n\n【意味】正規分布だけの特権的性質。これによりt検定が成立する。\n\n【深掘り】「平均と分散が独立」は記述問題の証明テーマとして頻出（Basuの定理や直交変換で証明）。",
-                mnem: "「正規なら平均と分散は赤の他人(独立)」"
-            },
-
-            // --- 3. 推定 (画像 3) ---
-            { 
-                id: 18, cat: "3.推定", 
-                q: "尤度・スコア・Fisher情報量", 
-                a: "$L(\\theta) = \\prod f(x_i)$, $\\ell = \\log L$\n$U = \\ell'$, $I(\\theta) = -E[\\ell''] = E[U^2]$", 
-                exp: "【読み方】尤度は積、対数尤度は和。スコアは1階微分。情報量は2階微分の期待値のマイナス。\n\n【意味】尤度は「もっともらしさ」。情報量は「尤度の山の尖り具合」。尖っているほど推定精度が高い。\n\n【深掘り】情報量の加法性（独立なら足せる）。$I_n(\\theta) = n I_1(\\theta)$。",
-                mnem: "「山が尖れば情報は濃い（2階微分）」"
-            },
-            { 
-                id: 19, cat: "3.推定", 
-                q: "Cramer-Rao下界 (CRLB) & MLE漸近論", 
-                a: "$V(T) \\ge \\frac{1}{nI(\\theta)}$\n$\\sqrt{n}(\\hat{\\theta}-\\theta_0) \\to N(0, I(\\theta)^{-1})$", 
-                exp: "【読み方】分散の下限は情報量の逆数。最尤推定量は漸近的にこの下限を達成する。\n\n【意味】不偏推定量の中でこれ以上分散を小さくできない限界。最尤法はサンプル無限大で「最強」になる。\n\n【深掘り】有効推定量＝分散がCRLBと一致するもの。記述で「有効性を示せ」と言われたらこれ。",
-                mnem: "「情報は分母。情報の分だけ精度(分散)は良くなる」"
-            },
-            { 
-                id: 20, cat: "3.推定", 
-                q: "十分統計量 & 指数型分布族", 
-                a: "$f(x|\\theta) = h(x)g(T(x), \\theta) \\Rightarrow T$は十分\n$f = \\exp\\{\\eta(\\theta)T(x) - A(\\theta) + B(x)\\}$", 
-                exp: "【読み方】密度が「xだけの項」と「Tとθの項」に分解できればTは十分統計量。\n\n【意味】Tさえあれば元のデータxを捨ててもパラメータθの情報は失われない。\n\n【深掘り】ラオ・ブラックウェルの定理（十分統計量で条件付けると分散が小さくなる）の基礎。",
-                mnem: "「分解できれば十分（因子分解定理）」"
-            },
-
-            // --- 4. 検定 (画像 4) ---
-            { 
-                id: 21, cat: "4.検定", 
-                q: "Neyman-Pearson補題 & 3大検定", 
-                a: "NP: 尤度比 $\\Lambda < k$ で棄却\nWald: $(\\hat{\\theta}-\\theta_0)^2 I(\\hat{\\theta}) \\sim \\chi^2$\nLR: $-2\\log \\Lambda \\sim \\chi^2$", 
-                exp: "【読み方】NPは最強力検定を与える。Waldは推定量のズレ、LRは尤度の比を見る。全部カイ二乗に収束。\n\n【意味】単純仮説において尤度比検定が最強。大標本ではどれを使っても同じ結果になる。\n\n【深掘り】検定統計量の導出は1級のメインディッシュ。",
-                mnem: "「怪しい方を分母に。大標本3兄弟は最後はカイ二乗」"
-            },
-
-            // --- 5. 回帰・ANOVA (画像 5) ---
-            { 
-                id: 22, cat: "5.回帰", 
-                q: "OLS推定量・分散・ガウス・マルコフ", 
-                a: "$\\hat{\\beta} = (X^T X)^{-1} X^T y$\n$V(\\hat{\\beta}) = \\sigma^2 (X^T X)^{-1}$", 
-                exp: "【読み方】ベータハットは(XtX)逆、Xt、y。分散はシグマ2乗×(XtX)逆。\n\n【意味】残差平方和を最小にする解。誤差が独立等分散なら、これが不偏推定量の中で分散最小（BLUE）。\n\n【深掘り】分散行列の対角成分が各係数の分散。t検定に使う。",
-                mnem: "「係数は情報の逆数倍。分散も情報の逆数倍」"
-            },
-            { 
-                id: 23, cat: "5.回帰", 
-                q: "ANOVA恒等式・F検定", 
-                a: "$TSS = ESS + RSS$\n$F = \\frac{ESS/df1}{RSS/df2} \\sim F$", 
-                exp: "【読み方】全変動＝回帰変動＋残差変動。平均平方の比はF分布。\n\n【意味】モデルがどれくらいデータを説明できているか（ESS）を、ノイズ（RSS）と比較して検定する。\n\n【深掘り】決定係数 $R^2 = ESS/TSS$。自由度の計算（n-pなど）を間違えないように。",
-                mnem: "「全変動は説明できた分＋ゴミ。比率はF」"
-            },
-
-            // --- 6. カイ二乗系 (画像 6) ---
-            { 
-                id: 24, cat: "6.カイ二乗", 
-                q: "適合度検定・独立性検定", 
-                a: "$\\chi^2 = \\sum \\frac{(O-E)^2}{E}$\n独立性df: $(r-1)(c-1)$", 
-                exp: "【読み方】観測ひく期待の2乗を期待で割って足す。\n\n【意味】理論値と観測値のズレを測る。ズレが大きすぎれば棄却。\n\n【深掘り】期待度数 $E$ が5以上必要。多項分布の正規近似から導かれる。",
-                mnem: "「O-Eの2乗をEで割る。自由度は(行-1)(列-1)」"
-            },
-
-            // --- 7. ノンパラ (画像 7) ---
-            { 
-                id: 25, cat: "7.ノンパラ", 
-                q: "代表的なノンパラメトリック検定", 
-                a: "符号検定, Wilcoxon順位和, Kruskal-Wallis, Spearman", 
-                exp: "【意味】母集団の分布（正規性など）を仮定しない検定。\n\n【対応】\n・t検定(1群) → 符号検定/Wilcoxon符号付\n・t検定(2群) → Mann-Whitney U / Wilcoxon順位和\n・ANOVA → Kruskal-Wallis\n・相関 → Spearman",
-                mnem: "「順位を使えばノンパラ。正規性が怪しいときの逃げ道」"
-            },
-
-            // --- 8. ベイズ (画像 8) ---
-            { 
-                id: 26, cat: "8.ベイズ", 
-                q: "共役事前分布 (Beta-Bin, Gamma-Pois)", 
-                a: "Bin: $\\pi(p) \\propto p^{\\alpha-1}q^{\\beta-1} \\to Beta(\\alpha+x, \\beta+n-x)$\nPois: $\\pi(\\lambda) \\propto \\lambda^{\\alpha-1}e^{-\\beta\\lambda} \\to Gamma(\\alpha+\\sum x, \\beta+n)$", 
-                exp: "【読み方】ベータ×二項はベータ。ガンマ×ポアソンはガンマ。\n\n【意味】事後分布が事前分布と同じ形になる便利な組み合わせ。パラメータの足し算だけで更新完了。\n\n【深掘り】事後期待値（ベイズ推定量）は、事前平均とデータ平均の加重平均になる。",
-                mnem: "「ベイズ更新は指数の足し算。成功はα、失敗はβへ」"
-            },
-            { 
-                id: 27, cat: "8.ベイズ", 
-                q: "正規-正規 (分散既知)", 
-                a: "$\\mu|x \\sim N(\\mu_*, \\tau_*^2)$\n精度 $\\tau_*^{-2} = \\tau_0^{-2} + n\\sigma^{-2}$", 
-                exp: "【読み方】事後精度は、事前精度＋データの精度。\n\n【意味】情報は足し算される。データが増えるほど分散（精度の逆数）は小さくなる。\n\n【深掘り】事後平均は、精度による加重平均。",
-                mnem: "「正規のベイズは精度の足し算」"
-            },
-
-            // --- 9. 標本調査 (画像 9) ---
-            { 
-                id: 28, cat: "9.標本調査", 
-                q: "有限母集団修正 & 抽出法", 
-                a: "$V(\\bar{y}) = (1-f)\\frac{S^2}{n}, f=n/N$\n層化: $V_{st} = \\sum W_h^2 V_h$\n2段: $V = V_1 + V_2$", 
-                exp: "【読み方】非復元抽出の分散は、無限母集団の分散に(1-f)をかけたもの。\n\n【意味】母集団が有限で、その多くを調査済みなら、未知の部分は減るため誤差も減る（f=1なら誤差0）。\n\n【深掘り】層化抽出は「層内は似たもの、層間は違うもの」で分けると精度向上。クラスター（2段）は逆。",
-                mnem: "「有限修正は(1-f)でブレーキ。取り尽くせば誤差なし」"
-            }
-        ];
-
-        // --- 以下、アプリの制御ロジック (変更なし) ---
+        let masterData = [];
         let learnedIds = new Set();
         let currentDeck = [];
         let currentIndex = 0;
-        let selectedCategories = new Set(masterData.map(d => d.cat));
+        let selectedCategories = new Set();
 
         const cardElement = document.getElementById('flashcard');
         const cardArea = document.getElementById('card-area');
@@ -385,46 +255,60 @@
         const expModal = document.getElementById('exp-modal');
         const expContent = document.getElementById('exp-content');
 
-        function init() {
-            const container = document.getElementById('category-filters');
-            const cats = [...new Set(masterData.map(d => d.cat))].sort((a,b) => {
-                const getNum = s => parseInt(s.match(/^\d+/)?.[0] || 99);
-                return getNum(a) - getNum(b);
-            });
-            
-            container.innerHTML = '';
-            cats.forEach(cat => {
-                const label = document.createElement('label');
-                label.className = "flex items-center space-x-2 text-[10px] bg-slate-50 border border-slate-100 p-2 rounded-lg cursor-pointer shadow-sm hover:bg-white active:bg-slate-100 transition-all select-none";
-                
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.checked = true;
-                cb.className = "w-3 h-3 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300";
-                cb.onchange = (e) => {
-                    if (e.target.checked) selectedCategories.add(cat);
-                    else selectedCategories.delete(cat);
-                    refreshDeck();
-                };
-                
-                const span = document.createElement('span');
-                span.textContent = cat;
-                span.className = "font-bold text-slate-600 truncate";
-                
-                label.appendChild(cb);
-                label.appendChild(span);
-                container.appendChild(label);
-            });
-            refreshDeck();
+        async function init() {
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                masterData = await response.json();
+
+                // Initialize selectedCategories only after data is loaded
+                selectedCategories = new Set(masterData.map(d => d.cat));
+
+                const container = document.getElementById('category-filters');
+                const cats = [...new Set(masterData.map(d => d.cat))].sort((a, b) => {
+                    const getNum = s => parseInt(s.match(/^\d+/)?.[0] || 99);
+                    return getNum(a) - getNum(b);
+                });
+
+                container.innerHTML = '';
+                cats.forEach(cat => {
+                    const label = document.createElement('label');
+                    label.className = "flex items-center space-x-2 text-[10px] bg-slate-50 border border-slate-100 p-2 rounded-lg cursor-pointer shadow-sm hover:bg-white active:bg-slate-100 transition-all select-none";
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.checked = true;
+                    cb.className = "w-3 h-3 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300";
+                    cb.onchange = (e) => {
+                        if (e.target.checked) selectedCategories.add(cat);
+                        else selectedCategories.delete(cat);
+                        refreshDeck();
+                    };
+
+                    const span = document.createElement('span');
+                    span.textContent = cat;
+                    span.className = "font-bold text-slate-600 truncate";
+
+                    label.appendChild(cb);
+                    label.appendChild(span);
+                    container.appendChild(label);
+                });
+                refreshDeck();
+            } catch (error) {
+                console.error("Failed to load data:", error);
+                document.getElementById('card-area').innerHTML = `<p class="text-red-500 p-4">データの読み込みに失敗しました。<br>${error.message}</p>`;
+            }
         }
 
         function refreshDeck() {
             const inScope = masterData.filter(d => selectedCategories.has(d.cat));
             currentDeck = inScope.filter(d => !learnedIds.has(d.id));
-            
+
             const n = inScope.length;
             const m = n - currentDeck.length;
-            
+
             progressRatio.textContent = `${m} / ${n}`;
             progressBar.style.width = n > 0 ? `${(m / n) * 100}%` : '0%';
 
@@ -432,7 +316,7 @@
                 currentIndex = 0;
                 currentDeck.sort(() => Math.random() - 0.5);
             }
-            
+
             displayCard();
         }
 
@@ -446,12 +330,12 @@
             cardArea.classList.remove('hidden');
             completeView.classList.add('hidden');
             actionButtons.classList.remove('opacity-20', 'pointer-events-none');
-            
+
             // Reset flip state
             document.getElementById('flashcard').classList.remove('is-flipped');
 
             const item = currentDeck[currentIndex];
-            
+
             // Update content
             setTimeout(() => {
                 document.getElementById('card-category').textContent = item.cat;
@@ -512,8 +396,8 @@
         function renderListView() {
             const inScope = masterData.filter(d => selectedCategories.has(d.cat));
             const listContainer = document.getElementById('list-content');
-            
-            if(inScope.length === 0) {
+
+            if (inScope.length === 0) {
                 listContainer.innerHTML = '<div class="text-center text-slate-400 py-10 font-bold">カテゴリを選択してください</div>';
                 return;
             }
@@ -544,7 +428,7 @@
 
         function renderMath() {
             renderMathInElement(document.body, {
-                delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}],
+                delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
                 throwOnError: false
             });
         }
@@ -566,9 +450,9 @@
         }
 
         function resetAll() {
-            if(confirm("学習履歴をリセットしますか？")) { 
-                learnedIds.clear(); 
-                refreshDeck(); 
+            if (confirm("学習履歴をリセットしますか？")) {
+                learnedIds.clear();
+                refreshDeck();
             }
         }
 
@@ -581,7 +465,7 @@
         // --- Event Listeners ---
         document.getElementById('flashcard').onclick = (e) => {
             // モーダルが開いているときはフリップしない
-            if(!document.getElementById('exp-modal').classList.contains('hidden')) return;
+            if (!document.getElementById('exp-modal').classList.contains('hidden')) return;
             document.getElementById('flashcard').classList.toggle('is-flipped');
         };
         document.getElementById('exp-btn').onclick = showExplanation;
@@ -592,4 +476,5 @@
         window.onload = init;
     </script>
 </body>
+
 </html>

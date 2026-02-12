@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統計検定一級 公式暗記アプリ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // MathJax Configuration for LaTeX rendering
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' },
+            startup: {
+                typeset: false // 手動でレンダリングを制御する
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; }
+        .math-content { 
+            overflow-x: auto; 
+            padding: 1rem 0; 
+            text-align: center;
+            line-height: 2; /* 数式の上下の余白を確保 */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col items-center py-10 px-4">
+
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-blue-600 text-white py-4 px-6">
+            <h1 class="text-xl font-bold text-center">統計検定一級 公式暗記アプリ</h1>
+        </div>
+
+        <!-- セットアップ画面 (カテゴリ選択) -->
+        <div id="setup-screen" class="p-6">
+            <h2 class="text-lg font-semibold mb-4 text-gray-700">出題カテゴリを選択してください</h2>
+            <div id="category-container" class="space-y-3 mb-6">
+                <!-- カテゴリチェックボックスがここにJSで生成されます -->
+            </div>
+            <button id="start-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200">
+                出題スタート
+            </button>
+            <button id="show-list-btn" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl transition duration-200 border border-gray-300">
+                問題一覧を見る
+            </button>
+        </div>
+
+        <!-- クイズ画面 -->
+        <div id="quiz-screen" class="p-6 hidden">
+            <div class="flex justify-between items-center mb-4 text-sm font-medium text-gray-500 border-b pb-2">
+                <button id="back-to-setup-btn" class="text-blue-600 hover:text-blue-800 flex items-center transition duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    戻る
+                </button>
+                <div class="flex items-center space-x-3">
+                    <span id="current-category" class="bg-blue-100 text-blue-800 px-2 py-1 rounded max-w-[120px] md:max-w-none truncate text-xs md:text-sm">カテゴリ</span>
+                    <span class="text-xs md:text-sm">残り: <span id="remaining-count" class="text-blue-600 font-bold">0</span> 問</span>
+                </div>
+            </div>
+            
+            <div class="min-h-[200px] flex flex-col justify-center items-center py-6">
+                <p class="text-sm text-gray-400 mb-2">【問題】</p>
+                <!-- フォントサイズを少し大きく設定 -->
+                <div id="question-display" class="math-content w-full text-lg md:text-xl"></div>
+            </div>
+
+            <div id="show-answer-container" class="mt-6">
+                <button id="show-answer-btn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200">
+                    解答を見る
+                </button>
+            </div>
+
+            <div id="answer-container" class="mt-6 hidden border-t border-gray-100 pt-6">
+                <p class="text-sm text-gray-400 mb-2 text-center">【解答】</p>
+                <!-- 解答はさらに大きく強調表示 -->
+                <div id="answer-display" class="math-content w-full mb-8 text-blue-700 font-semibold text-xl md:text-2xl"></div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="wrong-btn" class="bg-red-100 hover:bg-red-200 text-red-700 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center">
+                        <span class="text-xl mb-1">✕</span>
+                        <span class="text-sm">不正解 (再出題)</span>
+                    </button>
+                    <button id="correct-btn" class="bg-green-100 hover:bg-green-200 text-green-700 font-bold py-3 px-4 rounded-xl transition duration-200 flex flex-col items-center">
+                        <span class="text-xl mb-1">◯</span>
+                        <span class="text-sm">正解 (クリア)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 完了画面 -->
+        <div id="complete-screen" class="p-8 hidden text-center">
+            <div class="text-5xl mb-4">🎉</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">全問正解！</h2>
+            <p class="text-gray-600 mb-8">選択したカテゴリの公式をすべてクリアしました。</p>
+            <button id="restart-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200">
+                最初からやり直す
+            </button>
+        </div>
+    </div>
+
+    <!-- 問題一覧モーダル -->
+    <div id="list-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-white w-full max-w-4xl max-h-full rounded-2xl shadow-xl flex flex-col overflow-hidden">
+            <div class="bg-gray-100 px-6 py-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold text-gray-800">問題一覧</h2>
+                <button id="close-list-btn" class="text-gray-500 hover:text-gray-800 text-3xl font-bold leading-none">&times;</button>
+            </div>
+            <div id="list-container" class="p-6 overflow-y-auto flex-1">
+                <!-- リストがここに生成されます -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PDFのOCRの誤植を修正した、数学的に正しい公式リスト
+        const allFormulas = [
+            // 1. 微分・テイラー展開
+            { cat: "1. 微分・テイラー展開", q: "$\\frac{d}{dx} \\sin x$", a: "$\\cos x$" },
+            { cat: "1. 微分・テイラー展開", q: "$\\frac{d}{dx} \\cos x$", a: "$-\\sin x$" },
+            { cat: "1. 微分・テイラー展開", q: "$\\frac{d}{dx} \\tan x$", a: "$\\sec^2 x$" },
+            { cat: "1. 微分・テイラー展開", q: "$\\frac{d}{dx} \\arcsin x$", a: "$\\frac{1}{\\sqrt{1-x^2}}$" },
+            { cat: "1. 微分・テイラー展開", q: "$\\frac{d}{dx} \\arctan x$", a: "$\\frac{1}{1+x^2}$" },
+            { cat: "1. 微分・テイラー展開", q: "積の微分: $(fg)'$", a: "$f'g + fg'$" },
+            { cat: "1. 微分・テイラー展開", q: "商の微分: $(f/g)'$", a: "$\\frac{f'g - fg'}{g^2}$" },
+            { cat: "1. 微分・テイラー展開", q: "合成関数の微分: $(f \\circ g)'$", a: "$f'(g(x))g'(x)$" },
+            { cat: "1. 微分・テイラー展開", q: "テイラー展開 (一般): $f(x) = $", a: "$\\sum_{k=0}^{n}\\frac{f^{(k)}(a)}{k!}(x-a)^k + R_{n+1}$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $\\exp(x) = $", a: "$1 + x + \\frac{x^2}{2!} + \\frac{x^3}{3!} + \\dots$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $\\log(1+x) = \\quad (|x|<1)$", a: "$x - \\frac{x^2}{2} + \\frac{x^3}{3} - \\dots$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $(1+x)^\\alpha = \\quad (|x|<1)$", a: "$1 + \\alpha x + \\frac{\\alpha(\\alpha-1)}{2}x^2 + \\dots$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $\\frac{1}{1-x} = \\quad (|x|<1)$", a: "$\\sum_{k=0}^{\\infty} x^k$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $\\sin x = $", a: "$x - \\frac{x^3}{3!} + \\frac{x^5}{5!} - \\dots$" },
+            { cat: "1. 微分・テイラー展開", q: "マクローリン展開: $\\cos x = $", a: "$1 - \\frac{x^2}{2!} + \\frac{x^4}{4!} - \\dots$" },
+            { cat: "1. 微分・テイラー展開", q: "逆関数の微分: $\\frac{d}{dy} f^{-1}(y) \\quad (y=f(x))$", a: "$\\frac{1}{f'(x)}$" },
+
+            // 2. 積分(1変数)
+            { cat: "2. 積分(1変数)", q: "$\\int x^n dx \\quad (n \\neq -1)$", a: "$\\frac{x^{n+1}}{n+1} + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int \\frac{1}{x} dx$", a: "$\\ln|x| + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int e^{ax} dx$", a: "$\\frac{1}{a}e^{ax} + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int a^x dx$", a: "$\\frac{a^x}{\\ln a} + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int \\sin x dx$", a: "$-\\cos x + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int \\cos x dx$", a: "$\\sin x + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int \\frac{1}{1+x^2} dx$", a: "$\\arctan x + C$" },
+            { cat: "2. 積分(1変数)", q: "$\\int \\frac{1}{\\sqrt{1-x^2}} dx$", a: "$\\arcsin x + C$" },
+            { cat: "2. 積分(1変数)", q: "部分積分: $\\int u \\, dv$", a: "$uv - \\int v \\, du$" },
+            { cat: "2. 積分(1変数)", q: "置換積分: $\\int f(g(x))g'(x) dx$", a: "$\\int f(u) du \\quad (u=g(x))$" },
+            { cat: "2. 積分(1変数)", q: "ガウス積分: $\\int_{-\\infty}^{\\infty} e^{-x^2} dx$", a: "$\\sqrt{\\pi}$" },
+            { cat: "2. 積分(1変数)", q: "ガウス積分: $\\int_{-\\infty}^{\\infty} e^{-ax^2} dx \\quad (a>0)$", a: "$\\sqrt{\\frac{\\pi}{a}}$" },
+            { cat: "2. 積分(1変数)", q: "$\\int_{-\\infty}^{\\infty} x^{2n} e^{-ax^2} dx \\quad (a>0)$", a: "$\\frac{(2n-1)!!}{(2a)^n}\\sqrt{\\frac{\\pi}{a}}$" },
+            { cat: "2. 積分(1変数)", q: "ガンマ関数形: $\\int_{0}^{\\infty} x^{k-1} e^{-\\lambda x} dx \\quad (\\lambda>0)$", a: "$\\frac{\\Gamma(k)}{\\lambda^k}$" },
+            { cat: "2. 積分(1変数)", q: "積分記号下の微分 (定数区間): $\\frac{d}{dt} \\int_a^b f(x,t) dx$", a: "$\\int_a^b \\frac{\\partial}{\\partial t} f(x,t) dx$" },
+            { cat: "2. 積分(1変数)", q: "積分記号下の微分 (Leibniz則): $\\frac{d}{dt} \\int_{a(t)}^{b(t)} f(x,t) dx$", a: "$f(b(t),t)b'(t) - f(a(t),t)a'(t) + \\int_{a(t)}^{b(t)} \\frac{\\partial f}{\\partial t}(x,t) dx$" },
+
+            // 3. 多変数微分・ベクトル解析
+            { cat: "3. 多変数微分・ベクトル解析", q: "勾配 (Gradient): $\\nabla f$", a: "$(\\frac{\\partial f}{\\partial x_i})_i$" },
+            { cat: "3. 多変数微分・ベクトル解析", q: "ヘッセ行列 (Hessian): $H$", a: "$(\\frac{\\partial^2 f}{\\partial x_i \\partial x_j})_{ij}$" },
+            { cat: "3. 多変数微分・ベクトル解析", q: "連鎖律 (ベクトル): $y=g(x), f(y)$ のとき $\\nabla_x f =$", a: "$(J_g(x))^\\top \\nabla_y f$" },
+            { cat: "3. 多変数微分・ベクトル解析", q: "2次近似: $f(x) \\approx f(x_0) + \\nabla f(x_0)^\\top (x-x_0) + \\dots$", a: "$\\frac{1}{2}(x-x_0)^\\top H(x_0)(x-x_0)$" },
+            { cat: "3. 多変数微分・ベクトル解析", q: "ラグランジュ未定乗数 (制約 $c(x)=0$): $\\nabla f(x) = $", a: "$\\lambda \\nabla c(x)$" },
+            { cat: "3. 多変数微分・ベクトル解析", q: "ヤコビアンと変数変換: $y=g(x)$ のとき $f_Y(y) = $", a: "$f_X(g^{-1}(y)) \\left| \\det \\frac{\\partial x}{\\partial y} \\right|$" },
+
+            // 4. 特殊関数
+            { cat: "4. 特殊関数", q: "ガンマ関数の定義: $\\Gamma(\\alpha) = \\quad (\\alpha>0)$", a: "$\\int_{0}^{\\infty} x^{\\alpha-1} e^{-x} dx$" },
+            { cat: "4. 特殊関数", q: "ガンマ関数の性質: $\\Gamma(\\alpha+1) = $", a: "$\\alpha\\Gamma(\\alpha)$" },
+            { cat: "4. 特殊関数", q: "ガンマ関数の性質: $\\Gamma(n) = \\quad (nは整数)$", a: "$(n-1)!$" },
+            { cat: "4. 特殊関数", q: "ガンマ関数の値: $\\Gamma(1/2) = $", a: "$\\sqrt{\\pi}$" },
+            { cat: "4. 特殊関数", q: "ベータ関数の定義: $B(\\alpha, \\beta) = $", a: "$\\int_{0}^{1} t^{\\alpha-1}(1-t)^{\\beta-1} dt$" },
+            { cat: "4. 特殊関数", q: "ベータ関数とガンマ関数: $B(\\alpha, \\beta) = $", a: "$\\frac{\\Gamma(\\alpha)\\Gamma(\\beta)}{\\Gamma(\\alpha+\\beta)}$" },
+            { cat: "4. 特殊関数", q: "スターリングの近似 (階乗の漸近評価): $n! \\approx$", a: "$\\sqrt{2\\pi n} \\left(\\frac{n}{e}\\right)^n$" },
+
+            // 5. 線形代数
+            { cat: "5. 線形代数", q: "内積: $\\langle x, y \\rangle = $", a: "$x^\\top y$" },
+            { cat: "5. 線形代数", q: "ノルム (L2): $||x|| = $", a: "$\\sqrt{x^\\top x}$" },
+            { cat: "5. 線形代数", q: "Cauchy-Schwarzの不等式", a: "$|x^\\top y| \\le ||x|| \\cdot ||y||$" },
+            { cat: "5. 線形代数", q: "転置の性質: $(AB)^\\top = $", a: "$B^\\top A^\\top$" },
+            { cat: "5. 線形代数", q: "逆行列の性質: $(AB)^{-1} = $", a: "$B^{-1} A^{-1}$" },
+            { cat: "5. 線形代数", q: "行列式の性質: $\\det(AB) = $", a: "$\\det(A)\\det(B)$" },
+            { cat: "5. 線形代数", q: "トレースの性質: $\\mathrm{tr}(AB) = $", a: "$\\mathrm{tr}(BA)$" },
+            { cat: "5. 線形代数", q: "ランクの性質: $\\mathrm{rank}(AB) \\le $", a: "$\\min(\\mathrm{rank}(A), \\mathrm{rank}(B))$" },
+            { cat: "5. 線形代数", q: "対称行列 $A$ のスペクトル分解: $A = $", a: "$Q\\Lambda Q^\\top$ ($Q$は直交行列)" },
+            { cat: "5. 線形代数", q: "正定値 (SPD) / 半正定値 (PSD) の定義:", a: "SPD: $x^\\top Ax > 0 \\quad (\\forall x \\ne 0)$ \\\\ PSD: $x^\\top Ax \\ge 0$" },
+            { cat: "5. 線形代数", q: "2次形式の完全平方: $(x-\\mu)^\\top \\Sigma^{-1} (x-\\mu) = $", a: "$x^\\top \\Sigma^{-1} x - 2\\mu^\\top \\Sigma^{-1} x + \\mu^\\top \\Sigma^{-1} \\mu$" },
+            { cat: "5. 線形代数", q: "列空間への射影行列 (フルランクX): $P_X = $", a: "$X(X^\\top X)^{-1}X^\\top$" },
+            { cat: "5. 線形代数", q: "射影行列 $P_X$ の性質: $P_X^2 = \\dots, \\mathrm{rank}(P_X) = \\dots$", a: "$P_X^2 = P_X, \\quad \\mathrm{rank}(P_X) = \\mathrm{tr}(P_X)$" },
+            { cat: "5. 線形代数", q: "残差射影行列: $M_X = $", a: "$I - P_X$" },
+            { cat: "5. 線形代数", q: "$2\\times 2$ 逆行列: $\\begin{pmatrix}a & b \\\\ c & d\\end{pmatrix}^{-1} = $", a: "$\\frac{1}{ad-bc}\\begin{pmatrix}d & -b \\\\ -c & a\\end{pmatrix}$" },
+            { cat: "5. 線形代数", q: "ブロック行列のSchur補 $S = $ \n $\\begin{pmatrix}A & B \\\\ C & D\\end{pmatrix}$ ($A$は可逆)", a: "$D - C A^{-1} B$" },
+            { cat: "5. 線形代数", q: "ブロック行列の逆行列 \n $\\begin{pmatrix}A & B \\\\ C & D\\end{pmatrix}^{-1} = $ \n ($S$: Schur補)", a: "$\\begin{pmatrix}A^{-1}+A^{-1}BS^{-1}CA^{-1} & -A^{-1}BS^{-1} \\\\ -S^{-1}CA^{-1} & S^{-1}\\end{pmatrix}$" },
+            { cat: "5. 線形代数", q: "Sherman-Morrison-Woodburyの公式:\n $(A+UCV)^{-1} = $", a: "$A^{-1} - A^{-1}U(C^{-1} + VA^{-1}U)^{-1}VA^{-1}$" },
+            { cat: "5. 線形代数", q: "行列式補題: $\\det(A+UCV) = $", a: "$\\det(C^{-1} + VA^{-1}U)\\det(C)\\det(A)$" },
+            { cat: "5. 線形代数", q: "特異値分解 (SVD): $X = $", a: "$U\\Sigma V^\\top$" },
+            { cat: "5. 線形代数", q: "疑似逆行列: $X^+ = $", a: "$V\\Sigma^+ U^\\top$" },
+            { cat: "5. 線形代数", q: "Kronecker積とvec: $\\mathrm{vec}(AXB) = $", a: "$(B^\\top \\otimes A)\\mathrm{vec}(X)$" },
+            { cat: "5. 線形代数", q: "Kronecker積の逆行列: $(A \\otimes B)^{-1} = $", a: "$A^{-1} \\otimes B^{-1}$" },
+            { cat: "5. 線形代数", q: "Kronecker積の行列式: $\\det(A \\otimes B) = \\quad (A:n\\times n, B:m\\times m)$", a: "$\\det(A)^m \\det(B)^n$" },
+            { cat: "5. 線形代数", q: "Kronecker積のトレース: $\\mathrm{tr}(A \\otimes B) = $", a: "$\\mathrm{tr}(A)\\mathrm{tr}(B)$" },
+            { cat: "5. 線形代数", q: "固有値と行列式の関係: $\\det(A) = $", a: "$\\prod_{i=1}^n \\lambda_i$" },
+            { cat: "5. 線形代数", q: "固有値とトレースの関係: $\\mathrm{tr}(A) = $", a: "$\\sum_{i=1}^n \\lambda_i$" },
+            { cat: "5. 線形代数", q: "逆行列の固有値: $A$ の固有値が $\\lambda$ のとき $A^{-1}$ の固有値は", a: "$\\lambda^{-1}$" },
+            { cat: "5. 線形代数", q: "直交行列 $Q$ の性質 ($Q^\\top Q = I$): $\\det(Q) = $", a: "$\\pm 1$" },
+
+            // 6. 行列微分
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial x}(a^\\top x) = $", a: "$a$" },
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial x}(x^\\top Ax) = $", a: "$(A + A^\\top)x$ \\\\ (Aが対称なら $2Ax$)" },
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial X}\\mathrm{tr}(A^\\top X) = $", a: "$A$" },
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial X}\\mathrm{tr}(X^\\top AX) = $", a: "$(A + A^\\top)X$ \\\\ (Aが対称なら $2AX$)" },
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial X}\\log \\det X = \\quad (X可逆)$", a: "$(X^{-1})^\\top$" },
+            { cat: "6. 行列微分", q: "$\\frac{\\partial}{\\partial X}\\mathrm{tr}(X^{-1}A) = $", a: "$-(X^{-1}AX^{-1})^\\top$" },
+            { cat: "6. 行列微分", q: "最小二乗形の微分: $\\frac{\\partial}{\\partial x} (Ax-b)^\\top (Ax-b) = $", a: "$2A^\\top (Ax-b)$" },
+            { cat: "6. 行列微分", q: "双線形形式の微分: $\\frac{\\partial}{\\partial X} (a^\\top X b) = $", a: "$ab^\\top$" }
+        ];
+
+        // カテゴリの抽出
+        const categories = [...new Set(allFormulas.map(f => f.cat))];
+        
+        // 状態管理
+        let activeQuestions = [];
+        let currentQuestion = null;
+
+        // DOM要素
+        const screens = {
+            setup: document.getElementById('setup-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            complete: document.getElementById('complete-screen')
+        };
+        const categoryContainer = document.getElementById('category-container');
+        const startBtn = document.getElementById('start-btn');
+        
+        const showListBtn = document.getElementById('show-list-btn');
+        const listModal = document.getElementById('list-modal');
+        const closeListBtn = document.getElementById('close-list-btn');
+        const listContainer = document.getElementById('list-container');
+        
+        const qDisplay = document.getElementById('question-display');
+        const aDisplay = document.getElementById('answer-display');
+        const currentCatEl = document.getElementById('current-category');
+        const remainingCountEl = document.getElementById('remaining-count');
+        
+        const showAnswerContainer = document.getElementById('show-answer-container');
+        const answerContainer = document.getElementById('answer-container');
+        
+        const showAnswerBtn = document.getElementById('show-answer-btn');
+        const correctBtn = document.getElementById('correct-btn');
+        const wrongBtn = document.getElementById('wrong-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const backToSetupBtn = document.getElementById('back-to-setup-btn');
+
+        // 数式をフル表示スタイル (\displaystyle) に変換するヘルパー関数
+        function applyDisplayStyle(text) {
+            // インライン数式 $ ... $ の直後に \displaystyle を挿入する
+            return text.replace(/\$(.*?)\$/g, '$\\displaystyle $1$');
+        }
+
+        // 初期化処理
+        function init() {
+            // カテゴリチェックボックスの生成
+            categoryContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const label = document.createElement('label');
+                label.className = "flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition";
+                label.innerHTML = `
+                    <input type="checkbox" value="${cat}" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 category-cb" checked>
+                    <span class="ml-3 text-gray-700 font-medium">${cat}</span>
+                `;
+                categoryContainer.appendChild(label);
+            });
+        }
+
+        // 配列のシャッフル関数 (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // 出題スタート
+        function startQuiz() {
+            const selectedCats = Array.from(document.querySelectorAll('.category-cb:checked')).map(cb => cb.value);
+            
+            if (selectedCats.length === 0) {
+                alert("少なくとも1つのカテゴリを選択してください。");
+                return;
+            }
+
+            // 選択されたカテゴリの問題をフィルタリングしてシャッフル
+            activeQuestions = allFormulas.filter(f => selectedCats.includes(f.cat));
+            shuffleArray(activeQuestions);
+
+            screens.setup.classList.add('hidden');
+            screens.complete.classList.add('hidden');
+            screens.quiz.classList.remove('hidden');
+
+            nextQuestion();
+        }
+
+        // 次の問題を表示
+        function nextQuestion() {
+            if (activeQuestions.length === 0) {
+                // 全問クリア
+                screens.quiz.classList.add('hidden');
+                screens.complete.classList.remove('hidden');
+                return;
+            }
+
+            // 未解答リストの先頭を取得
+            currentQuestion = activeQuestions[0];
+
+            // UI更新
+            remainingCountEl.textContent = activeQuestions.length;
+            currentCatEl.textContent = currentQuestion.cat;
+            
+            // 全ての数式に \displaystyle を適用してからセットする
+            qDisplay.innerHTML = applyDisplayStyle(currentQuestion.q);
+            aDisplay.innerHTML = applyDisplayStyle(currentQuestion.a);
+
+            // 表示の切り替え
+            showAnswerContainer.classList.remove('hidden');
+            answerContainer.classList.add('hidden');
+
+            // MathJaxで数式をレンダリング
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([qDisplay, aDisplay]).catch(err => console.error(err));
+            }
+        }
+
+        // イベントリスナー
+        startBtn.addEventListener('click', startQuiz);
+        restartBtn.addEventListener('click', () => {
+            screens.complete.classList.add('hidden');
+            screens.setup.classList.remove('hidden');
+        });
+
+        backToSetupBtn.addEventListener('click', () => {
+            if (confirm("現在出題中の状態はリセットされます。カテゴリ選択画面に戻りますか？")) {
+                screens.quiz.classList.add('hidden');
+                screens.setup.classList.remove('hidden');
+            }
+        });
+
+        // --- 問題一覧モーダルの処理 ---
+        showListBtn.addEventListener('click', () => {
+            listContainer.innerHTML = '<p class="text-center text-gray-500">読み込み中...</p>';
+            listModal.classList.remove('hidden');
+            
+            // カテゴリごとにHTMLを生成
+            let listHTML = '';
+            categories.forEach(cat => {
+                const catFormulas = allFormulas.filter(f => f.cat === cat);
+                listHTML += `<h3 class="text-lg font-bold mt-6 mb-3 text-blue-600 border-b-2 border-blue-200 pb-1">${cat}</h3>`;
+                listHTML += `<div class="space-y-4">`;
+                catFormulas.forEach((f, index) => {
+                    listHTML += `
+                        <div class="flex flex-col md:flex-row border rounded-lg p-4 bg-gray-50 items-center">
+                            <div class="w-full md:w-1/2 md:border-r md:pr-4 mb-4 md:mb-0">
+                                <span class="text-xs text-gray-400 font-bold block mb-1">問題</span>
+                                <div class="overflow-x-auto text-center text-lg">${applyDisplayStyle(f.q)}</div>
+                            </div>
+                            <div class="w-full md:w-1/2 md:pl-4">
+                                <span class="text-xs text-gray-400 font-bold block mb-1">解答</span>
+                                <div class="overflow-x-auto text-center text-blue-700 font-semibold text-lg">${applyDisplayStyle(f.a)}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                listHTML += `</div>`;
+            });
+            listContainer.innerHTML = listHTML;
+
+            // MathJaxで数式をレンダリング
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([listContainer]).catch(err => console.error(err));
+            }
+        });
+
+        closeListBtn.addEventListener('click', () => {
+            listModal.classList.add('hidden');
+        });
+        // ------------------------------
+
+        showAnswerBtn.addEventListener('click', () => {
+            showAnswerContainer.classList.add('hidden');
+            answerContainer.classList.remove('hidden');
+        });
+
+        correctBtn.addEventListener('click', () => {
+            // 正解の場合、先頭の問題を削除
+            activeQuestions.shift();
+            nextQuestion();
+        });
+
+        wrongBtn.addEventListener('click', () => {
+            // 不正解の場合、先頭の問題を最後尾に移動してシャッフルし直す
+            const wrongQ = activeQuestions.shift();
+            activeQuestions.push(wrongQ);
+            // 連続で同じ問題が出ないように少しシャッフル（残り2問以上のとき）
+            if(activeQuestions.length > 1) {
+               // 簡単なランダム挿入
+               activeQuestions.pop();
+               const insertIndex = Math.floor(Math.random() * activeQuestions.length);
+               activeQuestions.splice(insertIndex, 0, wrongQ);
+            }
+            nextQuestion();
+        });
+
+        // 起動時実行
+        init();
+
+    </script>
+</body>
+</html>
