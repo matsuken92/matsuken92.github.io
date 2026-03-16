@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-5-1 トレーニング</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        /* カードが切り替わる際の簡単なフェードエフェクト */
+        .fade-in {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+        <!-- ヘッダー -->
+        <div class="bg-indigo-600 p-4 text-center">
+            <h1 class="text-xl font-bold text-white tracking-wider">2-5-1 TRAINING</h1>
+            <p class="text-indigo-200 text-xs mt-1">スッと弾けるまで繰り返そう</p>
+        </div>
+
+        <!-- メイン画面（問題・解答エリア） -->
+        <div class="p-8 flex flex-col items-center min-h-[250px] justify-center text-center fade-in" id="display-area">
+            
+            <!-- 問題表示時 -->
+            <div id="question-container" class="w-full">
+                <p class="text-gray-500 text-sm font-semibold mb-2">Key of</p>
+                <div id="key-display" class="text-6xl font-extrabold text-gray-800 mb-4">C</div>
+            </div>
+
+            <!-- 解答表示時（初期は非表示） -->
+            <div id="answer-container" class="w-full hidden">
+                <p class="text-gray-500 text-sm font-semibold mb-2">Key of <span id="answer-key">C</span></p>
+                <div class="flex flex-col gap-3 mt-4">
+                    <div class="bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-100 flex justify-between items-center">
+                        <span class="text-indigo-400 font-bold text-sm w-8">II</span>
+                        <span id="chord-ii" class="text-2xl font-bold text-gray-800">Dm7</span>
+                        <span class="w-8"></span> <!-- バランス用 -->
+                    </div>
+                    <div class="bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-100 flex justify-between items-center">
+                        <span class="text-indigo-400 font-bold text-sm w-8">V</span>
+                        <span id="chord-v" class="text-2xl font-bold text-gray-800">G7</span>
+                        <span class="w-8"></span>
+                    </div>
+                    <div class="bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-100 flex justify-between items-center">
+                        <span class="text-indigo-400 font-bold text-sm w-8">I</span>
+                        <span id="chord-i" class="text-2xl font-bold text-gray-800">Cmaj7</span>
+                        <span class="w-8"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- コントロールボタン -->
+        <div class="p-6 bg-gray-50 border-t border-gray-100 flex flex-col gap-3" id="controls">
+            <!-- 状態1: 答えを見るボタン -->
+            <button id="btn-show" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-md transition-colors active:scale-95">
+                正解を見る
+            </button>
+
+            <!-- 状態2: 次へ進む（自己評価）ボタン群 -->
+            <div id="btn-next-group" class="w-full flex gap-3 hidden">
+                <button id="btn-bad" class="flex-1 py-4 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl font-bold transition-colors active:scale-95 flex flex-col items-center justify-center leading-tight">
+                    <span>もたついた</span>
+                    <span class="text-xs font-normal mt-1 opacity-80">出題率UP</span>
+                </button>
+                <button id="btn-good" class="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold transition-colors shadow-md active:scale-95 flex flex-col items-center justify-center leading-tight">
+                    <span>スッと弾けた</span>
+                    <span class="text-xs font-normal mt-1 opacity-90">出題率DOWN</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- デバッグ/ステータス用（必要に応じて表示） -->
+        <div class="px-4 pb-3 bg-gray-50 text-center">
+            <button id="toggle-stats" class="text-xs text-gray-400 hover:text-gray-600 underline">内部の出題確率（ウェイト）を見る</button>
+            <div id="stats-area" class="text-[10px] text-gray-500 mt-2 hidden text-left flex-wrap gap-2 justify-center"></div>
+        </div>
+    </div>
+
+    <script>
+        // 12キーのデータと初期出題ウェイト（重み）
+        // weightが高いほど出題されやすい
+        const initialWeight = 100;
+        const keysData = [
+            { name: 'C',  ii: 'Dm7',   v: 'G7',   i: 'Cmaj7',  weight: initialWeight },
+            { name: 'F',  ii: 'Gm7',   v: 'C7',   i: 'Fmaj7',  weight: initialWeight },
+            { name: 'B♭', ii: 'Cm7',   v: 'F7',   i: 'B♭maj7', weight: initialWeight },
+            { name: 'E♭', ii: 'Fm7',   v: 'B♭7',  i: 'E♭maj7', weight: initialWeight },
+            { name: 'A♭', ii: 'B♭m7',  v: 'E♭7',  i: 'A♭maj7', weight: initialWeight },
+            { name: 'D♭', ii: 'E♭m7',  v: 'A♭7',  i: 'D♭maj7', weight: initialWeight },
+            { name: 'G♭', ii: 'A♭m7',  v: 'D♭7',  i: 'G♭maj7', weight: initialWeight },
+            { name: 'B',  ii: 'C#m7',  v: 'F#7',  i: 'Bmaj7',  weight: initialWeight },
+            { name: 'E',  ii: 'F#m7',  v: 'B7',   i: 'Emaj7',  weight: initialWeight },
+            { name: 'A',  ii: 'Bm7',   v: 'E7',   i: 'Amaj7',  weight: initialWeight },
+            { name: 'D',  ii: 'Em7',   v: 'A7',   i: 'Dmaj7',  weight: initialWeight },
+            { name: 'G',  ii: 'Am7',   v: 'D7',   i: 'Gmaj7',  weight: initialWeight }
+        ];
+
+        let currentKey = null;
+        let lastKey = null; // 連続出題を防ぐため保持
+
+        // DOM要素
+        const displayArea = document.getElementById('display-area');
+        const questionContainer = document.getElementById('question-container');
+        const answerContainer = document.getElementById('answer-container');
+        const keyDisplay = document.getElementById('key-display');
+        const answerKey = document.getElementById('answer-key');
+        const chordIi = document.getElementById('chord-ii');
+        const chordV = document.getElementById('chord-v');
+        const chordI = document.getElementById('chord-i');
+        
+        const btnShow = document.getElementById('btn-show');
+        const btnNextGroup = document.getElementById('btn-next-group');
+        const btnGood = document.getElementById('btn-good');
+        const btnBad = document.getElementById('btn-bad');
+        
+        const statsArea = document.getElementById('stats-area');
+        const toggleStats = document.getElementById('toggle-stats');
+
+        // アニメーションをリセットするユーティリティ
+        function triggerAnimation() {
+            displayArea.classList.remove('fade-in');
+            void displayArea.offsetWidth; // リフローを強制
+            displayArea.classList.add('fade-in');
+        }
+
+        // 次の問題を選ぶアルゴリズム（加重ランダム選択）
+        function pickNextKey() {
+            // 1. 直前のキーを除外（連続出題の禁止）
+            const availableKeys = keysData.filter(k => k.name !== (lastKey ? lastKey.name : null));
+            
+            // 2. 残りのキーのウェイトの合計を計算
+            const totalWeight = availableKeys.reduce((sum, k) => sum + k.weight, 0);
+            
+            // 3. 0 〜 totalWeight の間でランダムな数値を生成
+            let randomValue = Math.random() * totalWeight;
+            
+            // 4. ルーレット方式でキーを決定
+            for (let i = 0; i < availableKeys.length; i++) {
+                randomValue -= availableKeys[i].weight;
+                if (randomValue <= 0) {
+                    return availableKeys[i];
+                }
+            }
+            return availableKeys[availableKeys.length - 1]; // フェールセーフ
+        }
+
+        // 問題の表示
+        function showQuestion() {
+            currentKey = pickNextKey();
+            lastKey = currentKey;
+
+            keyDisplay.textContent = currentKey.name;
+            
+            // UIを問題表示状態に切り替え
+            questionContainer.classList.remove('hidden');
+            answerContainer.classList.add('hidden');
+            btnShow.classList.remove('hidden');
+            btnNextGroup.classList.add('hidden');
+            
+            triggerAnimation();
+            updateStats();
+        }
+
+        // 解答の表示
+        function showAnswer() {
+            answerKey.textContent = currentKey.name;
+            chordIi.textContent = currentKey.ii;
+            chordV.textContent = currentKey.v;
+            chordI.textContent = currentKey.i;
+
+            // UIを解答表示状態に切り替え
+            questionContainer.classList.add('hidden');
+            answerContainer.classList.remove('hidden');
+            btnShow.classList.add('hidden');
+            btnNextGroup.classList.remove('hidden');
+            
+            triggerAnimation();
+        }
+
+        // ウェイト（出題確率）の更新アルゴリズム
+        function updateWeight(isSuccess) {
+            // 評価されたキーのウェイトを更新
+            if (isSuccess) {
+                // スッと弾けた：ウェイトを半分に減らす（出題されにくくする。最小値10）
+                currentKey.weight = Math.max(10, Math.floor(currentKey.weight / 2));
+            } else {
+                // もたついた：ウェイトを増やす（出題されやすくする。最大値200）
+                currentKey.weight = Math.min(200, currentKey.weight + 50);
+            }
+
+            // 「限りなく均等に」という条件を満たすため、選ばれなかった他のキーのウェイトを少し回復させる
+            // これにより、ずっと出題されていないキーが徐々に出やすくなります。
+            keysData.forEach(k => {
+                if (k.name !== currentKey.name) {
+                    k.weight = Math.min(initialWeight * 1.5, k.weight + 5); 
+                }
+            });
+        }
+
+        // イベントリスナー
+        btnShow.addEventListener('click', showAnswer);
+
+        btnGood.addEventListener('click', () => {
+            updateWeight(true);
+            showQuestion();
+        });
+
+        btnBad.addEventListener('click', () => {
+            updateWeight(false);
+            showQuestion();
+        });
+
+        // 統計表示トグル（デバッグ用・仕組みの確認用）
+        toggleStats.addEventListener('click', () => {
+            statsArea.classList.toggle('hidden');
+        });
+
+        function updateStats() {
+            if (statsArea.classList.contains('hidden')) return;
+            statsArea.innerHTML = keysData.map(k => 
+                `<span class="bg-gray-200 px-1 py-0.5 rounded">${k.name}: ${k.weight}</span>`
+            ).join('');
+        }
+
+        // 初期化
+        showQuestion();
+
+        // キーボード操作対応 (スペースキーで開く/スッと弾けた判定)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (!btnShow.classList.contains('hidden')) {
+                    btnShow.click();
+                } else {
+                    btnGood.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
