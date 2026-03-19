@@ -36,18 +36,39 @@
             <p class="text-indigo-200 text-xs mt-1">スッと弾けるまで繰り返そう</p>
         </div>
 
+        <!-- 出題設定エリア -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 shrink-0">
+            <p class="text-xs font-bold text-gray-500 mb-2">バリエーション設定 (最低1つ選択)</p>
+            <div class="flex gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="var-checkbox w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="RRR" checked>
+                    <span class="text-sm font-medium text-gray-700">RRR</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="var-checkbox w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="R2R">
+                    <span class="text-sm font-medium text-gray-700">R2R</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" class="var-checkbox w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500" value="2R2">
+                    <span class="text-sm font-medium text-gray-700">2R2</span>
+                </label>
+            </div>
+        </div>
+
         <!-- メイン画面（問題・解答エリア） -->
         <div class="p-8 flex flex-col items-center min-h-[250px] justify-center text-center fade-in shrink-0" id="display-area">
             
             <!-- 問題表示時 -->
             <div id="question-container" class="w-full">
                 <p class="text-gray-500 text-sm font-semibold mb-2">Key of</p>
-                <div id="key-display" class="text-6xl font-extrabold text-gray-800 mb-4">C</div>
+                <div id="key-display" class="text-6xl font-extrabold text-gray-800 mb-4 flex items-center justify-center gap-3">
+                    C <span class="text-3xl text-gray-400 font-medium">[RRR]</span>
+                </div>
             </div>
 
             <!-- 解答表示時（初期は非表示） -->
             <div id="answer-container" class="w-full hidden">
-                <p class="text-gray-500 text-sm font-semibold mb-2">Key of <span id="answer-key">C</span></p>
+                <p class="text-gray-500 text-sm font-semibold mb-2">Key of <span id="answer-key">C <span class="text-gray-400 font-normal">[RRR]</span></span></p>
                 <div class="flex flex-col gap-3 mt-4">
                     <div class="bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-100 flex justify-between items-center">
                         <span class="text-indigo-400 font-bold text-sm w-8">II</span>
@@ -112,24 +133,42 @@
     </div>
 
     <script>
-        // 12キーのデータ (出題数と正解数を記録するプロパティを追加)
-        const keysData = [
-            { name: 'C',  ii: 'Dm7',   v: 'G7',   i: 'Cmaj7',  presented: 0, correct: 0 },
-            { name: 'F',  ii: 'Gm7',   v: 'C7',   i: 'Fmaj7',  presented: 0, correct: 0 },
-            { name: 'B♭', ii: 'Cm7',   v: 'F7',   i: 'B♭maj7', presented: 0, correct: 0 },
-            { name: 'E♭', ii: 'Fm7',   v: 'B♭7',  i: 'E♭maj7', presented: 0, correct: 0 },
-            { name: 'A♭', ii: 'B♭m7',  v: 'E♭7',  i: 'A♭maj7', presented: 0, correct: 0 },
-            { name: 'D♭', ii: 'E♭m7',  v: 'A♭7',  i: 'D♭maj7', presented: 0, correct: 0 },
-            { name: 'G♭', ii: 'A♭m7',  v: 'D♭7',  i: 'G♭maj7', presented: 0, correct: 0 },
-            { name: 'B',  ii: 'C#m7',  v: 'F#7',  i: 'Bmaj7',  presented: 0, correct: 0 },
-            { name: 'E',  ii: 'F#m7',  v: 'B7',   i: 'Emaj7',  presented: 0, correct: 0 },
-            { name: 'A',  ii: 'Bm7',   v: 'E7',   i: 'Amaj7',  presented: 0, correct: 0 },
-            { name: 'D',  ii: 'Em7',   v: 'A7',   i: 'Dmaj7',  presented: 0, correct: 0 },
-            { name: 'G',  ii: 'Am7',   v: 'D7',   i: 'Gmaj7',  presented: 0, correct: 0 }
+        // 12キーの基礎データ
+        const baseKeys = [
+            { name: 'C',  ii: 'Dm7',   v: 'G7',   i: 'Cmaj7' },
+            { name: 'F',  ii: 'Gm7',   v: 'C7',   i: 'Fmaj7' },
+            { name: 'B♭', ii: 'Cm7',   v: 'F7',   i: 'B♭maj7' },
+            { name: 'E♭', ii: 'Fm7',   v: 'B♭7',  i: 'E♭maj7' },
+            { name: 'A♭', ii: 'B♭m7',  v: 'E♭7',  i: 'A♭maj7' },
+            { name: 'D♭', ii: 'E♭m7',  v: 'A♭7',  i: 'D♭maj7' },
+            { name: 'G♭', ii: 'A♭m7',  v: 'D♭7',  i: 'G♭maj7' },
+            { name: 'B',  ii: 'C#m7',  v: 'F#7',  i: 'Bmaj7' },
+            { name: 'E',  ii: 'F#m7',  v: 'B7',   i: 'Emaj7' },
+            { name: 'A',  ii: 'Bm7',   v: 'E7',   i: 'Amaj7' },
+            { name: 'D',  ii: 'Em7',   v: 'A7',   i: 'Dmaj7' },
+            { name: 'G',  ii: 'Am7',   v: 'D7',   i: 'Gmaj7' }
         ];
 
-        let currentKey = null;
-        let lastKey = null; // 連続出題を防ぐため保持
+        const allVariations = ['RRR', 'R2R', '2R2'];
+
+        // 全パターンの状態を保持 (12キー × 3バリエーション = 36パターン)
+        const problemsData = [];
+        baseKeys.forEach(k => {
+            allVariations.forEach(v => {
+                problemsData.push({
+                    keyName: k.name,
+                    variation: v,
+                    ii: k.ii,
+                    v: k.v,
+                    i: k.i,
+                    presented: 0,
+                    correct: 0
+                });
+            });
+        });
+
+        let currentProblem = null;
+        let lastProblem = null; // 連続出題を防ぐため保持
 
         // DOM要素
         const displayArea = document.getElementById('display-area');
@@ -146,6 +185,24 @@
         const btnGood = document.getElementById('btn-good');
         const btnBad = document.getElementById('btn-bad');
         const statsTbody = document.getElementById('stats-tbody');
+        const checkboxes = document.querySelectorAll('.var-checkbox');
+
+        // チェックボックスの制御（最低1つはチェックされた状態にする）
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const checkedCount = document.querySelectorAll('.var-checkbox:checked').length;
+                if (checkedCount === 0) {
+                    e.target.checked = true; // チェックを戻す
+                    return;
+                }
+                renderStats(); // 設定が変わったら成績表を更新
+            });
+        });
+
+        // 選択されているバリエーションのリストを取得
+        function getActiveVariations() {
+            return Array.from(document.querySelectorAll('.var-checkbox:checked')).map(cb => cb.value);
+        }
 
         // アニメーションをリセットするユーティリティ
         function triggerAnimation() {
@@ -154,16 +211,25 @@
             displayArea.classList.add('fade-in');
         }
 
-        // 次の問題を選ぶアルゴリズム（★均等出題を保証するロジック）
+        // 次の問題を選ぶアルゴリズム（均等出題を保証するロジック）
         function pickNextKey() {
-            // 1. 直前のキーを除外（連続出題の禁止）
-            const availableKeys = keysData.filter(k => k.name !== (lastKey ? lastKey.name : null));
+            const activeVars = getActiveVariations();
+            
+            // 選択されたバリエーションに絞り込み
+            let availableProblems = problemsData.filter(p => activeVars.includes(p.variation));
+            
+            // 1. 直前の問題を除外（連続出題の禁止、ただし候補が複数ある場合のみ）
+            if (availableProblems.length > 1 && lastProblem) {
+                availableProblems = availableProblems.filter(p => 
+                    !(p.keyName === lastProblem.keyName && p.variation === lastProblem.variation)
+                );
+            }
             
             // 2. 現在の「最小出題数」を調べる
-            const minPresented = Math.min(...availableKeys.map(k => k.presented));
+            const minPresented = Math.min(...availableProblems.map(p => p.presented));
             
-            // 3. 最小出題数のキーだけを抽出（これにより、全キーが1回ずつ出るまで次の周回に行かない）
-            const candidates = availableKeys.filter(k => k.presented === minPresented);
+            // 3. 最小出題数の問題だけを抽出（全パターン網羅を保証）
+            const candidates = availableProblems.filter(p => p.presented === minPresented);
             
             // 4. 候補の中からランダムに選択
             const randomIndex = Math.floor(Math.random() * candidates.length);
@@ -174,34 +240,38 @@
         function renderStats() {
             statsTbody.innerHTML = '';
             
-            // 元の配列の順序（五度圏など）を維持して表示
-            keysData.forEach(k => {
+            const activeVars = getActiveVariations();
+            const activeProblems = problemsData.filter(p => activeVars.includes(p.variation));
+            
+            activeProblems.forEach(p => {
                 const tr = document.createElement('tr');
                 
                 // 正解率の計算
                 let rateText = '-';
                 let rateColorClass = 'text-gray-400';
                 
-                if (k.presented > 0) {
-                    const rate = (k.correct / k.presented) * 100;
+                if (p.presented > 0) {
+                    const rate = (p.correct / p.presented) * 100;
                     rateText = rate.toFixed(0) + '%';
                     
-                    // 正解率に応じて色を変える視覚的フィードバック
                     if (rate === 100) rateColorClass = 'text-emerald-600 font-bold';
                     else if (rate >= 70) rateColorClass = 'text-indigo-600';
                     else if (rate < 50) rateColorClass = 'text-orange-600 font-bold';
                     else rateColorClass = 'text-gray-700';
                 }
 
-                // 現在出題中のKeyの行は背景色を少し変える（ハイライト）
-                if (currentKey && k.name === currentKey.name) {
+                // 現在出題中の問題の行は背景色をハイライト
+                if (currentProblem && p.keyName === currentProblem.keyName && p.variation === currentProblem.variation) {
                     tr.classList.add('bg-indigo-50/50');
                 }
 
                 tr.innerHTML = `
-                    <td class="px-4 py-2 font-bold text-gray-700">${k.name}</td>
-                    <td class="px-2 py-2 text-center text-gray-600">${k.presented}</td>
-                    <td class="px-2 py-2 text-center text-gray-600">${k.correct}</td>
+                    <td class="px-4 py-2 font-bold text-gray-700 flex items-center gap-1.5">
+                        ${p.keyName} 
+                        <span class="text-[10px] font-normal text-gray-500 bg-gray-100 border border-gray-200 rounded px-1">${p.variation}</span>
+                    </td>
+                    <td class="px-2 py-2 text-center text-gray-600">${p.presented}</td>
+                    <td class="px-2 py-2 text-center text-gray-600">${p.correct}</td>
                     <td class="px-4 py-2 text-right ${rateColorClass}">${rateText}</td>
                 `;
                 statsTbody.appendChild(tr);
@@ -210,10 +280,10 @@
 
         // 問題の表示
         function showQuestion() {
-            currentKey = pickNextKey();
-            lastKey = currentKey;
+            currentProblem = pickNextKey();
+            lastProblem = currentProblem;
 
-            keyDisplay.textContent = currentKey.name;
+            keyDisplay.innerHTML = `${currentProblem.keyName} <span class="text-3xl text-gray-400 font-medium ml-2">[${currentProblem.variation}]</span>`;
             
             // UIを問題表示状態に切り替え
             questionContainer.classList.remove('hidden');
@@ -227,10 +297,10 @@
 
         // 解答の表示
         function showAnswer() {
-            answerKey.textContent = currentKey.name;
-            chordIi.textContent = currentKey.ii;
-            chordV.textContent = currentKey.v;
-            chordI.textContent = currentKey.i;
+            answerKey.innerHTML = `${currentProblem.keyName} <span class="text-gray-400 font-normal">[${currentProblem.variation}]</span>`;
+            chordIi.textContent = currentProblem.ii;
+            chordV.textContent = currentProblem.v;
+            chordI.textContent = currentProblem.i;
 
             // UIを解答表示状態に切り替え
             questionContainer.classList.add('hidden');
@@ -243,9 +313,9 @@
 
         // 結果の記録
         function recordResult(isSuccess) {
-            currentKey.presented++;
+            currentProblem.presented++;
             if (isSuccess) {
-                currentKey.correct++;
+                currentProblem.correct++;
             }
         }
 
