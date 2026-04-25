@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>東京の小学校 住所・距離・附属校進学情報マップ</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <style>
+    :root { --bg:#f7f8fb; --panel:#fff; --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --accent:#2563eb; --warn:#b45309; --ok:#047857; --err:#b91c1c; --origin:#dc2626; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding:16px 20px 10px; background:var(--panel); border-bottom:1px solid var(--line); }
+    h1 { margin:0 0 6px; font-size:20px; }
+    .sub { color:var(--muted); font-size:13px; line-height:1.55; }
+    .origin-line { margin-top:6px; font-size:13px; }
+    .origin-line strong { color:var(--origin); }
+    .wrap { display:grid; grid-template-columns: 620px 1fr; height: calc(100vh - 126px); min-height:660px; }
+    aside { background:var(--panel); border-right:1px solid var(--line); overflow:auto; padding:14px; }
+    #map { width:100%; height:100%; }
+    .toolbar { display:grid; gap:8px; margin-bottom:12px; }
+    input, select, button { font:inherit; }
+    input[type="search"] { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:10px; }
+    .btns { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+    button { border:1px solid var(--line); background:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; }
+    button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+    button.active { background:#eef2ff; border-color:#c7d2fe; color:#3730a3; font-weight:700; }
+    button:hover { filter:brightness(.98); }
+    .notice { background:#fffbeb; color:#78350f; border:1px solid #fde68a; border-radius:10px; padding:9px 10px; font-size:12px; line-height:1.5; }
+    .stats { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:12px; }
+    .stat { background:#f3f4f6; border-radius:999px; padding:4px 8px; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th, td { padding:8px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { position:sticky; top:0; background:var(--panel); z-index:1; text-align:left; color:var(--muted); }
+    tr { cursor:pointer; }
+    tr:hover { background:#f8fafc; }
+    .name { font-weight:700; font-size:13px; }
+    .addr { color:var(--muted); margin-top:2px; line-height:1.4; }
+    .distance { font-weight:700; white-space:nowrap; }
+    .distance small { display:block; color:var(--muted); font-weight:400; margin-top:2px; }
+    .route-link,.small-link { color:var(--accent); text-decoration:none; font-weight:700; }
+    .route-link:hover,.small-link:hover { text-decoration:underline; }
+    .route-note { color:var(--muted); font-size:11px; margin-top:2px; line-height:1.35; }
+    .badge { display:inline-block; border-radius:999px; padding:2px 6px; font-size:11px; margin:2px 4px 0 0; background:#eef2ff; color:#3730a3; }
+    .badge.tama { background:#ecfdf5; color:#065f46; }
+    .badge.note { background:#fff7ed; color:var(--warn); }
+    .badge.origin { background:#fee2e2; color:#991b1b; }
+    .badge.attached { background:#eff6ff; color:#1d4ed8; }
+    .badge.single { background:#f3f4f6; color:#4b5563; }
+    .badge.low { background:#fef3c7; color:#92400e; }
+    .edu { line-height:1.45; }
+    .edu-grid { display:grid; grid-template-columns:72px 1fr; gap:3px 8px; }
+    .edu-label { color:var(--muted); }
+    .edu-value strong { font-weight:800; }
+    .status.ok { color:var(--ok); font-weight:700; }
+    .status.err { color:var(--err); font-weight:700; }
+    .status.wait { color:var(--muted); }
+    .leaflet-popup-content { font-size:13px; line-height:1.45; min-width:280px; }
+    .popup-title { font-weight:700; font-size:14px; margin-bottom:4px; }
+    .popup-address { color:#374151; margin-bottom:6px; }
+    .popup-note { color:var(--warn); margin-top:6px; }
+    .popup-section { border-top:1px solid #e5e7eb; margin-top:8px; padding-top:8px; }
+    @media (max-width: 1100px) { .wrap { grid-template-columns:1fr; height:auto; } aside { height:52vh; border-right:none; border-bottom:1px solid var(--line); } #map { height:52vh; } .btns { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>東京の小学校 住所・地図プロット・附属校進学情報</h1>
+    <div class="sub">住所データをもとに、国土地理院の住所検索APIで緯度経度を取得し、地理院タイルにプロットします。附属・系列校については、中学偏差値・高校偏差値・大学進学実績確認用メモを表示します。</div>
+    <div class="origin-line">出発地: <strong>東京都杉並区和泉2-45-18</strong> からの直線距離と、Google Mapsの電車経路確認リンクを表示します。</div>
+  </header>
+  <main class="wrap">
+    <aside>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="校名・住所・系列校・大学名で検索" />
+        <div class="btns">
+          <button class="primary" id="showAll">全校を表示</button>
+          <button id="sortDistance">距離順に並べ替え</button>
+          <button id="attachedOnly">附属校のみ</button>
+          <button id="retryFailed">失敗分を再取得</button>
+          <button id="downloadCsv">CSVを保存</button>
+          <button id="downloadGeoJson">GeoJSONを保存</button>
+          <button id="clearCache">キャッシュ削除</button>
+        </div>
+        <div class="notice">
+          偏差値はサイト・模試母集団・募集回・男女・コースによって大きく変わります。このHTMLでは「2026年度の公開偏差値情報で確認できた範囲の目安」を入れています。高校募集がない一貫校は「高校募集なし・目安なし」と表示します。受験判断では必ず各校公式ページ・最新募集要項・模試会社の偏差値表で確認してください。
+        </div>
+        <div class="stats" id="stats"></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34%">学校</th>
+            <th style="width:12%">距離</th>
+            <th style="width:44%">附属校・偏差値・進学情報</th>
+            <th style="width:10%">状態</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </aside>
+    <section id="map"></section>
+  </main>
+<script>
+const schools = [
+  {
+    "name": "学習院初等科",
+    "address": "東京都新宿区若葉1-23-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "男子: 学習院中等科 / 女子: 学習院女子中等科",
+    "juniorDev": "男子 63 / 女子 67（目安）",
+    "high": "男子: 学習院高等科 / 女子: 学習院女子高等科",
+    "highDev": "男子 69 / 女子は高校募集なし・目安なし",
+    "university": "学習院大学・学習院女子大学ほか",
+    "progress": "系列大学進学と外部大学進学の両方。詳細は公式進学実績で確認",
+    "confidence": "中"
+  },
+  {
+    "name": "川村小学校",
+    "address": "東京都豊島区目白2-22-3",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "川村中学校",
+    "juniorDev": "要確認",
+    "high": "川村高等学校",
+    "highDev": "要確認",
+    "university": "川村学園女子大学ほか",
+    "progress": "女子一貫校。大学進学実績は公式情報で確認",
+    "confidence": "要確認"
+  },
+  {
+    "name": "きこえの学校ライシャワー学園",
+    "address": "東京都町田市野津田町1942",
+    "area": "多摩",
+    "source": "東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "特別支援系の学校。一般的な附属中高偏差値の枠では扱わない",
+    "confidence": "高"
+  },
+  {
+    "name": "吉祥寺学園初等部",
+    "address": "東京都武蔵野市緑町2-1-10",
+    "area": "多摩",
+    "source": "公式アクセスページ",
+    "note": "2026年4月に武蔵野東小学校から校名変更",
+    "attached": true,
+    "junior": "武蔵野東中学校",
+    "juniorDev": "47前後（目安）",
+    "high": "高等学校なし",
+    "highDev": "—",
+    "university": "—",
+    "progress": "中学校までの系列。高校・大学実績は中学校進路で確認",
+    "confidence": "中"
+  },
+  {
+    "name": "暁星小学校",
+    "address": "東京都千代田区富士見1-1-13",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "暁星中学校",
+    "juniorDev": "62（目安）",
+    "high": "暁星高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "国立音楽大学附属小学校",
+    "address": "東京都国立市西1-15-12",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "国立音楽大学附属中学校",
+    "juniorDev": "40（目安）",
+    "high": "国立音楽大学附属高等学校",
+    "highDev": "要確認",
+    "university": "国立音楽大学ほか",
+    "progress": "音楽系進学を含む。詳細は公式進学実績で確認",
+    "confidence": "中"
+  },
+  {
+    "name": "国立学園小学校",
+    "address": "東京都国立市中2-6",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "小学校単独校。進学先は学校公開情報で確認",
+    "confidence": "高"
+  },
+  {
+    "name": "国本小学校",
+    "address": "東京都世田谷区喜多見8-15-33",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "国本女子中学校",
+    "juniorDev": "要確認",
+    "high": "国本女子高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "中高の大学進学実績を公式サイトで確認",
+    "confidence": "要確認"
+  },
+  {
+    "name": "啓明学園初等学校",
+    "address": "東京都昭島市拝島町5-11-15",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "啓明学園中学校",
+    "juniorDev": "49前後（目安）",
+    "high": "啓明学園高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "光塩女子学院初等科",
+    "address": "東京都杉並区高円寺南2-33-28",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "光塩女子学院中等科",
+    "juniorDev": "51（目安）",
+    "high": "光塩女子学院高等科",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "晃華学園小学校",
+    "address": "東京都調布市佐須町5-28-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "晃華学園中学校",
+    "juniorDev": "58前後（目安）",
+    "high": "晃華学園高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "サレジアン国際学園小学校",
+    "address": "東京都北区赤羽台4-2-14",
+    "area": "23区",
+    "source": "東京私立初等学校協会",
+    "note": "旧・星美学園小学校。2026年度よりサレジアン国際学園小学校",
+    "attached": true,
+    "junior": "サレジアン国際学園中学校",
+    "juniorDev": "49前後（目安）",
+    "high": "サレジアン国際学園高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "サレジアン国際学園目黒星美小学校",
+    "address": "東京都目黒区碑文谷2-17-6",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "サレジアン国際学園世田谷中学校",
+    "juniorDev": "59前後（目安）",
+    "high": "サレジアン国際学園世田谷高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "品川翔英小学校",
+    "address": "東京都品川区西大井1-6-13",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "品川翔英中学校",
+    "juniorDev": "49前後（目安）",
+    "high": "品川翔英高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "自由学園初等部",
+    "address": "東京都東久留米市学園町1-8-15",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "自由学園中等部",
+    "juniorDev": "40前後（目安）",
+    "high": "自由学園高等科",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "大学進学実績は公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "淑徳小学校",
+    "address": "東京都板橋区前野町5-3-7",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "淑徳中学校",
+    "juniorDev": "61前後（目安）",
+    "high": "淑徳高等学校",
+    "highDev": "69前後（スーパー特進目安）",
+    "university": "大乗淑徳学園系（淑徳大学ほか）",
+    "progress": "系列大学進学だけでなく外部大学合格実績も確認対象",
+    "confidence": "中"
+  },
+  {
+    "name": "聖徳学園小学校",
+    "address": "東京都武蔵野市境南町2-11-8",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "聖徳学園中学校",
+    "juniorDev": "50前後（目安）",
+    "high": "聖徳学園高等学校",
+    "highDev": "59〜64前後（コースにより変動・目安）",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "白百合学園小学校",
+    "address": "東京都千代田区九段北2-4-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "白百合学園中学校",
+    "juniorDev": "69（目安）",
+    "high": "白百合学園高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "菅生学園初等学校",
+    "address": "東京都あきる野市菅生1468",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東海大学菅生高等学校中等部",
+    "juniorDev": "42前後（目安）",
+    "high": "東海大学菅生高等学校",
+    "highDev": "要確認",
+    "university": "東海大学ほか",
+    "progress": "東海大学への進学制度と外部大学実績を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "聖学院小学校",
+    "address": "東京都北区中里3-13-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "聖学院中学校",
+    "juniorDev": "57前後（特待含む目安）",
+    "high": "聖学院高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "聖学院大学ほか",
+    "progress": "系列大学および外部大学進学実績を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "成蹊小学校",
+    "address": "東京都武蔵野市吉祥寺北町3-3-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "成蹊中学校",
+    "juniorDev": "62（目安）",
+    "high": "成蹊高等学校",
+    "highDev": "68（目安）",
+    "university": "成蹊大学ほか",
+    "progress": "成蹊大学推薦・外部大学進学の双方を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "成城学園初等学校",
+    "address": "東京都世田谷区祖師谷3-52-38",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "成城学園中学校",
+    "juniorDev": "60前後（目安）",
+    "high": "成城学園高等学校",
+    "highDev": "要確認",
+    "university": "成城大学ほか",
+    "progress": "成城大学推薦・外部大学進学の双方を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "聖心女子学院初等科",
+    "address": "東京都港区白金4-11-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "聖心女子学院中等科",
+    "juniorDev": "中学外部募集の有無を要確認",
+    "high": "聖心女子学院高等科",
+    "highDev": "高校募集なし・目安なし",
+    "university": "聖心女子大学ほか",
+    "progress": "聖心女子大学への推薦・外部大学進学実績を確認",
+    "confidence": "要確認"
+  },
+  {
+    "name": "聖ドミニコ学園小学校",
+    "address": "東京都世田谷区岡本1-10-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "聖ドミニコ学園中学校",
+    "juniorDev": "43前後（目安）",
+    "high": "聖ドミニコ学園高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "清明学園初等学校",
+    "address": "東京都大田区南雪谷3-12-26",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "清明学園中学校",
+    "juniorDev": "40前後（目安）",
+    "high": "高等学校なし",
+    "highDev": "—",
+    "university": "—",
+    "progress": "中学校卒業後の進路を学校情報で確認",
+    "confidence": "中"
+  },
+  {
+    "name": "玉川学園小学部",
+    "address": "東京都町田市玉川学園6-1-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "玉川学園中学部",
+    "juniorDev": "45前後（目安）",
+    "high": "玉川学園高等部",
+    "highDev": "要確認",
+    "university": "玉川大学ほか",
+    "progress": "玉川大学内部進学と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "帝京大学小学校",
+    "address": "東京都多摩市和田1254-6",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "帝京大学中学校",
+    "juniorDev": "60前後（目安）",
+    "high": "帝京大学高等学校",
+    "highDev": "67（目安）",
+    "university": "帝京大学グループほか",
+    "progress": "帝京大学グループ推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "田園調布雙葉小学校",
+    "address": "東京都世田谷区玉川田園調布1-20-9",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "田園調布雙葉中学校",
+    "juniorDev": "中学募集なし/目安なし",
+    "high": "田園調布雙葉高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東京女学館小学校",
+    "address": "東京都渋谷区広尾3-7-16",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東京女学館中学校",
+    "juniorDev": "60前後（目安）",
+    "high": "東京女学館高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東京都市大学付属小学校",
+    "address": "東京都世田谷区成城1-12-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東京都市大学付属中学校",
+    "juniorDev": "65前後（目安）",
+    "high": "東京都市大学付属高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "東京都市大学ほか",
+    "progress": "東京都市大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東星学園小学校",
+    "address": "東京都清瀬市梅園3-14-47",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東星学園中学校",
+    "juniorDev": "38前後（目安）",
+    "high": "東星学園高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "桐朋学園小学校",
+    "address": "東京都国立市中3-1-10",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "桐朋中学校",
+    "juniorDev": "65（目安）",
+    "high": "桐朋高等学校",
+    "highDev": "71（目安）",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "桐朋小学校",
+    "address": "東京都調布市若葉町1-41-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "男子: 桐朋中学校 / 女子: 桐朋女子中学校",
+    "juniorDev": "男子 65 / 女子 40前後（目安）",
+    "high": "男子: 桐朋高等学校 / 女子: 桐朋女子高等学校",
+    "highDev": "男子 71 / 女子 67前後（目安）",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東洋英和女学院小学部",
+    "address": "東京都港区六本木5-6-14",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東洋英和女学院中学部",
+    "juniorDev": "68（目安）",
+    "high": "東洋英和女学院高等部",
+    "highDev": "高校募集なし・目安なし",
+    "university": "東洋英和女学院大学ほか",
+    "progress": "系列大学進学と外部大学進学の双方を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "トキワ松学園小学校",
+    "address": "東京都目黒区碑文谷4-17-16",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "トキワ松学園中学校",
+    "juniorDev": "48前後（目安）",
+    "high": "トキワ松学園高等学校",
+    "highDev": "要確認",
+    "university": "横浜美術大学ほか",
+    "progress": "美術・デザイン系を含む進学実績を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "新渡戸文化小学校",
+    "address": "東京都中野区本町6-38-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "新渡戸文化中学校",
+    "juniorDev": "40前後（目安）",
+    "high": "新渡戸文化高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "日本女子大学附属豊明小学校",
+    "address": "東京都文京区目白台1-16-7",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "日本女子大学附属中学校",
+    "juniorDev": "神奈川県所在校のため東京一覧外。要確認",
+    "high": "日本女子大学附属高等学校",
+    "highDev": "要確認",
+    "university": "日本女子大学ほか",
+    "progress": "日本女子大学推薦と外部大学進学を確認",
+    "confidence": "要確認"
+  },
+  {
+    "name": "文教大学付属小学校",
+    "address": "東京都大田区東雪谷2-3-12",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "文教大学付属中学校",
+    "juniorDev": "48前後（目安）",
+    "high": "文教大学付属高等学校",
+    "highDev": "要確認",
+    "university": "文教大学ほか",
+    "progress": "文教大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "宝仙学園小学校",
+    "address": "東京都中野区中央2-33-26",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "順天堂大学系属理数インター中学校",
+    "juniorDev": "44〜55（目安）",
+    "high": "順天堂大学系属理数インター高等学校",
+    "highDev": "64前後（目安）",
+    "university": "順天堂大学ほか",
+    "progress": "順天堂大学系属化後の推薦制度と外部大学実績を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "明星学園小学校",
+    "address": "東京都三鷹市井の頭5-7-7",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "明星学園中学校",
+    "juniorDev": "41前後（目安）",
+    "high": "明星学園高等学校",
+    "highDev": "要確認",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "むさしの学園小学校",
+    "address": "東京都府中市多磨町1-19-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "小学校単独校。進学先は学校公開情報で確認",
+    "confidence": "高"
+  },
+  {
+    "name": "明星小学校",
+    "address": "東京都府中市栄町1-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "明星中学校",
+    "juniorDev": "49前後（目安）",
+    "high": "明星高等学校",
+    "highDev": "要確認",
+    "university": "明星大学ほか",
+    "progress": "明星大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "立教小学校",
+    "address": "東京都豊島区目白5-24-12",
+    "area": "23区",
+    "source": "立教小学校公式アクセスページ",
+    "note": "新校舎建設に伴う一時移転先。2026年9月に東京都豊島区西池袋3-36-26へ移転予定",
+    "attached": true,
+    "junior": "立教池袋中学校",
+    "juniorDev": "65前後（目安）",
+    "high": "立教池袋高等学校",
+    "highDev": "71（目安）",
+    "university": "立教大学ほか",
+    "progress": "立教大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "立教女学院小学校",
+    "address": "東京都杉並区久我山4-29-60",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "立教女学院中学校",
+    "juniorDev": "65（目安）",
+    "high": "立教女学院高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "立教大学ほか",
+    "progress": "立教大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "和光小学校",
+    "address": "東京都世田谷区桜2-18-18",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "和光中学校",
+    "juniorDev": "42前後（目安）",
+    "high": "和光高等学校",
+    "highDev": "要確認",
+    "university": "和光大学ほか",
+    "progress": "和光大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "愛育学園（特別支援学校）",
+    "address": "東京都港区南麻布5-6-8",
+    "area": "23区",
+    "source": "東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "特別支援学校。一般的な中高偏差値の枠では扱わない",
+    "confidence": "高"
+  },
+  {
+    "name": "青山学院初等部",
+    "address": "東京都渋谷区渋谷4-4-25",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "青山学院中等部",
+    "juniorDev": "65（目安）",
+    "high": "青山学院高等部",
+    "highDev": "71（目安）",
+    "university": "青山学院大学ほか",
+    "progress": "青山学院大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "慶應義塾幼稚舎",
+    "address": "東京都渋谷区恵比寿2-35-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "慶應義塾普通部 / 中等部 / 湘南藤沢中等部",
+    "juniorDev": "中等部 72・普通部は神奈川県所在（目安）",
+    "high": "慶應義塾高等学校 / 慶應義塾女子高等学校 / 志木高等学校 / 湘南藤沢高等部",
+    "highDev": "女子 76ほか（目安）",
+    "university": "慶應義塾大学ほか",
+    "progress": "慶應義塾大学への内部進学が中心。学部進学条件は要確認",
+    "confidence": "中"
+  },
+  {
+    "name": "昭和女子大学附属昭和小学校",
+    "address": "東京都世田谷区太子堂1-7-57",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "昭和女子大学附属昭和中学校",
+    "juniorDev": "60前後（目安）",
+    "high": "昭和女子大学附属昭和高等学校",
+    "highDev": "要確認",
+    "university": "昭和女子大学ほか",
+    "progress": "昭和女子大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東京三育小学校",
+    "address": "東京都練馬区関町南2-8-4",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "小学校単独。系列校の進学制度がある場合は公式確認",
+    "confidence": "要確認"
+  },
+  {
+    "name": "東京シューレ江戸川小学校",
+    "address": "東京都江戸川区西小岩2-4-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": false,
+    "junior": "—",
+    "juniorDev": "—",
+    "high": "—",
+    "highDev": "—",
+    "university": "—",
+    "progress": "一般的な附属中高偏差値の枠では扱わない",
+    "confidence": "高"
+  },
+  {
+    "name": "東京創価小学校",
+    "address": "東京都小平市上水新町2-20-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "創価中学校",
+    "juniorDev": "50（目安）",
+    "high": "創価高等学校",
+    "highDev": "69（目安）",
+    "university": "創価大学ほか",
+    "progress": "創価大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "東京農業大学稲花小学校",
+    "address": "東京都世田谷区桜3-33-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "東京農業大学第一高等学校中等部",
+    "juniorDev": "68前後（目安）",
+    "high": "東京農業大学第一高等学校",
+    "highDev": "要確認",
+    "university": "東京農業大学ほか",
+    "progress": "東京農業大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "雙葉小学校",
+    "address": "東京都千代田区六番町14-1",
+    "area": "23区",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "雙葉中学校",
+    "juniorDev": "71（目安）",
+    "high": "雙葉高等学校",
+    "highDev": "高校募集なし・目安なし",
+    "university": "系列大学なし",
+    "progress": "外部大学進学実績を公式サイトで確認",
+    "confidence": "中"
+  },
+  {
+    "name": "和光鶴川小学校",
+    "address": "東京都町田市真光寺町1282-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "和光中学校",
+    "juniorDev": "42前後（目安）",
+    "high": "和光高等学校",
+    "highDev": "要確認",
+    "university": "和光大学ほか",
+    "progress": "和光大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  },
+  {
+    "name": "早稲田大学系属早稲田実業学校初等部",
+    "address": "東京都国分寺市本町1-2-1",
+    "area": "多摩",
+    "source": "東京都私学財団 / 東京私立初等学校協会",
+    "attached": true,
+    "junior": "早稲田実業学校中等部",
+    "juniorDev": "男子 68 / 女子 71（目安）",
+    "high": "早稲田実業学校高等部",
+    "highDev": "75（目安）",
+    "university": "早稲田大学ほか",
+    "progress": "早稲田大学推薦と外部大学進学を確認",
+    "confidence": "中"
+  }
+];
+
+const origin = { name:'出発地', address:'東京都杉並区和泉2-45-18', source:'ユーザー指定' };
+const cacheKey = 'tokyo-elementary-school-geocode-v5-edu';
+let cache = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+let markers = new Map();
+let originMarker = null;
+let currentFilter = '';
+let sortByDistance = false;
+let showAttachedOnly = false;
+
+const map = L.map('map', { preferCanvas:true }).setView([35.69,139.55],10);
+const gsiStd = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+  maxZoom:18,
+  attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'
+}).addTo(map);
+const gsiPale = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+  maxZoom:18,
+  attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>'
+});
+L.control.layers({ '地理院 標準地図': gsiStd, '地理院 淡色地図': gsiPale }, null, { collapsed:false }).addTo(map);
+const group = L.featureGroup().addTo(map);
+
+function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+function normalize(s) { return (s || '').toString().toLowerCase().replace(/[‐‑‒–—―−]/g,'-').replace(/\s+/g,''); }
+function googleMapUrl(address) { return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address); }
+function googleTransitUrl(destination) { return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(origin.address) + '&destination=' + encodeURIComponent(destination) + '&travelmode=transit'; }
+function googleSearchUrl(q) { return 'https://www.google.com/search?q=' + encodeURIComponent(q); }
+function escapeHtml(str) { return String(str ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])); }
+function haversineKm(lat1,lng1,lat2,lng2) {
+  const R=6371.0088, toRad=deg=>deg*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLng=toRad(lng2-lng1);
+  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function updateDistance(s) { if (origin.lat && origin.lng && s.lat && s.lng) s.distanceKm = haversineKm(origin.lat, origin.lng, s.lat, s.lng); }
+function formatDistance(km) { if (typeof km !== 'number' || !isFinite(km)) return '計算中'; return km < 10 ? km.toFixed(1)+' km' : km.toFixed(0)+' km'; }
+
+function eduHtml(s, compact=false) {
+  const detailQuery = `${s.name} ${s.high && s.high !== '—' ? s.high : ''} 大学合格実績 大学進学実績`;
+  const devQuery = `${s.junior} ${s.high} 偏差値 2026`;
+  const badge = s.attached ? '<span class="badge attached">附属・系列</span>' : '<span class="badge single">小学校単独/対象外</span>';
+  const conf = s.confidence === '要確認' ? '<span class="badge low">要確認</span>' : `<span class="badge">${escapeHtml(s.confidence || '中')}</span>`;
+  const grid = `
+    <div class="edu-grid">
+      <div class="edu-label">中学</div><div class="edu-value">${escapeHtml(s.junior || '—')} <strong>${escapeHtml(s.juniorDev || '')}</strong></div>
+      <div class="edu-label">高校</div><div class="edu-value">${escapeHtml(s.high || '—')} <strong>${escapeHtml(s.highDev || '')}</strong></div>
+      <div class="edu-label">大学</div><div class="edu-value">${escapeHtml(s.university || '—')}</div>
+      <div class="edu-label">実績</div><div class="edu-value">${escapeHtml(s.progress || '—')}</div>
+    </div>`;
+  const links = `<div style="margin-top:4px"><a class="small-link" href="${googleSearchUrl(devQuery)}" target="_blank" rel="noopener">偏差値を検索</a> / <a class="small-link" href="${googleSearchUrl(detailQuery)}" target="_blank" rel="noopener">大学進学実績を検索</a></div>`;
+  if (compact) return `<div class="edu">${badge}${conf}${grid}${links}</div>`;
+  return `<div class="popup-section"><strong>附属校・進学情報</strong><br>${badge}${conf}${grid}${links}</div>`;
+}
+
+function makePopup(s) {
+  const distance = typeof s.distanceKm === 'number' ? `<div><strong>出発地からの直線距離:</strong> ${escapeHtml(formatDistance(s.distanceKm))}</div>` : '';
+  return `<div class="popup-title">${escapeHtml(s.name)}</div>` +
+    `<div class="popup-address">${escapeHtml(s.address)}</div>` +
+    `<div>地域: ${escapeHtml(s.area)} / 出典: ${escapeHtml(s.source)}</div>` +
+    distance +
+    (s.note ? `<div class="popup-note">注記: ${escapeHtml(s.note)}</div>` : '') +
+    eduHtml(s, false) +
+    `<div class="popup-section"><a class="small-link" href="${googleMapUrl(s.address)}" target="_blank" rel="noopener">Google Mapsで場所を開く</a><br>` +
+    `<a class="small-link" href="${googleTransitUrl(s.address)}" target="_blank" rel="noopener">杉並区和泉2-45-18から電車経路・所要時間を確認</a></div>`;
+}
+
+async function geocodePlace(p, force=false) {
+  const key = p.address;
+  if (!force && cache[key] && cache[key].lat && cache[key].lng) {
+    p.lat=cache[key].lat; p.lng=cache[key].lng; p.geocodeLabel=cache[key].label||'';
+    return true;
+  }
+  const url = 'https://msearch.gsi.go.jp/address-search/AddressSearch?q=' + encodeURIComponent(p.address);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const features = await res.json();
+    if (!Array.isArray(features) || features.length === 0) throw new Error('該当なし');
+    const [lng, lat] = features[0].geometry.coordinates;
+    p.lat=Number(lat); p.lng=Number(lng); p.geocodeLabel=features[0].properties?.title || '';
+    cache[key]={lat:p.lat,lng:p.lng,label:p.geocodeLabel,at:new Date().toISOString()};
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
+    return true;
+  } catch(e) {
+    p.error=e.message || String(e);
+    return false;
+  }
+}
+
+function addOriginMarker() {
+  if (!origin.lat || !origin.lng || originMarker) return;
+  originMarker = L.circleMarker([origin.lat, origin.lng], { radius:9, color:'#dc2626', weight:2, fillColor:'#dc2626', fillOpacity:.85 })
+    .bindPopup(`<div class="popup-title"><span class="badge origin">出発地</span> ${escapeHtml(origin.address)}</div>`);
+  group.addLayer(originMarker);
+}
+
+function getVisibleSchools() {
+  const q = normalize(currentFilter);
+  let visible = schools.filter(s => {
+    const hay = normalize([s.name,s.address,s.area,s.note,s.junior,s.high,s.university,s.progress,s.juniorDev,s.highDev].join(' '));
+    return (!showAttachedOnly || s.attached) && (!q || hay.includes(q));
+  });
+  if (sortByDistance) {
+    visible = visible.slice().sort((a,b) => {
+      const da = typeof a.distanceKm === 'number' ? a.distanceKm : Infinity;
+      const db = typeof b.distanceKm === 'number' ? b.distanceKm : Infinity;
+      return da - db || a.name.localeCompare(b.name,'ja');
+    });
+  }
+  return visible;
+}
+
+function renderRows() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  getVisibleSchools().forEach(s => {
+    const tr = document.createElement('tr');
+    const status = s.lat ? '<span class="status ok">済</span>' : s.error ? '<span class="status err">失敗</span>' : '<span class="status wait">待機</span>';
+    tr.innerHTML = `
+      <td>
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="addr">${escapeHtml(s.address)}</div>
+        <div><span class="badge ${s.area === '多摩' ? 'tama' : ''}">${escapeHtml(s.area)}</span>${s.note ? '<span class="badge note">注記あり</span>' : ''}</div>
+        <div style="margin-top:4px"><a class="route-link" href="${googleTransitUrl(s.address)}" target="_blank" rel="noopener">電車で確認</a></div>
+      </td>
+      <td><div class="distance">${escapeHtml(formatDistance(s.distanceKm))}<small>直線距離</small></div></td>
+      <td>${eduHtml(s, true)}</td>
+      <td>${status}</td>`;
+    tr.addEventListener('click', ev => {
+      if (ev.target.closest('a')) return;
+      focusSchool(s);
+    });
+    tbody.appendChild(tr);
+  });
+  updateStats();
+}
+
+function updateStats() {
+  const plotted=schools.filter(s=>s.lat&&s.lng).length;
+  const failed=schools.filter(s=>s.error&&!(s.lat&&s.lng)).length;
+  const attached=schools.filter(s=>s.attached).length;
+  const calculated=schools.filter(s=>typeof s.distanceKm === 'number').length;
+  const closest=schools.filter(s=>typeof s.distanceKm === 'number').sort((a,b)=>a.distanceKm-b.distanceKm)[0];
+  const originStatus=origin.lat?'出発地 済':origin.error?'出発地 失敗':'出発地 取得中';
+  const visible=getVisibleSchools().length;
+  const stats=[`全${schools.length}校`,`表示 ${visible}校`,`附属/系列 ${attached}校`,`プロット済み ${plotted}`,`距離計算 ${calculated}`,originStatus,`失敗 ${failed}`];
+  if (closest) stats.push(`最短: ${closest.name} ${formatDistance(closest.distanceKm)}`);
+  document.getElementById('stats').innerHTML = stats.map(x => `<span class="stat">${escapeHtml(x)}</span>`).join('');
+}
+
+function addMarker(s) {
+  if (!s.lat || !s.lng || markers.has(s.name)) return;
+  updateDistance(s);
+  const marker = L.marker([s.lat,s.lng], { title:s.name }).bindPopup(makePopup(s));
+  markers.set(s.name, marker);
+  group.addLayer(marker);
+}
+function refreshMarkerPopups() {
+  for (const s of schools) {
+    updateDistance(s);
+    const marker = markers.get(s.name);
+    if (marker) marker.setPopupContent(makePopup(s));
+  }
+}
+function focusSchool(s) {
+  if (s.lat && s.lng) {
+    map.setView([s.lat,s.lng],15);
+    const m=markers.get(s.name);
+    if (m) m.openPopup();
+  } else {
+    window.open(googleMapUrl(s.address),'_blank','noopener');
+  }
+}
+function fitAll() { if (group.getLayers().length) map.fitBounds(group.getBounds().pad(.15)); }
+async function geocodeAll({onlyFailed=false, force=false}={}) {
+  renderRows();
+  await geocodePlace(origin, force);
+  addOriginMarker();
+  for (const s of schools) {
+    if (onlyFailed && !(s.error && !s.lat)) continue;
+    if (!force && s.lat && s.lng) { addMarker(s); continue; }
+    await geocodePlace(s, force);
+    addMarker(s);
+    refreshMarkerPopups();
+    renderRows();
+    await sleep(180);
+  }
+  refreshMarkerPopups();
+  fitAll();
+  renderRows();
+}
+function makeCsv() {
+  const header = ['学校名','住所','地域','出発地からの直線距離km','Google Maps電車経路URL','附属/系列','系列中学','中学偏差値目安','系列高校','高校偏差値目安','系列大学','大学進学実績メモ','確認レベル','緯度','経度','注記','住所出典'];
+  const rows = schools.map(s => [s.name,s.address,s.area,typeof s.distanceKm==='number'?s.distanceKm.toFixed(3):'',googleTransitUrl(s.address),s.attached?'Yes':'No',s.junior||'',s.juniorDev||'',s.high||'',s.highDev||'',s.university||'',s.progress||'',s.confidence||'',s.lat||'',s.lng||'',s.note||'',s.source]);
+  return [header,...rows].map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+}
+function download(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function makeGeoJson() {
+  return JSON.stringify({
+    type:'FeatureCollection',
+    features: schools.filter(s=>s.lat&&s.lng).map(s => ({
+      type:'Feature',
+      properties: {
+        name:s.name,address:s.address,area:s.area,distance_km:typeof s.distanceKm==='number'?Number(s.distanceKm.toFixed(3)):null,
+        transit_url:googleTransitUrl(s.address),attached:s.attached,junior:s.junior,junior_deviation:s.juniorDev,high:s.high,high_deviation:s.highDev,university:s.university,progress:s.progress,note:s.note||'',source:s.source
+      },
+      geometry: { type:'Point', coordinates:[s.lng,s.lat] }
+    }))
+  }, null, 2);
+}
+
+document.getElementById('search').addEventListener('input', e => { currentFilter=e.target.value; renderRows(); });
+document.getElementById('showAll').addEventListener('click', fitAll);
+document.getElementById('sortDistance').addEventListener('click', e => { sortByDistance=!sortByDistance; e.target.textContent=sortByDistance?'元の順序に戻す':'距離順に並べ替え'; renderRows(); });
+document.getElementById('attachedOnly').addEventListener('click', e => { showAttachedOnly=!showAttachedOnly; e.target.classList.toggle('active', showAttachedOnly); e.target.textContent=showAttachedOnly?'全校に戻す':'附属校のみ'; renderRows(); });
+document.getElementById('retryFailed').addEventListener('click', () => geocodeAll({onlyFailed:true, force:true}));
+document.getElementById('downloadCsv').addEventListener('click', () => download('tokyo_elementary_schools_distance_and_affiliation.csv', '\ufeff' + makeCsv(), 'text/csv;charset=utf-8'));
+document.getElementById('downloadGeoJson').addEventListener('click', () => download('tokyo_elementary_schools_distance_and_affiliation.geojson', makeGeoJson(), 'application/geo+json;charset=utf-8'));
+document.getElementById('clearCache').addEventListener('click', () => { localStorage.removeItem(cacheKey); location.reload(); });
+
+renderRows();
+geocodeAll();
+</script>
+</body>
+</html>
