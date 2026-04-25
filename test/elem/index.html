@@ -1120,7 +1120,7 @@ olfqzpE7YkjpfuisHdW+BB9zmrpR9o50QpwhCpBQ7wVjbEzM5VK55/zs+LzvdpqSbO68Xk87Y1MkPqjc
 `;
     const $ = id => document.getElementById(id);
     function b64ToBytes(b64) {
-      const clean = b64.replace(/s+/g, "");
+      const clean = String(b64).replace(/\s+/g, "");
       const bin = atob(clean);
       const bytes = new Uint8Array(bin.length);
       for (let i=0; i<bin.length; i++) bytes[i] = bin.charCodeAt(i);
@@ -1145,7 +1145,7 @@ olfqzpE7YkjpfuisHdW+BB9zmrpR9o50QpwhCpBQ7wVjbEzM5VK55/zs+LzvdpqSbO68Xk87Y1MkPqjc
       status.className = "status";
       status.textContent = "復号しています...";
       try {
-        const html = await unlock($("password").value);
+        const html = await unlock($("password").value.trim());
         status.className = "status ok";
         status.textContent = "復号しました。表示を切り替えます。";
         await sleep(80);
