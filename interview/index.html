@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantumBlack DS面接トレーナー</title>
+  <style>
+    :root{--bg:#09111f;--panel:#111c31;--panel2:#16243d;--text:#eef5ff;--muted:#a9b7d0;--accent:#6ee7f9;--accent2:#a78bfa;--good:#34d399;--warn:#fbbf24;--bad:#fb7185;--line:#2a3a5f}*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top left,#1a2d55 0,#09111f 45%,#060a12 100%);color:var(--text)}.wrap{max-width:1200px;margin:0 auto;padding:28px}header{display:grid;gap:14px;margin-bottom:18px}.hero{background:linear-gradient(135deg,rgba(110,231,249,.18),rgba(167,139,250,.14));border:1px solid rgba(110,231,249,.28);border-radius:24px;padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.25)}h1{font-size:clamp(28px,4vw,48px);margin:0 0 8px}.lead{font-size:17px;line-height:1.8;color:var(--muted);max-width:900px}.grid{display:grid;grid-template-columns:320px 1fr;gap:18px}.card{background:rgba(17,28,49,.88);border:1px solid var(--line);border-radius:18px;padding:18px;backdrop-filter:blur(10px)}.sticky{position:sticky;top:16px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.stat{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{display:block;font-size:24px}.stat span{color:var(--muted);font-size:12px}.controls{display:grid;gap:10px}label{font-size:13px;color:#c9d7ef;font-weight:700}select,input,textarea,button{width:100%;border-radius:12px;border:1px solid #34476f;background:#0c1628;color:var(--text);padding:11px 12px;font:inherit}textarea{min-height:180px;resize:vertical;line-height:1.7}.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{cursor:pointer;font-weight:800;background:linear-gradient(135deg,#0891b2,#7c3aed);border:0}.btn.secondary{background:#182842;border:1px solid #38527e}.btn.good{background:linear-gradient(135deg,#059669,#0891b2)}.btn.warn{background:linear-gradient(135deg,#d97706,#be123c)}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.tab{width:auto;padding:9px 12px;background:#101b31;border:1px solid var(--line);color:var(--muted);border-radius:999px;cursor:pointer}.tab.active{color:#06111f;background:var(--accent);border-color:var(--accent)}.question-head{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}.badge{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);background:#0d1729;color:#cfe1ff;border-radius:999px;padding:6px 10px;font-size:12px}.qtitle{font-size:25px;margin:10px 0}.prompt{font-size:18px;line-height:1.8;color:#eaf2ff}.hint,.answer,.casebox{border-left:4px solid var(--accent);background:#0c1729;border-radius:12px;padding:14px;margin:14px 0;color:#cbd8ee;line-height:1.75}.answer{border-left-color:var(--good);display:none}.casebox{border-left-color:var(--accent2)}.rubric{display:grid;gap:10px;margin-top:14px}.rubric label{display:flex;gap:10px;align-items:flex-start;background:#0c1729;border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--text);font-weight:500}.rubric input{width:auto;margin-top:4px}.progress{height:12px;background:#0c1729;border-radius:999px;overflow:hidden;border:1px solid var(--line)}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--good),var(--accent));transition:.25s}.small{color:var(--muted);font-size:13px;line-height:1.6}.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pill{border:1px solid #39537d;background:#0c1729;color:#cfe1ff;border-radius:999px;padding:6px 10px;font-size:12px}.flash{animation:flash .45s}@keyframes flash{50%{transform:scale(1.01);box-shadow:0 0 0 4px rgba(110,231,249,.18)}}@media(max-width:850px){.grid{grid-template-columns:1fr}.sticky{position:static}.question-head{display:block}.btns{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>QuantumBlack / McKinsey DS面接トレーナー</h1>
+      <div class="lead">基礎知識、過去プロジェクト深掘り、Data Science Case、因果推論、GenAI/RAG、MLOps、Distinguished級の技術戦略までを、音読・構造化回答・自己採点で反復練習する単一HTMLアプリです。</div>
+      <div class="pillrow"><span class="pill">定義暗記ではなく判断理由を訓練</span><span class="pill">STAR / Issue Tree / ROIで回答</span><span class="pill">ローカル保存対応</span></div>
+    </header>
+    <div class="grid">
+      <aside class="card sticky">
+        <h2>練習設定</h2>
+        <div class="controls">
+          <label>カテゴリ<select id="category"></select></label>
+          <label>モード<select id="mode"><option value="all">全問</option><option value="weak">未達・未回答を優先</option><option value="case">ケース問題のみ</option><option value="random">ランダム</option></select></label>
+          <label>検索<input id="search" placeholder="例: RAG, Precision, 因果" /></label>
+          <div class="btns"><button class="btn" id="nextBtn">次の問題</button><button class="btn secondary" id="resetBtn">記録リセット</button></div>
+        </div>
+        <div class="stats"><div class="stat"><b id="done">0</b><span>回答済み</span></div><div class="stat"><b id="avg">0%</b><span>平均スコア</span></div><div class="stat"><b id="streak">0</b><span>連続練習</span></div><div class="stat"><b id="total">0</b><span>問題数</span></div></div>
+        <div class="progress"><div class="bar" id="bar"></div></div><p class="small">自己採点は「面接で言えたか」で判定してください。満点回答より、前提・トレードオフ・ビジネス価値まで言語化できることが重要です。</p>
+      </aside>
+      <main class="card" id="mainCard">
+        <div class="tabs" id="tabs"></div>
+        <div class="question-head"><span class="badge" id="meta"></span><span class="badge" id="counter"></span></div>
+        <h2 class="qtitle" id="qtitle"></h2>
+        <div class="prompt" id="prompt"></div>
+        <div class="casebox" id="caseBox"></div>
+        <div class="hint" id="framework"></div>
+        <label>自分の回答メモ<textarea id="notes" placeholder="ここに30〜90秒で話す回答の骨子を書いてください"></textarea></label>
+        <div class="btns"><button class="btn good" id="showBtn">模範観点を表示</button><button class="btn secondary" id="saveBtn">回答を保存</button></div>
+        <div class="answer" id="answer"></div>
+        <h3>自己採点ルーブリック</h3><div class="rubric" id="rubric"></div>
+        <div class="btns" style="margin-top:14px"><button class="btn" id="gradeBtn">採点して次へ</button><button class="btn warn" id="drillBtn">弱点ドリル</button></div>
+      </main>
+    </div>
+  </div>
+<script>
+const BANK=[
+{c:'ML・統計基礎',t:'過学習をどう検出し、どう対処しますか。',p:'単なる定義ではなく、検証設計・原因分解・対策の副作用まで説明してください。',f:'Train/validation gap → leakage確認 → 容量/正則化/データ/特徴量 → 本番分布差。',a:'過学習は学習データには適合するが未知データで性能が落ちる状態。CVや時系列分割で汎化ギャップを見ます。対策は正則化、モデル単純化、早期終了、データ拡張、特徴量削減、リーク除去。重要なのは「評価設計が本番意思決定を再現しているか」を先に確認することです。',r:['検出方法を説明','データリークや分割の確認に触れた','対策を複数提示','副作用やビジネスKPIに触れた']},
+{c:'ML・統計基礎',t:'Random ForestとGradient Boostingの違いを説明してください。',p:'精度、解釈性、チューニング、外れ値、並列性の観点を含めてください。',f:'Bagging vs boosting、分散低減 vs バイアス低減、逐次学習、過学習制御。',a:'RFは多数の木を独立に作るbaggingで分散を下げ、並列化しやすく頑健。GBDTは弱学習器を逐次的に残差へ当てるため高精度になりやすい一方、学習率・深さ・正則化に敏感です。表形式ではLightGBM/XGBoostが強いが、リークや時系列分割の誤りはどちらでも致命的です。',r:['学習方式の違い','バイアス/分散に触れた','運用上の違い','選択基準を説明']},
+{c:'評価指標',t:'PrecisionとRecallのどちらを優先しますか。',p:'不正検知、医療、解約施策などで判断が変わる理由を説明してください。',f:'FP/FNコスト、介入容量、期待損失、閾値最適化。',a:'優先順位は誤分類コストと業務制約で決めます。不正レビューの人員が限られるならPrecision@K、見逃しが高コストならRecallも重視します。最終的には確率をcalibrateし、閾値別の期待利益/損失で決め、A/Bテストで実効KPIを確認します。',r:['FP/FNコストで判断','業務容量に触れた','閾値/期待値に触れた','実験で検証']},
+{c:'検証・リーク',t:'時系列データでランダム分割してはいけないのはなぜですか。',p:'需要予測や故障予測を例に説明してください。',f:'未来情報、自己相関、運用時点再現、rolling/blocked split。',a:'ランダム分割は未来の季節性、価格、故障直前パターンを学習側へ混ぜ、実運用より楽な評価になります。時系列では予測時点で入手可能な情報だけを使い、過去で学習して未来で検証するrolling/blocked splitにします。SKUや設備単位のリークもGroup分割で防ぎます。',r:['未来情報リークを説明','運用時点を再現','適切な分割方法','グループリークに触れた']},
+{c:'プロジェクト深掘り',t:'なぜモデルAをモデルBではなく選んだのですか。',p:'あなたの代表プロジェクトを題材に、技術・業務・運用の理由を切り分けて答えてください。',f:'候補→ベースライン→比較軸→制約→採用理由→捨てた案のリスク。',a:'良い回答は「精度が高いから」だけではありません。ベースライン、評価指標、データ量、レイテンシ、説明可能性、保守性、チームスキル、再学習コストを比較し、なぜその時点の意思決定として合理的だったかを述べます。捨てたモデルが将来有効になる条件も言えると強いです。',r:['比較候補を明示','評価軸が複数','制約を説明','将来の見直し条件']},
+{c:'DSケース',case:true,t:'通信会社の解約率が上昇。MLで解約を減らす仕組みを設計してください。',p:'最初にモデル名を言わず、意思決定問題として構造化してください。',f:'対象/時点/期間/介入可能性/uplift/期待利益/A-Bテスト。',a:'まず解約定義、予測時点、予測期間、介入可能顧客を定義します。目的は解約確率最大化でなく、介入による期待利益=増分解約回避確率×CLV−オファー費用の最大化です。通常のresponse modelだけでなくuplift modelを検討し、オファー容量・顧客体験・公平性を踏まえ、ランダム化実験で増分効果を測ります。',r:['問題定義から開始','期待利益を定式化','upliftに触れた','実験設計まで説明']},
+{c:'DSケース',case:true,t:'製造設備の予知保全モデルを設計してください。',p:'故障ラベルが少なく、停止コストと点検コストが非対称な状況です。',f:'故障定義、予測窓、センサー粒度、異常検知、時系列分割、運用。',a:'故障の定義と「何時間前に警告すれば行動可能か」を決めます。ラベル希少なら教師あり分類に加え異常検知やサバイバル分析を検討します。評価はランダム分割でなく設備・時間を考慮し、FP点検コストとFN停止コストの期待損失で閾値を決めます。本番ではセンサー欠損、ドリフト、未知故障、保全担当者のワークフローを監視します。',r:['予測窓を定義','希少ラベル対策','コスト非対称評価','本番運用に触れた']},
+{c:'因果推論・実験',t:'解約しそうな顧客にクーポンを送るだけではなぜ不十分ですか。',p:'予測モデルと因果/upliftの違いを説明してください。',f:'高リスク≠介入効果、反実仮想、treatment/control、incremental lift。',a:'高い解約確率は「介入すれば救える」ことを意味しません。自然に残る顧客へ割引すると利益を毀損し、絶対に離脱する顧客へ送っても無駄です。必要なのは介入あり/なしの反実仮想差、つまりupliftです。RCTが理想で、難しければDiDやPSMなど仮定を明示した準実験で検証します。',r:['予測と因果の違い','反実仮想を説明','利益毀損に触れた','検証方法を提示']},
+{c:'GenAI・RAG',t:'Retrieval hit rateが高いのにRAG回答精度が低い原因は何ですか。',p:'retrievalとgenerationを分離して診断してください。',f:'chunk、ranking、権限、コンテキスト圧迫、プロンプト、faithfulness。',a:'ヒット率が高くても、チャンクが大きすぎる、根拠が下位に埋もれる、質問に必要な複数文書の統合ができない、プロンプトが根拠制約を強制していない、権限フィルタで重要文書が落ちる、コンテキストが長すぎて無視される等があります。まずretrievalのRecall@K/MRRとgenerationのfaithfulness/answer relevanceを別々に評価します。',r:['検索と生成を分離','複数原因を提示','評価指標を提示','改善策につなげた']},
+{c:'MLOps',t:'正解ラベルが数か月後にしか得られないモデルを本番監視するには何を見ますか。',p:'性能指標が遅延する状況でのproxy監視を設計してください。',f:'入力分布、特徴量欠損、スコア分布、業務KPI、遅延ラベル、アラート。',a:'即時のAUCは見られないため、入力分布・欠損率・カテゴリ新規値・特徴量生成遅延・スコア分布・予測陽性率・セグメント別変化を監視します。業務KPIや人手レビュー結果をproxyにし、ラベル到着後に遅延性能を再計算します。アラートは自動停止ではなく調査・rollback基準とセットにします。',r:['proxy指標を提示','データ品質監視','遅延ラベル再評価','rollback基準']},
+{c:'Distinguished級',t:'100個あるAIユースケースをどう優先順位付けしますか。',p:'経営価値、実現性、リスク、再利用性の観点で答えてください。',f:'Value × feasibility × risk × strategic fit、portfolio、platform leverage。',a:'各ユースケースを事業価値、実現性、データ準備度、導入先の業務変革難易度、リスク/規制、再利用可能な能力構築で評価します。短期ROIのquick winと、共通基盤を作るstrategic betをポートフォリオ化します。CFOには利益・コスト・採用率・スケール条件・不確実性をレンジで説明します。',r:['価値と実現性','リスク/規制','再利用性','ポートフォリオ思考']},
+{c:'重点準備',t:'DRIVE CHARTの事故50%減があなたの解決策によるものだとどう示しますか。',p:'因果主張の強さ、代替説明、測定設計を整理してください。',f:'RCT/段階導入/DiD、交絡、季節性、曝露、利用率、主張範囲。',a:'最も強いのはランダム化または段階導入を使い、導入群と非導入群の事故率差を比較することです。難しければ導入前後だけでなく類似拠点/車両を対照にしたDiD、季節性・走行距離・車種・ドライバー構成を調整します。利用率やアラート対応率も測り、50%減のうちどこまでを因果的に主張でき、どこからは相関に留まるかを明確にします。',r:['因果デザインを提示','交絡を列挙','利用/曝露を測る','主張範囲を限定']}
+];
+const cats=['すべて',...new Set(BANK.map(x=>x.c))];let state=JSON.parse(localStorage.dsTrainer||'{}');let current=0;const $=id=>document.getElementById(id);
+function init(){category.innerHTML=cats.map(c=>`<option>${c}</option>`).join('');tabs.innerHTML=cats.map((c,i)=>`<button class="tab ${i==0?'active':''}" data-c="${c}">${c}</button>`).join('');tabs.onclick=e=>{if(e.target.dataset.c){category.value=e.target.dataset.c;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.c===category.value));pick(0)}};['category','mode','search'].forEach(id=>$(id).oninput=()=>pick(0));nextBtn.onclick=()=>pick(1);showBtn.onclick=()=>answer.style.display='block';saveBtn.onclick=save;gradeBtn.onclick=()=>{grade();pick(1)};drillBtn.onclick=()=>{mode.value='weak';pick(0)};resetBtn.onclick=()=>{if(confirm('練習記録を削除しますか？')){state={};localStorage.removeItem('dsTrainer');render();stats()}};pick(0);stats()}
+function pool(){let p=BANK.map((q,i)=>({...q,i}));let c=category.value;if(c&&c!=='すべて')p=p.filter(q=>q.c===c);let s=search.value.trim().toLowerCase();if(s)p=p.filter(q=>(q.t+q.p+q.f+q.a+q.c).toLowerCase().includes(s));if(mode.value==='case')p=p.filter(q=>q.case);if(mode.value==='weak')p=p.filter(q=>(state[q.i]?.score||0)<75);return p.length?p:BANK.map((q,i)=>({...q,i}))}
+function pick(step){let p=pool();if(mode.value==='random')current=p[Math.floor(Math.random()*p.length)].i;else{let pos=p.findIndex(q=>q.i===current);current=p[(Math.max(0,pos)+step+p.length)%p.length].i}render()}
+function render(){let q=BANK[current], rec=state[current]||{};meta.textContent=`${q.c}${q.case?' ・ケース':''}`;counter.textContent=`${current+1} / ${BANK.length}`;qtitle.textContent=q.t;prompt.textContent=q.p;caseBox.textContent=q.case?'ケース面接では、①目的関数 ②データ/ラベル ③検証 ④導入 ⑤リスクの順で話してください。':'';caseBox.style.display=q.case?'block':'none';framework.innerHTML='<b>回答フレーム:</b> '+q.f;notes.value=rec.notes||'';answer.style.display='none';answer.innerHTML='<b>模範観点:</b> '+q.a;rubric.innerHTML=q.r.map((x,i)=>`<label><input type="checkbox" ${rec.checks?.[i]?'checked':''}>${x}</label>`).join('');mainCard.classList.add('flash');setTimeout(()=>mainCard.classList.remove('flash'),450);stats()}
+function save(){let checks=[...rubric.querySelectorAll('input')].map(x=>x.checked);state[current]={notes:notes.value,checks,score:Math.round(checks.filter(Boolean).length/checks.length*100),ts:Date.now()};localStorage.dsTrainer=JSON.stringify(state);stats()}
+function grade(){save();state.streak=(state.streak||0)+1;localStorage.dsTrainer=JSON.stringify(state)}
+function stats(){let vals=Object.keys(state).filter(k=>!isNaN(k)).map(k=>state[k]);done.textContent=vals.length;total.textContent=BANK.length;avg.textContent=(vals.length?Math.round(vals.reduce((s,x)=>s+(x.score||0),0)/vals.length):0)+'%';streak.textContent=state.streak||0;bar.style.width=Math.round(vals.length/BANK.length*100)+'%'}
+init();
+</script>
+</body>
+</html>
