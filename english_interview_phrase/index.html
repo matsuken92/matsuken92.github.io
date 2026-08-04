@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語面接フレーズ暗記トレーナー</title>
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card-bg: #ffffff;
+    --text: #1a2233;
+    --sub: #6b7280;
+    --accent: #2563eb;
+    --green: #16a34a;
+    --red: #dc2626;
+    --border: #e2e8f0;
+    --shadow: 0 4px 16px rgba(20, 30, 60, .08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 16px 16px 48px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  header h1 { font-size: 1.05rem; font-weight: 700; }
+  nav { display: flex; gap: 6px; margin-bottom: 16px; }
+  nav button {
+    flex: 1; padding: 9px 0; border: 1px solid var(--border); background: var(--card-bg);
+    border-radius: 8px; font-size: .9rem; cursor: pointer; color: var(--sub); font-weight: 600;
+  }
+  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ---- study ---- */
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filters select, .filters label {
+    font-size: .85rem; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); color: var(--text);
+  }
+  .filters select { flex: 1; min-width: 200px; }
+  .filters label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+  #chunkBar button {
+    font-size: .82rem; padding: 7px 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); cursor: pointer; color: var(--sub); font-weight: 600;
+  }
+
+  #card {
+    background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow);
+    min-height: 260px; display: flex; flex-direction: column; justify-content: center;
+    padding: 28px 24px; cursor: pointer; position: relative; border: 1px solid var(--border);
+  }
+  #card .cat { position: absolute; top: 14px; left: 18px; font-size: .72rem; color: var(--sub);
+    background: var(--bg); padding: 3px 10px; border-radius: 999px; }
+  #card .star { position: absolute; top: 11px; right: 16px; font-size: 1rem; color: #f59e0b; }
+  #card .level { position: absolute; bottom: 12px; right: 16px; font-size: .72rem; color: var(--sub); }
+  #card .front { font-size: 1.25rem; font-weight: 700; line-height: 1.7; text-align: center; }
+  #card .back {
+    margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border);
+    font-size: 1.2rem; line-height: 1.6; text-align: center; color: var(--accent); font-weight: 600;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+  #card .hint { margin-top: 24px; text-align: center; font-size: .8rem; color: var(--sub); }
+
+  .answer-btns { display: flex; gap: 12px; margin-top: 16px; }
+  .answer-btns button {
+    flex: 1; padding: 16px 0; font-size: 1rem; font-weight: 700; border: none;
+    border-radius: 12px; cursor: pointer; color: #fff; box-shadow: var(--shadow);
+  }
+  .answer-btns .ok { background: var(--green); }
+  .answer-btns .ng { background: var(--red); }
+  .answer-btns button:disabled { opacity: .35; cursor: default; }
+  .answer-btns button:active:not(:disabled) { transform: scale(.97); }
+
+  .session-bar { margin-top: 14px; font-size: .82rem; color: var(--sub); text-align: center; }
+  .session-bar b.g { color: var(--green); } .session-bar b.r { color: var(--red); }
+
+  /* ---- stats ---- */
+  .panel { background: var(--card-bg); border-radius: 14px; border: 1px solid var(--border);
+    box-shadow: var(--shadow); padding: 18px; margin-bottom: 14px; }
+  .panel h2 { font-size: .95rem; margin-bottom: 12px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .kpi { text-align: center; background: var(--bg); border-radius: 10px; padding: 10px 4px; }
+  .kpi .v { font-size: 1.25rem; font-weight: 800; }
+  .kpi .l { font-size: .68rem; color: var(--sub); margin-top: 2px; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { color: var(--sub); font-weight: 600; font-size: .75rem; }
+  td.num, th.num { text-align: right; }
+  .bar-bg { background: var(--bg); border-radius: 4px; height: 8px; overflow: hidden; width: 100%; }
+  .bar-fg { height: 100%; background: var(--green); border-radius: 4px; }
+  .cardlist-item { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .84rem; }
+  .cardlist-item .en { color: var(--accent); font-size: .8rem; margin-top: 2px; }
+  .cardlist-item .meta { color: var(--sub); font-size: .72rem; margin-top: 2px; }
+
+  /* ---- log ---- */
+  .log-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .log-actions button, .log-actions label.filebtn {
+    padding: 9px 14px; font-size: .84rem; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); cursor: pointer; font-weight: 600; color: var(--text);
+  }
+  .log-actions .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .log-actions .danger { color: var(--red); border-color: var(--red); }
+  .log-entry { display: flex; justify-content: space-between; gap: 10px; padding: 8px 2px;
+    border-bottom: 1px solid var(--border); font-size: .8rem; }
+  .log-entry .res-ok { color: var(--green); font-weight: 700; }
+  .log-entry .res-ng { color: var(--red); font-weight: 700; }
+  .log-entry .t { color: var(--sub); white-space: nowrap; }
+  .muted { color: var(--sub); font-size: .82rem; text-align: center; padding: 20px 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎤 英語面接フレーズ暗記トレーナー</h1>
+  </header>
+
+  <nav>
+    <button id="tab-study" class="active">学習</button>
+    <button id="tab-stats">統計</button>
+    <button id="tab-log">ログ</button>
+  </nav>
+
+  <!-- ============ 学習 ============ -->
+  <section id="view-study">
+    <div class="filters" id="modeRow" style="margin-bottom:8px">
+      <label><input type="radio" name="qmode" value="all">全体から出題</label>
+      <label><input type="radio" name="qmode" value="chunk">チャンクレッスン(5個ずつ)</label>
+    </div>
+    <div class="filters" id="deckFilters" style="margin-bottom:8px"></div>
+    <div class="filters">
+      <select id="catFilter"><option value="">すべてのカテゴリ</option></select>
+      <label><input type="checkbox" id="starOnly">★のみ</label>
+      <label><input type="checkbox" id="weakOnly">苦手のみ</label>
+    </div>
+    <div class="filters hidden" id="chunkBar">
+      <select id="chunkSelect" style="flex:1;min-width:0"></select>
+      <button id="chunkReset">進捗リセット</button>
+    </div>
+
+    <div id="card">
+      <span class="cat" id="cardCat"></span>
+      <span class="star" id="cardStar"></span>
+      <div class="front" id="cardFront"></div>
+      <div class="back hidden" id="cardBack"></div>
+      <div class="hint" id="cardHint">タップして英語を表示</div>
+      <span class="level" id="cardLevel"></span>
+    </div>
+
+    <div class="answer-btns">
+      <button class="ng" id="btnNg" disabled>✗ 間違えた</button>
+      <button class="ok" id="btnOk" disabled>✓ 覚えた</button>
+    </div>
+
+    <div class="session-bar" id="sessionBar"></div>
+  </section>
+
+  <!-- ============ 統計 ============ -->
+  <section id="view-stats" class="hidden">
+    <div class="panel">
+      <h2>全体サマリー</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="kpiTotal">0</div><div class="l">総回答数</div></div>
+        <div class="kpi"><div class="v" id="kpiAcc">-</div><div class="l">正答率</div></div>
+        <div class="kpi"><div class="v" id="kpiMastered">0</div><div class="l">習得済み</div></div>
+        <div class="kpi"><div class="v" id="kpiUnseen">0</div><div class="l">未学習</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>カテゴリ別</h2>
+      <table id="catTable">
+        <thead><tr><th>カテゴリ</th><th class="num">回答</th><th class="num">正答率</th><th style="width:30%">習得度</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>苦手フレーズ(間違いが多い順)</h2>
+      <div id="weakList"></div>
+    </div>
+  </section>
+
+  <!-- ============ ログ ============ -->
+  <section id="view-log" class="hidden">
+    <div class="log-actions">
+      <button class="primary" id="btnExport">📤 書き出し (JSON)</button>
+      <label class="filebtn">📥 読み込み<input type="file" id="importFile" accept=".json" style="display:none"></label>
+      <button class="danger" id="btnReset">🗑 全データ削除</button>
+    </div>
+    <div class="panel">
+      <h2>学習履歴 <span id="logCount" style="color:var(--sub);font-weight:400;font-size:.8rem"></span></h2>
+      <div id="logList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ================= デッキ定義 ================= */
+const DECKS = [
+  { id: "deck1", title: "英語面接フレーズ(聞き返し・立て直し等)" },
+  { id: "deck2", title: "強み・リーダーシップ・PEI・ケース面接" }
+];
+
+/* ================= カードデータ (input.md より) ================= */
+const CARDS1 = [
+{id:"opening_001",cat:"面接開始・接続確認",front:"本日はお時間をいただき、ありがとうございます。",back:"Thank you for taking the time to speak with me today.",star:false},
+{id:"opening_002",cat:"面接開始・接続確認",front:"本日お話しできることを楽しみにしていました。",back:"I’ve been looking forward to speaking with you today.",star:false},
+{id:"opening_003",cat:"面接開始・接続確認",front:"はい、音声ははっきり聞こえています。",back:"Yes, I can hear you clearly.",star:false},
+{id:"opening_004",cat:"面接開始・接続確認",front:"少し音声に遅延があるようです。",back:"There seems to be a slight delay in the audio.",star:false},
+{id:"listening_001",cat:"質問を聞き取れなかった場合",front:"申し訳ありません。質問をもう一度お願いできますか。",back:"I’m sorry. Could you repeat the question?",star:true},
+{id:"listening_002",cat:"質問を聞き取れなかった場合",front:"最後の部分を聞き取れませんでした。",back:"I’m sorry, I didn’t catch the last part.",star:true},
+{id:"listening_003",cat:"質問を聞き取れなかった場合",front:"もう少しゆっくり言っていただけますか。",back:"Could you say that again a little more slowly?",star:true},
+{id:"listening_004",cat:"質問を聞き取れなかった場合",front:"別の言い方で質問していただけますか。",back:"Could you rephrase the question?",star:true},
+{id:"listening_005",cat:"質問を聞き取れなかった場合",front:"ほとんど理解できましたが、〇〇についての部分を聞き取れませんでした。",back:"I caught most of it, but I didn’t catch the part about X.",star:false},
+{id:"listening_006",cat:"質問を聞き取れなかった場合",front:"Xとおっしゃいましたか、それともYでしょうか。",back:"Did you say X or Y?",star:false},
+{id:"listening_007",cat:"質問を聞き取れなかった場合",front:"ここでのXが何を意味するのか、少し説明していただけますか。",back:"Could you clarify what you mean by X?",star:false},
+{id:"listening_008",cat:"質問を聞き取れなかった場合",front:"申し訳ありません。一瞬、音声が途切れました。",back:"I’m sorry, the audio cut out for a moment.",star:false},
+{id:"listening_009",cat:"質問を聞き取れなかった場合",front:"2つの質問を、別々にもう一度お願いできますか。",back:"Could you repeat the two questions separately?",star:false},
+{id:"listening_010",cat:"質問を聞き取れなかった場合",front:"質問を正しく理解できているか、確認させてください。",back:"Let me make sure I understood your question correctly.",star:true},
+{id:"listening_011",cat:"質問を聞き取れなかった場合",front:"つまり、私がどのようにXを行ったか、というご質問でしょうか。",back:"So, you’re asking how I handled X. Is that correct?",star:true},
+{id:"listening_012",cat:"質問を聞き取れなかった場合",front:"最後の部分を聞き取れなかったので、もう一度言ってもらう。",back:"I’m sorry, I didn’t catch the last part. Could you repeat it?",star:false},
+{id:"listening_013",cat:"質問を聞き取れなかった場合",front:"質問を別の表現で言い換えてもらう。",back:"Could you please rephrase the question?",star:false},
+{id:"listening_014",cat:"質問を聞き取れなかった場合",front:"自分が質問を正しく理解したか確認する。",back:"Let me make sure I understood your question correctly.",star:false},
+{id:"scope_001",cat:"質問の範囲・意図を確認する",front:"私個人の貢献と、チーム全体の成果のどちらを中心にお話しすればよいでしょうか。",back:"Should I focus on my individual contribution or the team’s overall result?",star:true},
+{id:"scope_002",cat:"質問の範囲・意図を確認する",front:"技術面とビジネス面のどちらを中心にお答えすればよいでしょうか。",back:"Should I focus more on the technical side or the business side?",star:true},
+{id:"scope_003",cat:"質問の範囲・意図を確認する",front:"具体的な事例と一般的な考え方のどちらをお聞きになりたいでしょうか。",back:"Would you prefer a specific example or my general perspective?",star:false},
+{id:"scope_004",cat:"質問の範囲・意図を確認する",front:"実際の経験に基づいて答えるべきでしょうか。それとも仮説的な状況として考えるべきでしょうか。",back:"Should I answer based on my actual experience or treat this as a hypothetical situation?",star:false},
+{id:"scope_005",cat:"質問の範囲・意図を確認する",front:"短期的な対応と長期的な戦略のどちらを中心にお答えすればよいでしょうか。",back:"Should I focus on short-term actions or long-term strategy?",star:false},
+{id:"scope_006",cat:"質問の範囲・意図を確認する",front:"日本市場に限定して考えるべきでしょうか。それとも、より広いグローバルな観点でお答えすべきでしょうか。",back:"Should I focus on Japan, or answer from a broader global perspective?",star:false},
+{id:"scope_007",cat:"質問の範囲・意図を確認する",front:"技術的な詳細までご説明した方がよいでしょうか。",back:"Would you like me to go into the technical details?",star:false},
+{id:"scope_008",cat:"質問の範囲・意図を確認する",front:"Xを前提として考えてよいでしょうか。",back:"Is it fair to assume that X?",star:false},
+{id:"scope_009",cat:"質問の範囲・意図を確認する",front:"回答する前に、前提を一つ確認してもよいでしょうか。",back:"May I clarify one assumption before I answer?",star:true},
+{id:"scope_010",cat:"質問の範囲・意図を確認する",front:"技術的な課題と組織的な課題のどちらを主に尋ねているか確認する。",back:"Are you asking mainly about the technical challenge, or the organizational challenge?",star:false},
+{id:"scope_011",cat:"質問の範囲・意図を確認する",front:"自分の役割とプロジェクト全体の成果のどちらに焦点を当てるか確認する。",back:"Should I focus on my own role, or the overall project outcome?",star:false},
+{id:"thinking_001",cat:"考える時間を作る",front:"少し考えを整理させてください。",back:"Let me take a moment to organize my thoughts.",star:true},
+{id:"thinking_002",cat:"考える時間を作る",front:"複雑な質問ですので、いくつかの要素に分けて考えさせてください。",back:"That’s a complex question. Let me break it down.",star:false},
+{id:"thinking_003",cat:"考える時間を作る",front:"この質問は、3つの観点から考えたいと思います。",back:"I would look at this from three perspectives.",star:true},
+{id:"thinking_004",cat:"考える時間を作る",front:"まず結論から申し上げます。",back:"Let me start with the conclusion.",star:true},
+{id:"thinking_005",cat:"考える時間を作る",front:"最も重要なポイントは、〇〇です。",back:"The key point is X.",star:false},
+{id:"thinking_006",cat:"考える時間を作る",front:"主な理由は2つあります。",back:"There are two main reasons.",star:false},
+{id:"thinking_007",cat:"考える時間を作る",front:"まず全体像をお話ししてから、具体例をご説明します。",back:"I’ll first give you the high-level answer, and then explain a specific example.",star:false},
+{id:"thinking_008",cat:"考える時間を作る",front:"順を追ってご説明します。",back:"Let me walk you through it step by step.",star:false},
+{id:"thinking_009",cat:"考える時間を作る",front:"状況、行動、結果の順にご説明します。",back:"I’ll structure my answer around the situation, my actions, and the result.",star:false},
+{id:"thinking_010",cat:"考える時間を作る",front:"最も適切な事例を選ぶために、数秒考えさせてください。",back:"I need a few seconds to think of the best example.",star:false},
+{id:"thinking_011",cat:"考える時間を作る",front:"具体的な事例を一つ考えさせてください。",back:"Let me think of a concrete example.",star:false},
+{id:"thinking_012",cat:"考える時間を作る",front:"前提を正しく理解しているとすれば、現時点での私の見解は〇〇です。",back:"If I understand the premise correctly, my initial view is X.",star:false},
+{id:"thinking_013",cat:"考える時間を作る",front:"重要な質問なので、考えを整理する時間を少しもらう。",back:"That is an important question. Let me take a moment to structure my thoughts.",star:false},
+{id:"thinking_014",cat:"考える時間を作る",front:"3つの観点から回答すると予告する。",back:"I would look at this from three perspectives.",star:false},
+{id:"thinking_015",cat:"考える時間を作る",front:"自分が最も重要だと考えるポイントを提示する。",back:"The key point, in my view, is the following.",star:false},
+{id:"recovery_001",cat:"言葉が出ない・説明を立て直す",front:"私が申し上げたいのは、〇〇ということです。",back:"What I mean is X.",star:true},
+{id:"recovery_002",cat:"言葉が出ない・説明を立て直す",front:"別の言い方をします。",back:"Let me put that another way.",star:true},
+{id:"recovery_003",cat:"言葉が出ない・説明を立て直す",front:"もう少し明確に言い直します。",back:"Let me rephrase that more clearly.",star:false},
+{id:"recovery_004",cat:"言葉が出ない・説明を立て直す",front:"うまく説明できていなかったかもしれません。",back:"I may not have explained that well.",star:false},
+{id:"recovery_005",cat:"言葉が出ない・説明を立て直す",front:"一点、訂正させてください。",back:"Let me correct one point.",star:true},
+{id:"recovery_006",cat:"言葉が出ない・説明を立て直す",front:"より正確に言うと、〇〇です。",back:"To be more precise, X.",star:false},
+{id:"recovery_007",cat:"言葉が出ない・説明を立て直す",front:"実務的に言えば、〇〇ということです。",back:"In practical terms, X.",star:false},
+{id:"recovery_008",cat:"言葉が出ない・説明を立て直す",front:"簡単な例を挙げると、〇〇です。",back:"A simple example would be X.",star:false},
+{id:"recovery_009",cat:"言葉が出ない・説明を立て直す",front:"私の回答は基本的にはイエスですが、重要な条件があります。",back:"My immediate answer is yes, but there is an important qualification.",star:false},
+{id:"recovery_010",cat:"言葉が出ない・説明を立て直す",front:"正確な数字は覚えていませんが、およそ〇〇でした。",back:"I don’t remember the exact number, but it was approximately X.",star:false},
+{id:"recovery_011",cat:"言葉が出ない・説明を立て直す",front:"その数字は、当時入手可能だったデータに基づいています。",back:"That figure is based on the data available at the time.",star:false},
+{id:"recovery_012",cat:"言葉が出ない・説明を立て直す",front:"正確な数字はお伝えできませんが、規模とインパクトについては説明できます。",back:"I can’t share the exact number, but I can explain the scale and impact.",star:false},
+{id:"uncertainty_001",cat:"知らない質問・不確実な質問への対応",front:"その問題に直接取り組んだ経験はありません。",back:"I haven’t worked on that specific problem directly.",star:true},
+{id:"uncertainty_002",cat:"知らない質問・不確実な質問への対応",front:"正確な答えは分かりませんが、私なら次のように考えます。",back:"I don’t know the exact answer, but here’s how I would approach it.",star:true},
+{id:"uncertainty_003",cat:"知らない質問・不確実な質問への対応",front:"現時点で仮説を置くとすれば、〇〇です。",back:"My current hypothesis would be X.",star:false},
+{id:"uncertainty_004",cat:"知らない質問・不確実な質問への対応",front:"これは確認済みの数字ではなく、概算です。",back:"This is an estimate rather than a confirmed figure.",star:false},
+{id:"disagreement_001",cat:"反論・異論に対応する",front:"ご指摘は理解できますし、その一部には同意します。",back:"I see your point, and I agree with part of it.",star:true},
+{id:"disagreement_002",cat:"反論・異論に対応する",front:"私は少し異なる見方をしています。",back:"I would take a slightly different view.",star:true},
+{id:"disagreement_003",cat:"反論・異論に対応する",front:"その懸念には同意しますが、XとYは分けて考える必要があると思います。",back:"I agree with the concern, but I would distinguish between X and Y.",star:false},
+{id:"disagreement_004",cat:"反論・異論に対応する",front:"その追加情報を踏まえると、先ほどの回答を修正します。",back:"Given that additional information, I would revise my answer.",star:false},
+{id:"disagreement_005",cat:"反論・異論に対応する",front:"それはもっともなご指摘です。",back:"That’s a fair challenge.",star:false},
+{id:"control_001",cat:"回答を短くまとめる・会話を制御する",front:"この点だけ、一文でまとめさせてください。",back:"Let me finish this point in one sentence.",star:true},
+{id:"control_002",cat:"回答を短くまとめる・会話を制御する",front:"必要であれば、さらに詳しくご説明できます。",back:"I can go into more detail if that would be helpful.",star:false},
+{id:"closing_001",cat:"面接終了",front:"本日はありがとうございました。今回のお話を通じて、この役割への関心がさらに強くなりました。",back:"Thank you for your time today. This conversation has strengthened my interest in the role.",star:false}
+];
+
+/* ================= カードデータ (input2.md より) ================= */
+const CARDS2 = [
+{id:"strengths_001",cat:"自己紹介・強み・志望動機",front:"難しい問題に取り組むことが好きです。",back:"I enjoy tackling hard problems.",star:false},
+{id:"strengths_002",cat:"自己紹介・強み・志望動機",front:"新しいことを学ぶとエネルギーが湧きます。",back:"I’m energized by learning new things.",star:false},
+{id:"strengths_003",cat:"自己紹介・強み・志望動機",front:"不慣れで居心地の悪い状況でも、試行錯誤しながら答えを見つけることに抵抗がありません。",back:"I’m comfortable being uncomfortable and figuring things out.",star:false},
+{id:"strengths_004",cat:"自己紹介・強み・志望動機",front:"他の人と一緒に難しい問題を解いているときに、最も力を発揮できます。",back:"I’m at my best when I’m solving difficult problems with other people.",star:false},
+{id:"strengths_005",cat:"自己紹介・強み・志望動機",front:"未知の問題には、好奇心を持って取り組む傾向があります。",back:"I tend to approach unfamiliar problems with curiosity.",star:false},
+{id:"strengths_006",cat:"自己紹介・強み・志望動機",front:"何事においても、卓越した成果を目指しています。",back:"I strive for excellence in everything I do.",star:false},
+{id:"strengths_007",cat:"自己紹介・強み・志望動機",front:"不確実性の高い状況で仕事をすることに慣れています。",back:"I’m comfortable operating in ambiguity.",star:false},
+{id:"strengths_008",cat:"自己紹介・強み・志望動機",front:"私は素早く適応し、必要であれば既存の知識を捨てて学び直すことができます。",back:"I adapt quickly, and I’m willing to unlearn and relearn.",star:false},
+{id:"strengths_009",cat:"自己紹介・強み・志望動機",front:"私の仕事の中核にあるのは、技術を事業成果につなげる力です。",back:"At the core of my work is the ability to connect technology with business impact.",star:false},
+{id:"strengths_010",cat:"自己紹介・強み・志望動機",front:"私が提供できるのは、深い技術専門性とビジネス判断力の組み合わせです。",back:"What I bring to the table is a combination of deep technical expertise and business judgment.",star:false},
+{id:"leadership_001",cat:"チームワーク・リーダーシップ",front:"強いチームの一員として働くときに、最もよい仕事ができます。",back:"I do my best work as part of a strong team.",star:false},
+{id:"leadership_002",cat:"チームワーク・リーダーシップ",front:"最良の答えは、異なる視点を持ち寄ることで生まれると考えています。",back:"I believe the best answers come from bringing together different perspectives.",star:false},
+{id:"leadership_003",cat:"チームワーク・リーダーシップ",front:"よりよい方法があると考えた場合には、きちんと意見を述べます。",back:"I’m willing to speak up when I believe there is a better path.",star:false},
+{id:"leadership_004",cat:"チームワーク・リーダーシップ",front:"より上位のステークホルダーに対しても、敬意を保ちながら異論を述べることができます。",back:"I’m comfortable respectfully disagreeing with more senior stakeholders.",star:false},
+{id:"leadership_005",cat:"チームワーク・リーダーシップ",front:"建設的な意見の対立は、よりよい意思決定につながるため、重要だと考えています。",back:"I value productive disagreement because it often leads to better decisions.",star:false},
+{id:"leadership_006",cat:"チームワーク・リーダーシップ",front:"共通の目標を中心にチームをまとめることに注力しました。",back:"I focused on bringing the team together around a shared objective.",star:false},
+{id:"leadership_007",cat:"チームワーク・リーダーシップ",front:"変化に抵抗しているステークホルダーを巻き込む必要がありました。",back:"I had to engage stakeholders who were resistant to change.",star:false},
+{id:"leadership_008",cat:"チームワーク・リーダーシップ",front:"主要なステークホルダーに計画を支持してもらえるよう働きかけました。",back:"I worked to get the key stakeholders to buy into the plan.",star:false},
+{id:"pei_001",cat:"PEIの深掘りに答える",front:"何が起きたのか、順を追ってご説明します。",back:"Let me walk you through what happened.",star:false},
+{id:"pei_002",cat:"PEIの深掘りに答える",front:"これを具体的に示す例として、……があります。",back:"A specific example that brings this to life is ...",star:false},
+{id:"pei_003",cat:"PEIの深掘りに答える",front:"この状況を特に難しくしていたのは、……でした。",back:"What made this situation particularly difficult was ...",star:false},
+{id:"pei_004",cat:"PEIの深掘りに答える",front:"課題は単にXということではなく、Yでもありました。",back:"The challenge was not simply X; it was also Y.",star:false},
+{id:"pei_005",cat:"PEIの深掘りに答える",front:"チーム内には、いくつかの対立する見解がありました。",back:"There were several opposing viewpoints within the team.",star:false},
+{id:"pei_006",cat:"PEIの深掘りに答える",front:"ステークホルダーごとに、優先事項と利害が異なっていました。",back:"The stakeholders had different priorities and incentives.",star:false},
+{id:"pei_007",cat:"PEIの深掘りに答える",front:"根本的な問題は……だと気づきました。",back:"I realized that the underlying issue was ...",star:false},
+{id:"pei_008",cat:"PEIの深掘りに答える",front:"私は意図的に……することを選びました。",back:"I made a deliberate choice to ...",star:false},
+{id:"pei_009",cat:"PEIの深掘りに答える",front:"最初に行ったのは、なぜ相手が抵抗しているのかを理解することでした。",back:"My first step was to understand why they were resistant.",star:false},
+{id:"pei_010",cat:"PEIの深掘りに答える",front:"相手の視点から状況を理解しようとしました。",back:"I tried to understand the situation from their perspective.",star:false},
+{id:"pei_011",cat:"PEIの深掘りに答える",front:"相手の懸念を踏まえて、アプローチを修正しました。",back:"I adjusted my approach based on their concerns.",star:false},
+{id:"pei_012",cat:"PEIの深掘りに答える",front:"解決策を一方的に押しつけるのではなく、解決策を作るプロセスに相手を巻き込みました。",back:"Rather than imposing a solution, I involved them in shaping it.",star:false},
+{id:"pei_013",cat:"PEIの深掘りに答える",front:"結果は、当初期待していたものと完全に同じではありませんでした。",back:"The outcome was not exactly what I had initially hoped for.",star:false},
+{id:"pei_014",cat:"PEIの深掘りに答える",front:"結果以上に重要だったのは、その経験から何を学んだかです。",back:"More important than the outcome was what I learned from the experience.",star:false},
+{id:"pei_015",cat:"PEIの深掘りに答える",front:"変革を実現するには、技術的に正しいだけでは不十分だと学びました。",back:"I learned that technical correctness alone is not enough to drive change.",star:false},
+{id:"pei_016",cat:"PEIの深掘りに答える",front:"私は……することで立て直しました。",back:"I rebounded by ...",star:false},
+{id:"pei_017",cat:"PEIの深掘りに答える",front:"振り返ると、もっと早い段階でステークホルダーを巻き込むべきでした。",back:"In retrospect, I would have engaged the stakeholders earlier.",star:false},
+{id:"pei_018",cat:"PEIの深掘りに答える",front:"その経験によって、現在、類似した状況への向き合い方が変わりました。",back:"That experience changed how I approach similar situations today.",star:false},
+{id:"case_001",cat:"ケース面接で使えるフレーズ",front:"考えを整理するために、少しお時間をください。",back:"Let me take a moment to structure my thoughts.",star:false},
+{id:"case_002",cat:"ケース面接で使えるフレーズ",front:"まず、目的を明確にするところから始めたいと思います。",back:"I’d like to start by clarifying the objective.",star:false},
+{id:"case_003",cat:"ケース面接で使えるフレーズ",front:"この問題を3つの要素に分けて考えます。",back:"I’d break this problem down into three parts.",star:false},
+{id:"case_004",cat:"ケース面接で使えるフレーズ",front:"私の考え方を順を追ってご説明します。",back:"Let me walk you through my reasoning.",star:false},
+{id:"case_005",cat:"ケース面接で使えるフレーズ",front:"一つずつ段階的に考えたいと思います。",back:"I’d like to take this one step at a time.",star:false},
+{id:"case_006",cat:"ケース面接で使えるフレーズ",front:"現時点での仮説は、……です。",back:"My initial hypothesis is that ...",star:false},
+{id:"case_007",cat:"ケース面接で使えるフレーズ",front:"その仮説を検証するために、……を確認します。",back:"To test that hypothesis, I would look at ...",star:false},
+{id:"case_008",cat:"ケース面接で使えるフレーズ",front:"ここまでに分かっている情報に基づくと、……です。",back:"Based on what we know so far, ...",star:false},
+{id:"case_009",cat:"ケース面接で使えるフレーズ",front:"これは、……を示唆しています。",back:"This suggests that ...",star:false},
+{id:"case_010",cat:"ケース面接で使えるフレーズ",front:"これが、このクライアント固有の状況なのかを確認したいと思います。",back:"I’d want to understand whether this is specific to the client’s context.",star:false},
+{id:"case_011",cat:"ケース面接で使えるフレーズ",front:"主要な発見を整理します。",back:"Let me synthesize the key findings.",star:false},
+{id:"case_012",cat:"ケース面接で使えるフレーズ",front:"私の提案は、……することです。",back:"My recommendation would be to ...",star:false},
+{id:"case_013",cat:"ケース面接で使えるフレーズ",front:"この提案における最大のリスクは、……です。",back:"The main risk to this recommendation is ...",star:false},
+{id:"case_014",cat:"ケース面接で使えるフレーズ",front:"導入をどのように促進し、変革をマネジメントするかも検討すべきです。",back:"We should also consider how to drive adoption and manage the change.",star:false}
+];
+
+CARDS1.forEach(c => c.deck = "deck1");
+CARDS2.forEach(c => c.deck = "deck2");
+const CARDS = [...CARDS1, ...CARDS2];
+
+/* ================= 永続化 ================= */
+const STORE_KEY = "phrase_trainer_v1";
+const MAX_BOX = 5;
+
+function defaultState() {
+  return { version: 1, deck: "english_interview_survival_phrases", cards: {}, log: [] };
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s && typeof s === "object" && s.cards) return Object.assign(defaultState(), s);
+    }
+  } catch (e) { console.warn("state load failed", e); }
+  return defaultState();
+}
+function saveState() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+
+/* ================= デッキ選択 (チェックボックス) ================= */
+const DECK_KEY = "phrase_trainer_decks_v1";
+function loadDeckSel() {
+  const sel = {};
+  DECKS.forEach(d => sel[d.id] = true);
+  try {
+    const raw = localStorage.getItem(DECK_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      DECKS.forEach(d => { if (typeof saved[d.id] === "boolean") sel[d.id] = saved[d.id]; });
+    }
+  } catch (e) { /* デフォルトのまま */ }
+  return sel;
+}
+let deckSel = loadDeckSel();
+function saveDeckSel() { localStorage.setItem(DECK_KEY, JSON.stringify(deckSel)); }
+function activeCards() { return CARDS.filter(c => deckSel[c.deck]); }
+
+/* ================= 出題モード (全体ランダム / チャンクレッスン) ================= */
+const MODE_KEY = "phrase_trainer_mode_v1";
+const CHUNK_SIZE = 5;
+function loadMode() {
+  try {
+    const m = JSON.parse(localStorage.getItem(MODE_KEY));
+    if (m && (m.mode === "all" || m.mode === "chunk")) return { mode: m.mode, chunkIdx: m.chunkIdx | 0 };
+  } catch (e) { /* デフォルトのまま */ }
+  return { mode: "all", chunkIdx: 0 };
+}
+let qmode = loadMode();
+function saveMode() { localStorage.setItem(MODE_KEY, JSON.stringify(qmode)); }
+
+function cardStat(id) {
+  if (!state.cards[id]) state.cards[id] = { ok: 0, ng: 0, box: 0, last: null };
+  return state.cards[id];
+}
+
+/* ================= 出題ロジック =================
+   box = 連続正解レベル (0〜5)。覚えた→+1、間違えた→0にリセット。
+   出題重み = 0.5^box。つまり覚えるほど出題確率が下がる (box5で1/32)。
+   間違いが多いカードはさらに重みを加算。直前のカードは連続出題しない。 */
+let currentCard = null;
+let revealed = false;
+let session = { ok: 0, ng: 0 };
+
+function eligibleCards() {
+  const cat = document.getElementById("catFilter").value;
+  const starOnly = document.getElementById("starOnly").checked;
+  const weakOnly = document.getElementById("weakOnly").checked;
+  return activeCards().filter(c => {
+    if (cat && c.cat !== cat) return false;
+    if (starOnly && !c.star) return false;
+    if (weakOnly) {
+      const s = state.cards[c.id];
+      if (!s || s.ng === 0 || s.box >= 3) return false;
+    }
+    return true;
+  });
+}
+
+function weightOf(c) {
+  const s = state.cards[c.id] || { ok: 0, ng: 0, box: 0 };
+  let w = Math.pow(0.5, Math.min(s.box, MAX_BOX));
+  if (s.ok + s.ng === 0) w *= 1.5;               // 未学習カードを優先
+  w *= 1 + Math.min(s.ng, 5) * 0.3;              // 間違いが多いほど出やすく
+  return w;
+}
+
+function pickAllCard() {
+  let pool = eligibleCards();
+  if (pool.length === 0) return null;
+  if (pool.length > 1 && currentCard) pool = pool.filter(c => c.id !== currentCard.id);
+  const total = pool.reduce((a, c) => a + weightOf(c), 0);
+  let r = Math.random() * total;
+  for (const c of pool) { r -= weightOf(c); if (r <= 0) return c; }
+  return pool[pool.length - 1];
+}
+
+/* ---- チャンクレッスン: 5枚ずつのセクションに分割し、
+   セクション内の全カードを「覚えた」(✓)にしたら次のセクションへ進む ---- */
+function chunkPools() {
+  const pool = eligibleCards();
+  const out = [];
+  for (let i = 0; i < pool.length; i += CHUNK_SIZE) out.push(pool.slice(i, i + CHUNK_SIZE));
+  return out;
+}
+function isCleared(c) { const s = state.cards[c.id]; return !!(s && s.cc); }
+function clearedIn(chunk) { return chunk.filter(isCleared).length; }
+function firstIncompleteChunk(chunks) {
+  const i = chunks.findIndex(ch => ch.some(c => !isCleared(c)));
+  return i === -1 ? 0 : i;
+}
+
+function pickChunkCard() {
+  const chunks = chunkPools();
+  if (chunks.length === 0) return null;
+  qmode.chunkIdx = Math.min(qmode.chunkIdx, chunks.length - 1);
+  const chunk = chunks[qmode.chunkIdx];
+  const remaining = chunk.filter(c => !isCleared(c));
+  if (remaining.length === 0) return "COMPLETE";
+  if (currentCard) {
+    const i = remaining.findIndex(c => c.id === currentCard.id);
+    if (i >= 0 && remaining.length > 1) return remaining[(i + 1) % remaining.length];
+    if (i < 0) {
+      // 直前のカードはクリア済み → チャンク内の順序で次の未クリアカードへ
+      const after = chunk.findIndex(c => c.id === currentCard.id);
+      for (let k = 1; k <= chunk.length; k++) {
+        const cand = chunk[(after + k) % chunk.length];
+        if (!isCleared(cand)) return cand;
+      }
+    }
+  }
+  return remaining[0];
+}
+
+function pickCard() {
+  return qmode.mode === "chunk" ? pickChunkCard() : pickAllCard();
+}
+
+/* ================= 学習画面 ================= */
+const $ = id => document.getElementById(id);
+
+let chunkDone = false;
+
+function showCard(c) {
+  chunkDone = c === "COMPLETE";
+  currentCard = chunkDone ? null : c;
+  revealed = false;
+  if (chunkDone) {
+    const anyLeft = chunkPools().some(ch => ch.some(x => !isCleared(x)));
+    $("cardCat").textContent = "チャンクレッスン";
+    $("cardStar").textContent = "";
+    $("cardFront").textContent = anyLeft
+      ? `🎉 セクション ${qmode.chunkIdx + 1} 完了!`
+      : "🏆 全セクション習得済み!";
+    $("cardBack").classList.add("hidden");
+    $("cardHint").textContent = anyLeft
+      ? "タップで次のセクションへ進みます"
+      : "「進捗リセット」で最初からやり直せます";
+    $("cardLevel").textContent = "";
+  } else if (!c) {
+    $("cardCat").textContent = "";
+    $("cardStar").textContent = "";
+    $("cardFront").textContent = "該当するカードがありません";
+    $("cardBack").classList.add("hidden");
+    $("cardHint").textContent = "デッキまたはフィルタ条件を確認してください";
+    $("cardLevel").textContent = "";
+  } else {
+    const s = state.cards[c.id];
+    $("cardCat").textContent = c.cat;
+    $("cardStar").textContent = c.star ? "★" : "";
+    $("cardFront").textContent = c.front;
+    $("cardBack").textContent = c.back;
+    $("cardBack").classList.add("hidden");
+    $("cardHint").textContent = "タップして英語を表示";
+    $("cardLevel").textContent = "習得Lv " + (s ? s.box : 0) + "/" + MAX_BOX;
+  }
+  $("btnOk").disabled = true;
+  $("btnNg").disabled = true;
+  updateChunkUI();
+  updateSessionBar();
+}
+
+function advanceChunk() {
+  const chunks = chunkPools();
+  const next = chunks.findIndex(ch => ch.some(c => !isCleared(c)));
+  if (next >= 0) { qmode.chunkIdx = next; saveMode(); }
+  currentCard = null;
+  showCard(pickCard());
+}
+
+function reveal() {
+  if (chunkDone) { advanceChunk(); return; }
+  if (!currentCard || revealed) return;
+  revealed = true;
+  $("cardBack").classList.remove("hidden");
+  $("cardHint").textContent = "覚えていたら「覚えた」、出てこなかったら「間違えた」";
+  $("btnOk").disabled = false;
+  $("btnNg").disabled = false;
+}
+
+function answer(ok) {
+  if (!currentCard || !revealed) return;
+  const s = cardStat(currentCard.id);
+  if (ok) { s.ok++; s.box = Math.min(s.box + 1, MAX_BOX); session.ok++; if (qmode.mode === "chunk") s.cc = true; }
+  else    { s.ng++; s.box = 0; session.ng++; s.cc = false; }
+  s.last = new Date().toISOString();
+  state.log.push({ t: s.last, id: currentCard.id, r: ok ? "ok" : "ng" });
+  if (state.log.length > 5000) state.log = state.log.slice(-5000);
+  saveState();
+  showCard(pickCard());
+}
+
+function updateChunkUI() {
+  $("chunkBar").classList.toggle("hidden", qmode.mode !== "chunk");
+  if (qmode.mode !== "chunk") return;
+  const chunks = chunkPools();
+  const sel = $("chunkSelect");
+  sel.innerHTML = "";
+  if (chunks.length === 0) {
+    const o = document.createElement("option");
+    o.textContent = "カードなし";
+    sel.appendChild(o);
+    return;
+  }
+  qmode.chunkIdx = Math.min(qmode.chunkIdx, chunks.length - 1);
+  chunks.forEach((ch, i) => {
+    const done = clearedIn(ch);
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = `セクション ${i + 1} (${done}/${ch.length})` + (done === ch.length ? " ✓" : "");
+    sel.appendChild(o);
+  });
+  sel.value = qmode.chunkIdx;
+}
+
+function updateSessionBar() {
+  const n = session.ok + session.ng;
+  $("sessionBar").innerHTML = n === 0
+    ? "今回のセッション: まだ回答なし"
+    : `今回のセッション: ${n}問 — <b class="g">覚えた ${session.ok}</b> / <b class="r">間違えた ${session.ng}</b>`;
+}
+
+/* ================= 統計画面 ================= */
+function renderStats() {
+  const cards = activeCards();
+  let total = 0, ok = 0, mastered = 0, unseen = 0;
+  const byCat = {};
+  for (const c of cards) {
+    const s = state.cards[c.id];
+    const n = s ? s.ok + s.ng : 0;
+    total += n; ok += s ? s.ok : 0;
+    if (s && s.box >= MAX_BOX) mastered++;
+    if (n === 0) unseen++;
+    if (!byCat[c.cat]) byCat[c.cat] = { n: 0, ok: 0, boxSum: 0, cards: 0 };
+    const b = byCat[c.cat];
+    b.n += n; b.ok += s ? s.ok : 0; b.boxSum += s ? s.box : 0; b.cards++;
+  }
+  $("kpiTotal").textContent = total;
+  $("kpiAcc").textContent = total ? Math.round(ok / total * 100) + "%" : "-";
+  $("kpiMastered").textContent = mastered + "/" + cards.length;
+  $("kpiUnseen").textContent = unseen;
+
+  const tbody = $("catTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  for (const [cat, b] of Object.entries(byCat)) {
+    const acc = b.n ? Math.round(b.ok / b.n * 100) + "%" : "-";
+    const mastery = Math.round(b.boxSum / (b.cards * MAX_BOX) * 100);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${cat}</td><td class="num">${b.n}</td><td class="num">${acc}</td>
+      <td><div class="bar-bg"><div class="bar-fg" style="width:${mastery}%"></div></div></td>`;
+    tbody.appendChild(tr);
+  }
+
+  const weak = cards
+    .map(c => ({ c, s: state.cards[c.id] }))
+    .filter(x => x.s && x.s.ng > 0)
+    .sort((a, b) => b.s.ng - a.s.ng || a.s.box - b.s.box)
+    .slice(0, 10);
+  $("weakList").innerHTML = weak.length === 0
+    ? '<div class="muted">間違えたカードはまだありません</div>'
+    : weak.map(x => `<div class="cardlist-item">
+        <div>${x.c.front}</div>
+        <div class="en">${x.c.back}</div>
+        <div class="meta">✗ ${x.s.ng}回 / ✓ ${x.s.ok}回 — 習得Lv ${x.s.box}/${MAX_BOX}</div>
+      </div>`).join("");
+}
+
+/* ================= ログ画面 ================= */
+const cardById = Object.fromEntries(CARDS.map(c => [c.id, c]));
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function renderLog() {
+  const entries = state.log.slice(-300).reverse();
+  $("logCount").textContent = `(全${state.log.length}件、最新300件を表示)`;
+  $("logList").innerHTML = entries.length === 0
+    ? '<div class="muted">まだ学習履歴がありません</div>'
+    : entries.map(e => {
+        const c = cardById[e.id];
+        return `<div class="log-entry">
+          <span class="${e.r === "ok" ? "res-ok" : "res-ng"}">${e.r === "ok" ? "✓" : "✗"}</span>
+          <span style="flex:1">${c ? c.front : e.id}</span>
+          <span class="t">${fmtTime(e.t)}</span>
+        </div>`;
+      }).join("");
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  const d = new Date();
+  const p = n => String(n).padStart(2, "0");
+  a.href = URL.createObjectURL(blob);
+  a.download = `phrase_trainer_log_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const s = JSON.parse(reader.result);
+      if (!s || typeof s !== "object" || !s.cards || !Array.isArray(s.log)) {
+        alert("ファイル形式が正しくありません。"); return;
+      }
+      if (!confirm(`読み込んだデータ(回答ログ ${s.log.length}件)で現在のデータを置き換えます。よろしいですか?`)) return;
+      state = Object.assign(defaultState(), s);
+      saveState();
+      renderLog(); renderStats(); showCard(pickCard());
+      alert("読み込みました。");
+    } catch (e) { alert("読み込みに失敗しました: " + e.message); }
+  };
+  reader.readAsText(file);
+}
+
+/* ================= タブ・イベント ================= */
+function switchTab(name) {
+  for (const t of ["study", "stats", "log"]) {
+    $("tab-" + t).classList.toggle("active", t === name);
+    $("view-" + t).classList.toggle("hidden", t !== name);
+  }
+  if (name === "stats") renderStats();
+  if (name === "log") renderLog();
+}
+
+$("tab-study").onclick = () => switchTab("study");
+$("tab-stats").onclick = () => switchTab("stats");
+$("tab-log").onclick = () => switchTab("log");
+
+$("card").onclick = reveal;
+$("btnOk").onclick = () => answer(true);
+$("btnNg").onclick = () => answer(false);
+
+document.addEventListener("keydown", e => {
+  if (!$("view-study").classList.contains("hidden")) {
+    if (e.code === "Space" || e.code === "Enter") { e.preventDefault(); reveal(); }
+    if (e.key === "1" || e.key === "j") answer(false);
+    if (e.key === "2" || e.key === "k") answer(true);
+  }
+});
+
+$("catFilter").onchange = () => { currentCard = null; showCard(pickCard()); };
+$("starOnly").onchange = () => { currentCard = null; showCard(pickCard()); };
+$("weakOnly").onchange = () => { currentCard = null; showCard(pickCard()); };
+
+document.querySelectorAll('input[name="qmode"]').forEach(r => {
+  r.checked = r.value === qmode.mode;
+  r.onchange = () => {
+    if (!r.checked) return;
+    qmode.mode = r.value;
+    if (qmode.mode === "chunk") qmode.chunkIdx = firstIncompleteChunk(chunkPools());
+    saveMode();
+    currentCard = null;
+    showCard(pickCard());
+  };
+});
+
+$("chunkSelect").onchange = e => {
+  qmode.chunkIdx = parseInt(e.target.value, 10) || 0;
+  saveMode();
+  currentCard = null;
+  showCard(pickCard());
+};
+
+$("chunkReset").onclick = () => {
+  if (!confirm("チャンクレッスンの習得チェック(✓)をすべてリセットします。回答回数や習得レベルは消えません。よろしいですか?")) return;
+  for (const id of Object.keys(state.cards)) state.cards[id].cc = false;
+  saveState();
+  qmode.chunkIdx = 0;
+  saveMode();
+  currentCard = null;
+  showCard(pickCard());
+};
+
+$("btnExport").onclick = exportData;
+$("importFile").onchange = e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ""; };
+$("btnReset").onclick = () => {
+  if (!confirm("すべての学習データとログを削除します。よろしいですか?")) return;
+  state = defaultState();
+  session = { ok: 0, ng: 0 };
+  saveState();
+  renderLog(); renderStats(); showCard(pickCard());
+};
+
+/* ================= 初期化 ================= */
+function rebuildCatOptions() {
+  const sel = $("catFilter");
+  const prev = sel.value;
+  const cats = [...new Set(activeCards().map(c => c.cat))];
+  sel.innerHTML = '<option value="">すべてのカテゴリ</option>';
+  for (const cat of cats) {
+    const o = document.createElement("option");
+    o.value = cat; o.textContent = cat;
+    sel.appendChild(o);
+  }
+  sel.value = cats.includes(prev) ? prev : "";
+}
+
+(function init() {
+  const box = $("deckFilters");
+  for (const d of DECKS) {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = deckSel[d.id];
+    cb.onchange = () => {
+      deckSel[d.id] = cb.checked;
+      saveDeckSel();
+      rebuildCatOptions();
+      currentCard = null;
+      showCard(pickCard());
+    };
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(d.title));
+    box.appendChild(label);
+  }
+  rebuildCatOptions();
+  showCard(pickCard());
+})();
+</script>
+</body>
+</html>
