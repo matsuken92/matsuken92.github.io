@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>英語構文・表現 120問トレーナー</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8faff;
+      --surface-strong: #eef4ff;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e2f0;
+      --primary: #1976e9;
+      --primary-dark: #0d5fc9;
+      --primary-soft: #e9f3ff;
+      --purple: #7c3aed;
+      --purple-soft: #f0e9ff;
+      --success: #147d47;
+      --success-soft: #e8f7ef;
+      --warning: #a15c00;
+      --warning-soft: #fff5df;
+      --danger: #b42318;
+      --danger-soft: #ffebe9;
+      --shadow: 0 18px 50px rgba(30, 60, 100, 0.10);
+      --radius-lg: 22px;
+      --radius-md: 15px;
+      --radius-sm: 10px;
+      --max-width: 1180px;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(25, 118, 233, 0.12), transparent 32rem),
+        radial-gradient(circle at 92% 10%, rgba(124, 58, 237, 0.09), transparent 28rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    button, textarea, select, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.48; }
+
+    .app-shell {
+      width: min(var(--max-width), calc(100% - 28px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .brand { max-width: 760px; }
+
+    .brand-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: var(--purple-soft);
+      color: var(--purple);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 4vw, 2.7rem);
+      letter-spacing: -0.035em;
+      line-height: 1.18;
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .save-status {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.79rem;
+      font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+
+    .save-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 4px var(--success-soft);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      align-items: start;
+      gap: 22px;
+    }
+
+    .main-column, .side-column { min-width: 0; }
+    .side-column { display: grid; gap: 16px; position: sticky; top: 16px; }
+
+    .panel, .quiz-card, .completion-card {
+      background: var(--surface);
+      border: 1px solid rgba(217, 226, 240, 0.9);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .control-panel {
+      padding: 17px 18px;
+      margin-bottom: 16px;
+    }
+
+    .control-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      border-radius: 13px;
+      background: #edf1f7;
+      border: 1px solid #e1e7ef;
+    }
+
+    .mode-button {
+      border: 0;
+      border-radius: 9px;
+      padding: 9px 14px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: 150ms ease;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      background: var(--surface);
+      color: var(--primary-dark);
+      box-shadow: 0 3px 12px rgba(24, 54, 91, 0.12);
+    }
+
+    .position-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .position-label { font-weight: 900; font-size: 1rem; }
+    .global-label { color: var(--muted); font-size: 0.82rem; font-weight: 700; }
+
+    .progress-track {
+      height: 9px;
+      margin-top: 14px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e9eef6;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), #62a9ff);
+      transition: width 240ms ease;
+    }
+
+    .question-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .nav-button, .ghost-button, .soft-button, .mini-button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 11px;
+      font-weight: 800;
+      transition: 140ms ease;
+    }
+
+    .nav-button { padding: 8px 12px; }
+    .ghost-button { padding: 10px 13px; }
+    .soft-button { padding: 10px 13px; background: var(--surface-soft); }
+    .mini-button { padding: 6px 9px; font-size: 0.78rem; }
+
+    .nav-button:hover:not(:disabled), .ghost-button:hover:not(:disabled), .soft-button:hover:not(:disabled), .mini-button:hover:not(:disabled) {
+      border-color: #a9b9cf;
+      transform: translateY(-1px);
+    }
+
+    .mode-note { color: var(--muted); font-size: 0.78rem; font-weight: 650; text-align: center; }
+
+    .quiz-card { padding: clamp(20px, 4vw, 34px); }
+
+    .quiz-eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .section-chip, .grade-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+
+    .section-chip { background: var(--primary-soft); color: var(--primary-dark); }
+    .grade-chip { background: #f1f3f6; color: var(--muted); }
+    .grade-chip.grade-3 { background: var(--success-soft); color: var(--success); }
+    .grade-chip.grade-2 { background: var(--warning-soft); color: var(--warning); }
+    .grade-chip.grade-1 { background: var(--danger-soft); color: var(--danger); }
+
+    .field-label {
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 850;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    .jp-prompt {
+      min-height: 106px;
+      display: flex;
+      align-items: center;
+      padding: 20px 22px;
+      border-radius: 17px;
+      background: linear-gradient(135deg, var(--surface-strong), #fafcff);
+      border: 1px solid #d7e6fb;
+      font-size: clamp(1.28rem, 2.7vw, 1.85rem);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .answer-input-wrap { margin-top: 23px; }
+
+    textarea {
+      width: 100%;
+      min-height: 132px;
+      resize: vertical;
+      padding: 16px 17px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 1rem;
+      line-height: 1.65;
+      outline: none;
+      transition: border-color 130ms ease, box-shadow 130ms ease;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(25, 118, 233, 0.13);
+    }
+
+    textarea[readonly] { background: #f7f8fa; }
+
+    .input-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 17px;
+    }
+
+    .primary-button {
+      border: 0;
+      min-height: 46px;
+      padding: 11px 18px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #4395f4);
+      color: white;
+      font-weight: 900;
+      box-shadow: 0 9px 22px rgba(25, 118, 233, 0.24);
+      transition: 140ms ease;
+    }
+
+    .primary-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(25, 118, 233, 0.29); }
+
+    .answer-panel {
+      margin-top: 25px;
+      padding-top: 25px;
+      border-top: 1px solid var(--line);
+    }
+
+    .comparison-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 13px;
+      margin-bottom: 18px;
+      border: 1px solid transparent;
+    }
+
+    .comparison-banner.exact { background: var(--success-soft); color: var(--success); border-color: #b9e5cc; }
+    .comparison-banner.near { background: var(--warning-soft); color: var(--warning); border-color: #f2d498; }
+    .comparison-banner.different, .comparison-banner.empty { background: var(--danger-soft); color: var(--danger); border-color: #f5beb8; }
+
+    .comparison-icon { font-size: 1.28rem; line-height: 1.2; }
+    .comparison-title { font-weight: 900; }
+    .comparison-detail { margin-top: 1px; font-size: 0.8rem; opacity: 0.86; }
+
+    .answer-block {
+      display: grid;
+      gap: 14px;
+    }
+
+    .answer-box {
+      padding: 16px 17px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .answer-box.expected { border-color: #bcd7f8; background: #f5f9ff; }
+
+    .answer-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: clamp(1rem, 2.2vw, 1.18rem);
+      font-weight: 750;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .answer-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 11px;
+    }
+
+    .construction-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 13px;
+      align-items: center;
+      margin-top: 16px;
+      padding: 17px;
+      border: 1px solid #d9cbff;
+      border-radius: 15px;
+      background: linear-gradient(135deg, var(--purple-soft), #fbf9ff);
+    }
+
+    .construction-number {
+      display: grid;
+      place-items: center;
+      width: 54px;
+      height: 54px;
+      border-radius: 15px;
+      background: var(--purple);
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 950;
+      letter-spacing: 0.02em;
+    }
+
+    .construction-title { color: #4c1d95; font-weight: 950; font-size: clamp(1.02rem, 2.3vw, 1.28rem); }
+    .construction-source { margin-top: 2px; color: #7054a5; font-size: 0.77rem; font-weight: 750; }
+
+    .grading-section {
+      margin-top: 20px;
+      padding: 17px;
+      border-radius: 15px;
+      background: #f8f9fb;
+      border: 1px solid var(--line);
+    }
+
+    .grading-title { font-weight: 900; }
+    .grading-help { color: var(--muted); font-size: 0.78rem; margin-top: 2px; }
+
+    .grade-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .grade-button {
+      min-height: 43px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 900;
+      transition: 130ms ease;
+    }
+
+    .grade-button:hover { transform: translateY(-1px); }
+    .grade-button[data-grade="3"]:hover, .grade-button[data-grade="3"].selected { background: var(--success-soft); color: var(--success); border-color: #89d0aa; }
+    .grade-button[data-grade="2"]:hover, .grade-button[data-grade="2"].selected { background: var(--warning-soft); color: var(--warning); border-color: #e9bd68; }
+    .grade-button[data-grade="1"]:hover, .grade-button[data-grade="1"].selected { background: var(--danger-soft); color: var(--danger); border-color: #e7958d; }
+
+    .next-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .next-button { min-width: 150px; }
+
+    .completion-card { padding: 32px; text-align: center; }
+    .completion-icon { font-size: 3rem; }
+    .completion-card h2 { margin: 8px 0 4px; font-size: 1.75rem; }
+    .completion-card p { margin: 0; color: var(--muted); }
+    .completion-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 22px auto; max-width: 520px; }
+    .completion-stat { padding: 14px 8px; border-radius: 13px; background: var(--surface-soft); border: 1px solid var(--line); }
+    .completion-stat strong { display: block; font-size: 1.55rem; }
+    .completion-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+    .side-panel { padding: 17px; }
+    .side-title { margin: 0 0 12px; font-size: 0.95rem; font-weight: 950; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .stat-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--surface-soft);
+    }
+
+    .stat-label { color: var(--muted); font-size: 0.72rem; font-weight: 800; }
+    .stat-value { margin-top: 2px; font-size: 1.35rem; font-weight: 950; }
+    .stat-value.success { color: var(--success); }
+    .stat-value.warning { color: var(--warning); }
+    .stat-value.danger { color: var(--danger); }
+
+    .answered-bar {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e9eef5;
+      margin-top: 13px;
+    }
+    .answered-bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--purple), #a87dff); transition: width 200ms ease; }
+    .answered-caption { margin-top: 6px; color: var(--muted); font-size: 0.73rem; text-align: right; }
+
+    .settings-list { display: grid; gap: 9px; }
+    .settings-list button { width: 100%; text-align: left; }
+    .danger-button { color: var(--danger); border-color: #f1c0bc; background: #fff9f8; }
+
+    .guide-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .guide-list li + li { margin-top: 6px; }
+
+    .source-note {
+      margin-top: 13px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translate(-50%, 16px);
+      z-index: 50;
+      max-width: min(540px, calc(100% - 28px));
+      padding: 11px 15px;
+      border-radius: 999px;
+      background: #172033;
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: 180ms ease;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible {
+      outline: 3px solid rgba(25, 118, 233, 0.35);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-column { position: static; grid-template-columns: 1fr 1fr; }
+      .side-column .guide-panel { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 650px) {
+      .app-shell { width: min(100% - 18px, var(--max-width)); padding-top: 18px; }
+      .app-header { display: block; }
+      .save-status { margin-top: 14px; }
+      .side-column { grid-template-columns: 1fr; }
+      .side-column .guide-panel { grid-column: auto; }
+      .control-top { align-items: stretch; }
+      .segmented { width: 100%; }
+      .position-wrap { width: 100%; justify-content: space-between; }
+      .question-nav { align-items: stretch; }
+      .mode-note { display: none; }
+      .jp-prompt { padding: 17px; min-height: 118px; }
+      .quiz-card { border-radius: 18px; }
+      .grade-buttons { grid-template-columns: 1fr; }
+      .construction-card { grid-template-columns: 1fr; }
+      .construction-number { width: 48px; height: 48px; }
+      .completion-summary { grid-template-columns: 1fr; }
+      .action-row > button { flex: 1 1 auto; }
+      .next-button { width: 100%; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1420;
+        --surface: #171d2b;
+        --surface-soft: #1c2434;
+        --surface-strong: #1b2a40;
+        --text: #edf2fa;
+        --muted: #aab5c7;
+        --line: #303a4d;
+        --primary-soft: #163255;
+        --purple-soft: #2a2142;
+        --success-soft: #163529;
+        --warning-soft: #3d2c12;
+        --danger-soft: #3c201e;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      }
+      body { background: radial-gradient(circle at 12% 0%, rgba(25, 118, 233, 0.16), transparent 32rem), var(--bg); }
+      .save-status { background: rgba(23, 29, 43, 0.8); }
+      .segmented { background: #111723; border-color: #283143; }
+      textarea[readonly] { background: #141a27; }
+      .danger-button { background: #281919; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-kicker">ENGLISH PATTERN TRAINER · 120</div>
+        <h1>英語構文・表現 120問トレーナー</h1>
+        <p>日本語を見て英文を入力し、答えと構文・表現を確認します。各項目から代表例を1問ずつ収録しています。</p>
+      </div>
+      <div class="save-status" id="saveStatus" role="status" aria-live="polite">
+        <span class="save-dot" aria-hidden="true"></span>
+        <span id="saveStatusText">進捗を読み込み中...</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <div class="main-column">
+        <section class="panel control-panel" aria-label="出題モードと進捗">
+          <div class="control-top">
+            <div class="segmented" role="group" aria-label="出題モード">
+              <button class="mode-button" id="sequentialModeButton" data-mode="sequential" aria-pressed="true">順番モード</button>
+              <button class="mode-button" id="shuffleModeButton" data-mode="shuffle" aria-pressed="false">シャッフル</button>
+            </div>
+            <div class="position-wrap">
+              <span class="position-label" id="positionLabel">第 1 問 / 120</span>
+              <span class="global-label" id="globalLabel">全体ID 001</span>
+            </div>
+          </div>
+          <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="positionProgress"></div></div>
+          <div class="question-nav">
+            <button class="nav-button" id="previousButton" type="button">← 前へ</button>
+            <span class="mode-note" id="modeNote">構文・表現の掲載順に出題</span>
+            <button class="nav-button" id="skipButton" type="button">次へ →</button>
+          </div>
+        </section>
+
+        <section class="quiz-card" id="quizCard" aria-labelledby="questionHeading">
+          <div class="quiz-eyebrow">
+            <span class="section-chip" id="sectionChip">初級</span>
+            <span class="grade-chip" id="previousGradeChip">未回答</span>
+          </div>
+
+          <div class="field-label" id="questionHeading">問題：日本語を英訳してください</div>
+          <div class="jp-prompt" id="jpPrompt"></div>
+
+          <div class="answer-input-wrap">
+            <label class="field-label" for="answerInput">あなたの英文</label>
+            <textarea id="answerInput" autocomplete="off" autocapitalize="sentences" spellcheck="true" maxlength="1200" placeholder="英文を入力してください"></textarea>
+            <div class="input-meta">
+              <span>句読点・大文字小文字の違いは採点時に無視します。</span>
+              <span id="characterCount">0文字</span>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="primary-button" id="revealButton" type="button">判定して答えを見る</button>
+            <button class="ghost-button" id="clearButton" type="button">入力を消す</button>
+          </div>
+
+          <div class="answer-panel" id="answerPanel" aria-live="polite" hidden>
+            <div class="comparison-banner" id="comparisonBanner">
+              <div class="comparison-icon" id="comparisonIcon" aria-hidden="true"></div>
+              <div>
+                <div class="comparison-title" id="comparisonTitle"></div>
+                <div class="comparison-detail" id="comparisonDetail"></div>
+              </div>
+            </div>
+
+            <div class="answer-block">
+              <div class="answer-box">
+                <div class="field-label">あなたの回答</div>
+                <div class="answer-text" id="userAnswerText"></div>
+              </div>
+              <div class="answer-box expected">
+                <div class="field-label">解答</div>
+                <div class="answer-text" id="expectedAnswerText"></div>
+                <div class="answer-toolbar">
+                  <button class="mini-button" id="copyAnswerButton" type="button">コピー</button>
+                  <button class="mini-button" id="speakAnswerButton" type="button">読み上げ</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="construction-card">
+              <div class="construction-number" id="constructionNumber">06</div>
+              <div>
+                <div class="field-label">構文・表現</div>
+                <div class="construction-title" id="constructionTitle"></div>
+                <div class="construction-source" id="constructionSource"></div>
+              </div>
+            </div>
+
+            <div class="grading-section">
+              <div class="grading-title">学習結果を記録</div>
+              <div class="grading-help">別解でも意味が通る場合があります。文字列判定だけでなく、自分の感覚で選んでください。</div>
+              <div class="grade-buttons" role="group" aria-label="自己採点">
+                <button class="grade-button" type="button" data-grade="3">○ できた</button>
+                <button class="grade-button" type="button" data-grade="2">△ 惜しい</button>
+                <button class="grade-button" type="button" data-grade="1">× 要復習</button>
+              </div>
+            </div>
+
+            <div class="next-row">
+              <button class="primary-button next-button" id="nextButton" type="button">次の問題へ →</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="completion-card" id="completionCard" hidden>
+          <div class="completion-icon" aria-hidden="true">✓</div>
+          <h2>このモードを一周しました</h2>
+          <p>回答履歴は残したまま、先頭から復習できます。</p>
+          <div class="completion-summary">
+            <div class="completion-stat"><strong id="completionCorrect">0</strong><span>できた</span></div>
+            <div class="completion-stat"><strong id="completionClose">0</strong><span>惜しい</span></div>
+            <div class="completion-stat"><strong id="completionReview">0</strong><span>要復習</span></div>
+          </div>
+          <div class="completion-actions">
+            <button class="primary-button" id="restartButton" type="button">先頭からもう一周</button>
+            <button class="ghost-button" id="switchModeButton" type="button">別モードで始める</button>
+            <button class="ghost-button" id="completionPreviousButton" type="button">最後の問題へ戻る</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-column" aria-label="学習状況と設定">
+        <section class="panel side-panel">
+          <h2 class="side-title">学習状況</h2>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">回答済み</div><div class="stat-value" id="answeredCount">0</div></div>
+            <div class="stat-card"><div class="stat-label">未回答</div><div class="stat-value" id="unansweredCount">120</div></div>
+            <div class="stat-card"><div class="stat-label">○ できた</div><div class="stat-value success" id="correctCount">0</div></div>
+            <div class="stat-card"><div class="stat-label">△ 惜しい</div><div class="stat-value warning" id="closeCount">0</div></div>
+            <div class="stat-card"><div class="stat-label">× 要復習</div><div class="stat-value danger" id="reviewCount">0</div></div>
+            <div class="stat-card"><div class="stat-label">収録問題</div><div class="stat-value">120</div></div>
+          </div>
+          <div class="answered-bar" aria-hidden="true"><div id="answeredBar"></div></div>
+          <div class="answered-caption" id="answeredCaption">0 / 120 問を記録</div>
+        </section>
+
+        <section class="panel side-panel">
+          <h2 class="side-title">進捗管理</h2>
+          <div class="settings-list">
+            <button class="soft-button" id="restartPositionButton" type="button">現在のモードを先頭へ</button>
+            <button class="soft-button" id="reshuffleButton" type="button">シャッフル順を作り直す</button>
+            <button class="soft-button" id="exportProgressButton" type="button">進捗をファイルに書き出す</button>
+            <button class="soft-button" id="importProgressButton" type="button">進捗ファイルを読み込む</button>
+            <input id="importProgressInput" type="file" accept="application/json,.json" hidden>
+            <button class="soft-button danger-button" id="resetAllButton" type="button">全回答履歴を削除</button>
+          </div>
+        </section>
+
+        <section class="panel side-panel guide-panel">
+          <h2 class="side-title">使い方</h2>
+          <ol class="guide-list">
+            <li>日本語を見て、英文を入力します。</li>
+            <li>「判定して答えを見る」で基準答案と構文・表現を確認します。</li>
+            <li>○・△・×を選ぶと結果が保存されます。</li>
+          </ol>
+          <div class="source-note">
+            採点は基準答案との文字列比較です。教材の表現を基準答案としており、自然な別解が不正解になる場合があります。<br>
+            ショートカット：Ctrl / ⌘ + Enter で答えを表示、Alt + ← / → で移動。
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer>進捗はCookieに保存し、Cookieが使えない環境ではブラウザストレージに自動バックアップします。</footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const QUESTIONS = [{"id":1,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":1,"pattern":"It's 形容詞 to do","ja":"毎日運動することは重要だ。","en":"It's important to exercise every day."},{"id":2,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":2,"pattern":"It's 形容詞 that 文","ja":"そんなに英語を上手に話せるなんてすごいね。","en":"It's impressive that you speak English so well."},{"id":3,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":3,"pattern":"X is so 形容詞 that 文","ja":"美味しすぎて止まらなかった。","en":"It was so good that I couldn't stop eating."},{"id":4,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":4,"pattern":"X is too 形容詞 to do","ja":"疲れすぎて出掛けられない。","en":"I'm too tired to go out."},{"id":5,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":5,"pattern":"X is 形容詞 enough to do","ja":"人前で話せるほど英語に自信がない。","en":"I'm not confident enough to speak English in public."},{"id":6,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":6,"pattern":"find it 形容詞 to do","ja":"英語を勉強するのはすごく面白いと思う。","en":"I find it really interesting to study English."},{"id":7,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":7,"pattern":"文 so that 文","ja":"海外旅行できるように節約してる。","en":"I'm trying to save money so that I can travel abroad."},{"id":8,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":8,"pattern":"否定文 + at all","ja":"英語が全く好きじゃない。","en":"I don't like English at all."},{"id":9,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":9,"pattern":"X is the same as Y","ja":"携帯、私のと同じだ。iPhone 14だよね？","en":"Your phone is the same as mine. It's iPhone 14, right?"},{"id":10,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":10,"pattern":"Just because 文 doesn't mean 文","ja":"見た目が良いからといって美味しいとは限らない。","en":"Just because it looks good doesn't mean it's delicious."},{"id":11,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":11,"pattern":"X is not necessarily 形容詞","ja":"高い服が必ずしもオシャレとは限らない。","en":"Expensive clothes are not necessarily fashionable."},{"id":12,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":12,"pattern":"X used to do","ja":"昔はよくサッカーしていた。","en":"I used to play soccer."},{"id":13,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":13,"pattern":"X is used to 名詞／動名詞","ja":"もう英語を話すのに慣れてるよ。","en":"I'm already used to speaking English."},{"id":14,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":14,"pattern":"X is not as 形容詞 as I expected/thought","ja":"期待してたほど美味しくなかった。","en":"The food was not as delicious as I expected."},{"id":15,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":15,"pattern":"spend 時間 doing","ja":"昨日は2時間ギターの練習をした。","en":"I spent 2 hours practicing the guitar yesterday."},{"id":16,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":16,"pattern":"feel like doing","ja":"今日はエクササイズしたい気分だ。","en":"I feel like working out today."},{"id":17,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":17,"pattern":"文 as soon as 文","ja":"ここに着いたらすぐに電話して。","en":"Give me a call as soon as you get here."},{"id":18,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":18,"pattern":"I don't know if 文","ja":"彼が来るかどうかわからない。","en":"I don't know if he's coming."},{"id":19,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":19,"pattern":"I wonder if 文","ja":"彼は来るのかな。","en":"I wonder if he's coming."},{"id":20,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":20,"pattern":"It's been 時間 since 文","ja":"彼に最後に会ってから2年になる。","en":"It's been 2 years since I last saw him."},{"id":21,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":21,"pattern":"It takes 時間 to do","ja":"あそこに着くのに大体40分かかる。","en":"It takes about 40 minutes to get there."},{"id":22,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":22,"pattern":"How about + 文","ja":"あなたがそれをやるのはどう？","en":"How about you do it?"},{"id":23,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":23,"pattern":"have X do","ja":"それはタカにやってもらうよ。","en":"I'll have Taka do it."},{"id":24,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":24,"pattern":"get X to do","ja":"それはタカにやってもらうよ。","en":"I'll get Taka to do it."},{"id":25,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":25,"pattern":"make X do","ja":"それはタカにやらせるよ。","en":"I'll make Taka do it."},{"id":26,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":26,"pattern":"let X do","ja":"それは彼にやらせてあげるよ。","en":"I'll let him do it."},{"id":27,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":27,"pattern":"make X 形容詞","ja":"彼を喜ばせたい。","en":"I want to make him happy."},{"id":28,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":28,"pattern":"see X doing","ja":"昨日、彼が歌っているのを見た。","en":"I saw him singing yesterday."},{"id":29,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":29,"pattern":"hear X doing","ja":"多くの人がそのことについて話しているのを聞いた。","en":"I heard so many people talking about it."},{"id":30,"section":"重要構文30選（初級）","sectionShort":"初級","localNo":30,"pattern":"what 主語 動詞","ja":"私が好きなのはこれです。","en":"What I like about it is this."},{"id":31,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":1,"pattern":"you know how 文","ja":"ほら、彼っていつも幸せそうじゃん？","en":"You know how he seems really happy?"},{"id":32,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":2,"pattern":"If you could do, that would be 形容詞","ja":"もし来れるなら、めちゃくちゃ嬉しい。","en":"If you could come, that would be awesome."},{"id":33,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":3,"pattern":"for the first time in 時間","ja":"5年ぶりにテニスをした。","en":"I played tennis for the first time in 5 years."},{"id":34,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":4,"pattern":"what if 文","ja":"明日、雨降ったらどうする？","en":"What if it rains tomorrow?"},{"id":35,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":5,"pattern":"That's why 文","ja":"だからそれ嫌いなんだよ。","en":"That's why I don't like it."},{"id":36,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":6,"pattern":"It feels like 文","ja":"何か起こりそうな気がする。","en":"It feels like something's going to happen."},{"id":37,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":7,"pattern":"There's no way 文","ja":"彼女が50歳なんてありえない。めちゃくちゃ若く見える。","en":"There's no way she's 50. She looks so young."},{"id":38,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":8,"pattern":"I'm not sure if 文","ja":"彼が来るかどうか分からない。","en":"I'm not sure if he is coming."},{"id":39,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":9,"pattern":"What's the point of doing","ja":"それやって何の意味があるの？","en":"What's the point of doing that?"},{"id":40,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":10,"pattern":"It's 形容詞 how 文","ja":"人生ってこんなに色々と変わっていくの面白いよね。","en":"It's interesting how life changes so quickly."},{"id":41,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":11,"pattern":"be supposed to do","ja":"ダイエットしてるはずなんだけどな。","en":"I'm supposed to be on a diet."},{"id":42,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":12,"pattern":"The reason I do sth is...","ja":"色々なバックグラウンドの人とコミュニケーションを取りたいから英語の勉強をしている。","en":"The reason I study English is to be able to communicate with people from all different backgrounds."},{"id":43,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":13,"pattern":"the more 文, the more 文","ja":"聞けば聞くほど、勉強になる。","en":"The more you listen, the more you learn."},{"id":44,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":14,"pattern":"It's just that 文","ja":"ただ忙しかっただけだよ。","en":"It's just that I was busy."},{"id":45,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":15,"pattern":"I'll probably do","ja":"きっと間に合うと思う。","en":"I'll probably be able to make it."},{"id":46,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":16,"pattern":"It's not that 文","ja":"勉強が嫌いという訳ではない。","en":"It's not that I hate studying."},{"id":47,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":17,"pattern":"without doing","ja":"彼って笑わせようとしてなくても面白いよね。","en":"He's funny without even trying."},{"id":48,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":18,"pattern":"It's said that 文","ja":"全てのことは理由があって起きると言われている。","en":"It's said that everything happens for a reason."},{"id":49,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":19,"pattern":"If I were to do, I would do","ja":"もし今年旅行するとしたら、パリに行くだろうな。","en":"If I were to travel this year, I would go to Paris."},{"id":50,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":20,"pattern":"It's such a 形容詞 名詞 that 文","ja":"めちゃくちゃ暑い日だったから外出することができなかった。","en":"It was such a hot day that we couldn't go outside."},{"id":51,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":21,"pattern":"I'm at the stage where 文","ja":"もっと経験を積まないといけない段階にある。","en":"I'm at the stage where I need to accumulate more experience."},{"id":52,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":22,"pattern":"X is worth doing","ja":"この本は読む価値がある。","en":"This book is worth reading."},{"id":53,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":23,"pattern":"What I like about X is Y","ja":"日本の好きなところは美しい文化だよ。","en":"What I like about Japan is its beautiful culture."},{"id":54,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":24,"pattern":"X is like, 文","ja":"「なんでそんなに文句ばっかり言うの？」って彼は言ってたよ。","en":"He was like, \"Why do you complain so much?\""},{"id":55,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":25,"pattern":"in which case 文","ja":"明日遅れるかもしれないからその場合、連絡するね。","en":"I might be late tomorrow, in which case I'll send you a message."},{"id":56,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":26,"pattern":"when it comes to 名詞／動名詞","ja":"コーヒーのことになると彼はエキスパートだよ。","en":"When it comes to coffee, he's an expert."},{"id":57,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":27,"pattern":"with 名詞 状態","ja":"目閉じてでもこれできるよ。","en":"I can even do this with my eyes closed."},{"id":58,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":28,"pattern":"動詞 how 形容詞 名詞 is","ja":"この街、どれだけ美しいか見てよ。","en":"Look how beautiful this city is."},{"id":59,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":29,"pattern":"get to do","ja":"今朝、新車を運転できた。","en":"This morning, I got to drive a new car."},{"id":60,"section":"重要構文30選（中・上級）","sectionShort":"中・上級","localNo":30,"pattern":"be going to have to do","ja":"残念ながら、もう出てもらわないといけない。","en":"Unfortunately, you're going to have to leave now."},{"id":61,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":1,"pattern":"It's 形容詞 how 文","ja":"そんなこと言うなんて面白いね。","en":"It's interesting how you said that."},{"id":62,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":2,"pattern":"at the end of the day","ja":"結局のところ、これってそんなに重要じゃないよね。","en":"At the end of the day, this is not that important."},{"id":63,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":3,"pattern":"if that makes sense","ja":"イギリス英語とオーストラリア英語が混ざった感じだったとは思うんだけど、言ってること分かる？","en":"Well, it sounded a little bit British, but at the same time, maybe a bit Australian, if that makes sense."},{"id":64,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":4,"pattern":"if you think about it","ja":"考え方によれば、私たちなんて宇宙のこれっぽっちの存在にしか過ぎないよね。","en":"We're just tiny specks in the universe if you think about it."},{"id":65,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":5,"pattern":"you know what I mean?","ja":"YouTubeって競争がますます激しくなってるよね。言ってること分かる？","en":"I think YouTube is getting more and more competitive, you know what I mean?"},{"id":66,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":6,"pattern":"or so","ja":"大体あと10分くらいで始まると思う。","en":"I think it's going to start in 10 minutes or so."},{"id":67,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":7,"pattern":"and stuff","ja":"編集とかしないといけないじゃん。","en":"We've got to do editing and stuff."},{"id":68,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":8,"pattern":"something like that","ja":"英語を勉強するとかなんとか言ってたよ。","en":"He said he was going to study English or something like that."},{"id":69,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":9,"pattern":"pretty much","ja":"これはほぼ終わってるよ。","en":"This is pretty much done."},{"id":70,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":10,"pattern":"or not really?","ja":"こういう感じの音楽好き？それともちょっと違う？","en":"Do you like this kind of music, or not really?"},{"id":71,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":11,"pattern":"I have a feeling","ja":"めっちゃ良いイベントになる気がする。","en":"I have a feeling that it's going to be a great event."},{"id":72,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":12,"pattern":"I know, right?","ja":"ほんとそれ。","en":"I know, right?"},{"id":73,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":13,"pattern":"kind of thing","ja":"オリジナルのアニメみたいなものを作ろうとしてたんだよね。","en":"I was trying to create something like my original anime kind of thing."},{"id":74,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":14,"pattern":"in which case","ja":"明日データが使えないかもしれないからその場合、君にやってもらわないといけない。","en":"The data might not be available tomorrow, in which case, I've got to get you to do it."},{"id":75,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":15,"pattern":"even if","ja":"たとえ雨でも、やらないといけない。","en":"Even if it rains, we've got to do it."},{"id":76,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":16,"pattern":"simply put","ja":"簡単に言えば、彼はスポーツが好きじゃない。","en":"Simply put, he doesn't like sports."},{"id":77,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":17,"pattern":"let's say","ja":"仮に今100ドルを投資したとしたら1年でどれくらい稼げるの？","en":"Let's say I invest a hundred dollars now, how much will I be able to make in a year?"},{"id":78,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":18,"pattern":"That's true","ja":"確かにそうだね。","en":"Yeah, that's true."},{"id":79,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":19,"pattern":"instead of","ja":"出掛けるんじゃなくて家でゆっくりすることにした。","en":"We decided to chill at home instead of going out."},{"id":80,"section":"ATSUがよく使う表現20選 Part 1","sectionShort":"頻出表現 P1","localNo":20,"pattern":"rather than","ja":"単語学習に時間を使いすぎるよりも、むしろまず発音の勉強をした方が良いと思う。","en":"I think you should study pronunciation first rather than spending too much time on learning vocabulary."},{"id":81,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":21,"pattern":"the reason being","ja":"プログラムに参加しないことにした。理由は、自分にはまだその準備ができてないし、それをこなすだけの実力もないと思ったから。","en":"I made the decision not to join the program. The reason being I thought I wasn't ready yet and didn't have the competence enough to do it."},{"id":82,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":22,"pattern":"as to","ja":"来年どの大学に進学するか決めたい。","en":"I want to make a decision as to which university I want to attend next year."},{"id":83,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":23,"pattern":"whereas","ja":"コミュニケーションスキルは本当に重要だと思うけど、一方で以前ほど重要ではないと言う人もいる。","en":"I think your skill to communicate is really important, whereas there are some people who say that it's not as important as it used to be."},{"id":84,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":24,"pattern":"whether or not","ja":"結局のところ彼に決定権があるから、君がそれを好きかどうかはどうでもいい。","en":"Whether or not you like it doesn't matter because at the end of the day, he calls the shots."},{"id":85,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":25,"pattern":"what's it called","ja":"本読んでたんだけど、なんていう名前だっけ。","en":"I was reading this book... What's it called?"},{"id":86,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":26,"pattern":"what's the point of doing","ja":"これの目的って一体何なの？これから何が得られるの？って感じだったよ。","en":"I was like, what's the point of doing this? What are we getting out of this?"},{"id":87,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":27,"pattern":"That's a fair point","ja":"確かにそうだね。","en":"Oh, that's a fair point."},{"id":88,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":28,"pattern":"come across","ja":"本屋でこの本に出合った。","en":"I came across this book at the bookstore."},{"id":89,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":29,"pattern":"going back to","ja":"さっきの君の質問に戻ると、答えはノーだ。","en":"Going back to your question, my answer is no."},{"id":90,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":30,"pattern":"in this case","ja":"この場合、別のアプローチが必要だと思う。","en":"In this case, I think we need to take a different approach."},{"id":91,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":31,"pattern":"more about","ja":"最初の段階では概念を理解する方が重要だよ。","en":"The first stage is more about understanding the concept."},{"id":92,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":32,"pattern":"for the sake of","ja":"明確にするために、これもう一回説明させて。","en":"For the sake of clarity, let me explain this again."},{"id":93,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":33,"pattern":"like you said","ja":"君が言ったように、これは一番大きな問題の一つだね。","en":"Like you said, this is one of the biggest problems."},{"id":94,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":34,"pattern":"this might be just me, but","ja":"こう思うの私だけかもしれないけど、これちょっと高すぎじゃない？","en":"This might be just me, but don't you think this is a bit too expensive?"},{"id":95,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":35,"pattern":"get to the point","ja":"この人、早く要点を言ってくれればいいのに。","en":"I wish this guy would just get to the point."},{"id":96,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":36,"pattern":"end up doing","ja":"パーティー行きたくなかったけど、結局めっちゃ楽しんだ。","en":"I didn't want to go to the party, but I ended up having a lot of fun."},{"id":97,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":37,"pattern":"it is what it is","ja":"どうすることもできないから、仕方ない。","en":"There's nothing I can do about it, so it is what it is."},{"id":98,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":38,"pattern":"in general","ja":"全体的にどう思った？","en":"What did you think about this in general?"},{"id":99,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":39,"pattern":"at all","ja":"ちょっとでも良いと思った？","en":"Did you like it at all?"},{"id":100,"section":"ATSUがよく使う表現20選 Part 2","sectionShort":"頻出表現 P2","localNo":40,"pattern":"if that's the case","ja":"彼がスライド全部作ったの？もしそうなら、君は何もしなくて良いよ。","en":"Did he prepare all the slides? If that's the case, you don't have to do anything."},{"id":101,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":1,"pattern":"I'd say","ja":"価格はかなり妥当だと思います。","en":"I'd say the price is pretty fair."},{"id":102,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":2,"pattern":"in the process of","ja":"英語学習の過程にあります。","en":"I'm in the process of learning English."},{"id":103,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":3,"pattern":"it's more like","ja":"それは仕事というよりは、趣味のようなものです。","en":"I wouldn't say it's work. It's more like my hobby, if that makes sense."},{"id":104,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":4,"pattern":"from that point of view","ja":"その観点からは理解できるかもしれません。","en":"I think it makes sense from that point of view."},{"id":105,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":5,"pattern":"if that works for you","ja":"ご都合が良ければ、水曜日にZoomで会議できますか？","en":"Can we do a Zoom call on Wednesday, if that works for you?"},{"id":106,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":6,"pattern":"just out of curiosity","ja":"単なる好奇心からですが、なぜ日本に来たんですか？","en":"Just out of curiosity, why did you come to Japan?"},{"id":107,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":7,"pattern":"off-topic, but","ja":"少し話は変わりますが、動画編集を終えました。","en":"Bit off-topic, but I just finished editing the video."},{"id":108,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":8,"pattern":"out of the blue","ja":"皆、突然その話を始めました。","en":"Everyone started talking about it out of the blue."},{"id":109,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":9,"pattern":"off the top of my head","ja":"思いつくままに言うと、それは間違っていると思います。","en":"Off the top of my head, I think it's wrong."},{"id":110,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":10,"pattern":"but at the same time","ja":"彼は賢いですが、同時に少し愚かな面もあります。","en":"He's intelligent, but at the same time, he's a little bit stupid in a way."},{"id":111,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":11,"pattern":"the flip side of it is...","ja":"この方法は効率的ですが、その反面、費用がかかります。","en":"This approach is efficient, but the flip side of it is it costs more."},{"id":112,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":12,"pattern":"from the perspective of","ja":"不満を言うことは、問題を解決する観点からは何ももたらしません。","en":"Making complaints usually doesn't give you anything from the perspective of solving the problem."},{"id":113,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":13,"pattern":"two sides of the same coin","ja":"リスクとチャンスは表裏一体だと言えます。","en":"I'd say risk and opportunity are two sides of the same coin."},{"id":114,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":14,"pattern":"like I (you) said,","ja":"私が言ったように、それは完全にあなた次第です。","en":"Like I said, it's completely up to you."},{"id":115,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":15,"pattern":"I'm more of a","ja":"私はミニマリストタイプなので、たくさんのものを持つのが好きではありません。","en":"I'm more of a minimalist so I don't like to own a lot of things."},{"id":116,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":16,"pattern":"it's all about","ja":"すべてはあなたが本当に達成したいことにかかっています。","en":"It's all about what you really wanna achieve."},{"id":117,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":17,"pattern":"given that","ja":"部屋に持ち物が少ないことを考慮すると、私はミニマリストだと言えます。","en":"I'd say I'm more of a minimalist, given that I only have a couple of things in my room."},{"id":118,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":18,"pattern":"I might be wrong, but","ja":"間違っているかもしれませんが、この計算は間違ってませんか？","en":"I might be wrong, but isn't this calc incorrect?"},{"id":119,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":19,"pattern":"in terms of","ja":"語彙の点では私の英語は大丈夫だと思いますが、発音はもっと改善が必要です。","en":"I think my English is okay in terms of vocabulary, but my pronunciation needs more improvement."},{"id":120,"section":"ATSUがよく使う表現20選 Part 3","sectionShort":"頻出表現 P3","localNo":20,"pattern":"this is something that","ja":"これは私がいつもやりたかったことです。","en":"This is something that I've always wanted to do."}];
+    const APP_VERSION = 1;
+    const COOKIE_NAME = "english_pattern_quiz_120_v1";
+    const STORAGE_NAME = "english_pattern_quiz_120_v1";
+    const ONE_YEAR = 60 * 60 * 24 * 365;
+    const SEQUENTIAL_ORDER = QUESTIONS.map((_, index) => index);
+
+    const elements = {
+      saveStatusText: document.getElementById("saveStatusText"),
+      sequentialModeButton: document.getElementById("sequentialModeButton"),
+      shuffleModeButton: document.getElementById("shuffleModeButton"),
+      positionLabel: document.getElementById("positionLabel"),
+      globalLabel: document.getElementById("globalLabel"),
+      positionProgress: document.getElementById("positionProgress"),
+      previousButton: document.getElementById("previousButton"),
+      skipButton: document.getElementById("skipButton"),
+      modeNote: document.getElementById("modeNote"),
+      quizCard: document.getElementById("quizCard"),
+      completionCard: document.getElementById("completionCard"),
+      sectionChip: document.getElementById("sectionChip"),
+      previousGradeChip: document.getElementById("previousGradeChip"),
+      jpPrompt: document.getElementById("jpPrompt"),
+      answerInput: document.getElementById("answerInput"),
+      characterCount: document.getElementById("characterCount"),
+      revealButton: document.getElementById("revealButton"),
+      clearButton: document.getElementById("clearButton"),
+      answerPanel: document.getElementById("answerPanel"),
+      comparisonBanner: document.getElementById("comparisonBanner"),
+      comparisonIcon: document.getElementById("comparisonIcon"),
+      comparisonTitle: document.getElementById("comparisonTitle"),
+      comparisonDetail: document.getElementById("comparisonDetail"),
+      userAnswerText: document.getElementById("userAnswerText"),
+      expectedAnswerText: document.getElementById("expectedAnswerText"),
+      copyAnswerButton: document.getElementById("copyAnswerButton"),
+      speakAnswerButton: document.getElementById("speakAnswerButton"),
+      constructionNumber: document.getElementById("constructionNumber"),
+      constructionTitle: document.getElementById("constructionTitle"),
+      constructionSource: document.getElementById("constructionSource"),
+      gradeButtons: Array.from(document.querySelectorAll(".grade-button")),
+      nextButton: document.getElementById("nextButton"),
+      completionCorrect: document.getElementById("completionCorrect"),
+      completionClose: document.getElementById("completionClose"),
+      completionReview: document.getElementById("completionReview"),
+      restartButton: document.getElementById("restartButton"),
+      switchModeButton: document.getElementById("switchModeButton"),
+      completionPreviousButton: document.getElementById("completionPreviousButton"),
+      answeredCount: document.getElementById("answeredCount"),
+      unansweredCount: document.getElementById("unansweredCount"),
+      correctCount: document.getElementById("correctCount"),
+      closeCount: document.getElementById("closeCount"),
+      reviewCount: document.getElementById("reviewCount"),
+      answeredBar: document.getElementById("answeredBar"),
+      answeredCaption: document.getElementById("answeredCaption"),
+      restartPositionButton: document.getElementById("restartPositionButton"),
+      reshuffleButton: document.getElementById("reshuffleButton"),
+      exportProgressButton: document.getElementById("exportProgressButton"),
+      importProgressButton: document.getElementById("importProgressButton"),
+      importProgressInput: document.getElementById("importProgressInput"),
+      resetAllButton: document.getElementById("resetAllButton"),
+      toast: document.getElementById("toast")
+    };
+
+    function makeShuffleOrder() {
+      const order = SEQUENTIAL_ORDER.slice();
+      for (let i = order.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      return order;
+    }
+
+    function createDefaultState() {
+      return {
+        version: APP_VERSION,
+        updatedAt: Date.now(),
+        mode: "sequential",
+        sequentialPosition: 0,
+        shufflePosition: 0,
+        shuffleOrder: makeShuffleOrder(),
+        ratings: Array(QUESTIONS.length).fill(0),
+        view: { questionId: 1, draft: "", revealed: false }
+      };
+    }
+
+    function isValidOrder(order) {
+      if (!Array.isArray(order) || order.length !== QUESTIONS.length) return false;
+      const sorted = order.slice().sort((a, b) => a - b);
+      return sorted.every((value, index) => value === index);
+    }
+
+    function sanitizeState(candidate) {
+      const fallback = createDefaultState();
+      if (!candidate || typeof candidate !== "object") return fallback;
+
+      const ratings = Array.isArray(candidate.ratings)
+        ? candidate.ratings.slice(0, QUESTIONS.length).map(value => [0, 1, 2, 3].includes(Number(value)) ? Number(value) : 0)
+        : fallback.ratings;
+      while (ratings.length < QUESTIONS.length) ratings.push(0);
+
+      const state = {
+        version: APP_VERSION,
+        updatedAt: Number.isFinite(Number(candidate.updatedAt)) ? Number(candidate.updatedAt) : Date.now(),
+        mode: candidate.mode === "shuffle" ? "shuffle" : "sequential",
+        sequentialPosition: clampPosition(candidate.sequentialPosition),
+        shufflePosition: clampPosition(candidate.shufflePosition),
+        shuffleOrder: isValidOrder(candidate.shuffleOrder) ? candidate.shuffleOrder.slice() : fallback.shuffleOrder,
+        ratings,
+        view: {
+          questionId: Number.isInteger(Number(candidate.view?.questionId)) ? Number(candidate.view.questionId) : 1,
+          draft: typeof candidate.view?.draft === "string" ? candidate.view.draft.slice(0, 1200) : "",
+          revealed: Boolean(candidate.view?.revealed)
+        }
+      };
+
+      if (state.view.questionId < 1 || state.view.questionId > QUESTIONS.length) {
+        state.view = { questionId: 1, draft: "", revealed: false };
+      }
+      return state;
+    }
+
+    function clampPosition(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 0;
+      return Math.max(0, Math.min(QUESTIONS.length, Math.trunc(number)));
+    }
+
+    function getCookie(name) {
+      try {
+        const prefix = `${name}=`;
+        const rawCookie = document.cookie || "";
+        const parts = rawCookie ? rawCookie.split(";") : [];
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (trimmed.startsWith(prefix)) return trimmed.slice(prefix.length);
+        }
+        return null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function readJsonSafely(raw) {
+      if (!raw) return null;
+      try { return JSON.parse(decodeURIComponent(raw)); }
+      catch (_) {
+        try { return JSON.parse(raw); }
+        catch (_) { return null; }
+      }
+    }
+
+    function loadState() {
+      const cookieState = readJsonSafely(getCookie(COOKIE_NAME));
+      let localState = null;
+      try { localState = readJsonSafely(localStorage.getItem(STORAGE_NAME)); }
+      catch (_) { localState = null; }
+
+      const candidates = [cookieState, localState]
+        .filter(Boolean)
+        .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
+      return sanitizeState(candidates[0]);
+    }
+
+    let state = loadState();
+    let saveTimer = null;
+    let toastTimer = null;
+
+    function saveState({ immediate = false } = {}) {
+      const perform = () => {
+        state.updatedAt = Date.now();
+        const serialized = JSON.stringify(state);
+        let cookieWorked = false;
+
+        try {
+          document.cookie = `${COOKIE_NAME}=${encodeURIComponent(serialized)}; max-age=${ONE_YEAR}; path=/; SameSite=Lax`;
+          cookieWorked = Boolean(getCookie(COOKIE_NAME));
+        } catch (_) {
+          cookieWorked = false;
+        }
+
+        try { localStorage.setItem(STORAGE_NAME, serialized); }
+        catch (_) { /* Cookieが使える場合はそちらを継続 */ }
+
+        elements.saveStatusText.textContent = cookieWorked
+          ? "進捗保存：Cookie + ブラウザ"
+          : "進捗保存：ブラウザ（Cookie非対応）";
+      };
+
+      clearTimeout(saveTimer);
+      if (immediate) perform();
+      else saveTimer = window.setTimeout(perform, 250);
+    }
+
+    function getCurrentOrder() {
+      return state.mode === "shuffle" ? state.shuffleOrder : SEQUENTIAL_ORDER;
+    }
+
+    function getCurrentPosition() {
+      return state.mode === "shuffle" ? state.shufflePosition : state.sequentialPosition;
+    }
+
+    function setCurrentPosition(value) {
+      const position = clampPosition(value);
+      if (state.mode === "shuffle") state.shufflePosition = position;
+      else state.sequentialPosition = position;
+    }
+
+    function getCurrentQuestion() {
+      const position = getCurrentPosition();
+      if (position >= QUESTIONS.length) return null;
+      const questionIndex = getCurrentOrder()[position];
+      return QUESTIONS[questionIndex];
+    }
+
+    function clearViewForQuestion(question) {
+      state.view = {
+        questionId: question ? question.id : 0,
+        draft: "",
+        revealed: false
+      };
+    }
+
+    function ensureViewMatches(question) {
+      if (!question || state.view.questionId !== question.id) clearViewForQuestion(question);
+    }
+
+    function formatLocalNumber(number) {
+      return String(number).padStart(2, "0");
+    }
+
+    function gradeLabel(grade) {
+      if (grade === 3) return "前回：○ できた";
+      if (grade === 2) return "前回：△ 惜しい";
+      if (grade === 1) return "前回：× 要復習";
+      return "未回答";
+    }
+
+    function render() {
+      const position = getCurrentPosition();
+      const question = getCurrentQuestion();
+      const isComplete = !question;
+
+      elements.sequentialModeButton.setAttribute("aria-pressed", String(state.mode === "sequential"));
+      elements.shuffleModeButton.setAttribute("aria-pressed", String(state.mode === "shuffle"));
+      elements.modeNote.textContent = state.mode === "shuffle"
+        ? "保存済みのランダム順で出題"
+        : "構文・表現の掲載順に出題";
+      elements.reshuffleButton.disabled = state.mode !== "shuffle";
+
+      const progressPercent = isComplete ? 100 : ((position + 1) / QUESTIONS.length) * 100;
+      elements.positionProgress.style.width = `${progressPercent}%`;
+      elements.positionLabel.textContent = isComplete
+        ? `完了 / ${QUESTIONS.length}問`
+        : `第 ${position + 1} 問 / ${QUESTIONS.length}`;
+      elements.globalLabel.textContent = question ? `全体ID ${String(question.id).padStart(3, "0")}` : "一周完了";
+      elements.previousButton.disabled = position <= 0;
+      elements.skipButton.disabled = isComplete;
+
+      elements.quizCard.hidden = isComplete;
+      elements.completionCard.hidden = !isComplete;
+
+      if (isComplete) renderCompletion();
+      else renderQuestion(question);
+
+      renderStats();
+    }
+
+    function renderQuestion(question) {
+      ensureViewMatches(question);
+      const rating = state.ratings[question.id - 1];
+
+      elements.sectionChip.textContent = question.sectionShort;
+      elements.previousGradeChip.textContent = gradeLabel(rating);
+      elements.previousGradeChip.className = `grade-chip${rating ? ` grade-${rating}` : ""}`;
+      elements.jpPrompt.textContent = question.ja;
+      elements.answerInput.value = state.view.draft;
+      elements.answerInput.readOnly = state.view.revealed;
+      elements.characterCount.textContent = `${state.view.draft.length}文字`;
+      elements.revealButton.disabled = state.view.revealed;
+      elements.clearButton.disabled = state.view.revealed || state.view.draft.length === 0;
+      elements.answerPanel.hidden = !state.view.revealed;
+
+      if (state.view.revealed) renderAnswer(question);
+      updateSelectedGrade(rating);
+    }
+
+    function renderAnswer(question) {
+      const comparison = compareAnswers(state.view.draft, question.en);
+      elements.comparisonBanner.className = `comparison-banner ${comparison.kind}`;
+      elements.comparisonIcon.textContent = comparison.icon;
+      elements.comparisonTitle.textContent = comparison.title;
+      elements.comparisonDetail.textContent = comparison.detail;
+      elements.userAnswerText.textContent = state.view.draft.trim() || "（未入力）";
+      elements.expectedAnswerText.textContent = question.en;
+      elements.constructionNumber.textContent = formatLocalNumber(question.localNo);
+      elements.constructionTitle.textContent = `${formatLocalNumber(question.localNo)}: ${question.pattern}`;
+      elements.constructionSource.textContent = question.section;
+    }
+
+    function renderCompletion() {
+      const counts = getGradeCounts();
+      elements.completionCorrect.textContent = counts.correct;
+      elements.completionClose.textContent = counts.close;
+      elements.completionReview.textContent = counts.review;
+    }
+
+    function getGradeCounts() {
+      let correct = 0;
+      let close = 0;
+      let review = 0;
+      for (const rating of state.ratings) {
+        if (rating === 3) correct += 1;
+        else if (rating === 2) close += 1;
+        else if (rating === 1) review += 1;
+      }
+      const answered = correct + close + review;
+      return { correct, close, review, answered, unanswered: QUESTIONS.length - answered };
+    }
+
+    function renderStats() {
+      const counts = getGradeCounts();
+      elements.answeredCount.textContent = counts.answered;
+      elements.unansweredCount.textContent = counts.unanswered;
+      elements.correctCount.textContent = counts.correct;
+      elements.closeCount.textContent = counts.close;
+      elements.reviewCount.textContent = counts.review;
+      elements.answeredBar.style.width = `${(counts.answered / QUESTIONS.length) * 100}%`;
+      elements.answeredCaption.textContent = `${counts.answered} / ${QUESTIONS.length} 問を記録`;
+    }
+
+    function updateSelectedGrade(rating) {
+      for (const button of elements.gradeButtons) {
+        button.classList.toggle("selected", Number(button.dataset.grade) === rating);
+      }
+    }
+
+    function normalizeBasic(text) {
+      return String(text || "")
+        .normalize("NFKC")
+        .replace(/[‘’]/g, "'")
+        .replace(/[“”]/g, '"')
+        .toLowerCase()
+        .replace(/[.,!?;:\"()[\]{}、。！？]/g, " ")
+        .replace(/[—–]/g, "-")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function canonicalize(text) {
+      let value = normalizeBasic(text);
+      const replacements = [
+        [/\bwon't\b/g, "will not"],
+        [/\bcan't\b/g, "can not"],
+        [/\bshan't\b/g, "shall not"],
+        [/\b(\w+)n't\b/g, "$1 not"],
+        [/\b(i|you|we|they)'re\b/g, "$1 are"],
+        [/\b(he|she|it|that|there|what|who)'s been\b/g, "$1 has been"],
+        [/\b(he|she|it|that|there|what|who|something)'s\b/g, "$1 is"],
+        [/\b(i|you|we|they)'ve\b/g, "$1 have"],
+        [/\b(he|she|it)'d\b/g, "$1 would"],
+        [/\bi'd\b/g, "i would"],
+        [/\b(you|we|they)'d\b/g, "$1 would"],
+        [/\b(i|you|he|she|it|we|they)'ll\b/g, "$1 will"],
+        [/\bi'm\b/g, "i am"],
+        [/\bwanna\b/g, "want to"],
+        [/\bgonna\b/g, "going to"]
+      ];
+      for (const [pattern, replacement] of replacements) value = value.replace(pattern, replacement);
+      return value.replace(/\s+/g, " ").trim();
+    }
+
+    function levenshteinDistance(a, b) {
+      if (a === b) return 0;
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+
+      let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+      let current = new Array(b.length + 1);
+
+      for (let i = 1; i <= a.length; i += 1) {
+        current[0] = i;
+        for (let j = 1; j <= b.length; j += 1) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          current[j] = Math.min(
+            current[j - 1] + 1,
+            previous[j] + 1,
+            previous[j - 1] + cost
+          );
+        }
+        [previous, current] = [current, previous];
+      }
+      return previous[b.length];
+    }
+
+    function tokenF1(a, b) {
+      const aTokens = a.split(" ").filter(Boolean);
+      const bTokens = b.split(" ").filter(Boolean);
+      if (!aTokens.length || !bTokens.length) return 0;
+      const counts = new Map();
+      for (const token of bTokens) counts.set(token, (counts.get(token) || 0) + 1);
+      let overlap = 0;
+      for (const token of aTokens) {
+        const count = counts.get(token) || 0;
+        if (count > 0) {
+          overlap += 1;
+          counts.set(token, count - 1);
+        }
+      }
+      const precision = overlap / aTokens.length;
+      const recall = overlap / bTokens.length;
+      return precision + recall === 0 ? 0 : (2 * precision * recall) / (precision + recall);
+    }
+
+    function compareAnswers(userText, expectedText) {
+      const raw = String(userText || "").trim();
+      if (!raw) {
+        return { kind: "empty", icon: "—", title: "回答が入力されていません", detail: "答えを確認したあと、自分で学習結果を記録してください。" };
+      }
+
+      const user = canonicalize(raw);
+      const expected = canonicalize(expectedText);
+      if (user === expected) {
+        return { kind: "exact", icon: "✓", title: "基準答案と一致しています", detail: "大文字小文字・句読点・主要な短縮形を正規化して比較しました。" };
+      }
+
+      const maxLength = Math.max(user.length, expected.length, 1);
+      const charScore = 1 - (levenshteinDistance(user, expected) / maxLength);
+      const wordScore = tokenF1(user, expected);
+      const score = Math.max(charScore, wordScore * 0.96);
+      const percent = Math.max(0, Math.min(100, Math.round(score * 100)));
+
+      if (score >= 0.86) {
+        return { kind: "near", icon: "△", title: "基準答案にかなり近いです", detail: `文字列類似度 ${percent}%です。語順・冠詞・前置詞などを確認してください。` };
+      }
+      return { kind: "different", icon: "×", title: "基準答案との差があります", detail: `文字列類似度 ${percent}%です。別解として妥当なら自己採点で調整してください。` };
+    }
+
+    function revealAnswer() {
+      const question = getCurrentQuestion();
+      if (!question) return;
+      state.view = {
+        questionId: question.id,
+        draft: elements.answerInput.value,
+        revealed: true
+      };
+      saveState({ immediate: true });
+      render();
+      window.setTimeout(() => elements.answerPanel.scrollIntoView({ behavior: "smooth", block: "nearest" }), 30);
+    }
+
+    function moveBy(delta) {
+      const nextPosition = clampPosition(getCurrentPosition() + delta);
+      if (nextPosition === getCurrentPosition()) return;
+      setCurrentPosition(nextPosition);
+      clearViewForQuestion(getCurrentQuestion());
+      saveState({ immediate: true });
+      render();
+      if (getCurrentQuestion()) window.setTimeout(() => elements.answerInput.focus(), 20);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setMode(mode) {
+      if (!["sequential", "shuffle"].includes(mode) || state.mode === mode) return;
+      state.mode = mode;
+      clearViewForQuestion(getCurrentQuestion());
+      saveState({ immediate: true });
+      render();
+      showToast(mode === "shuffle" ? "シャッフルモードに切り替えました" : "順番モードに切り替えました");
+    }
+
+    function restartCurrentMode() {
+      setCurrentPosition(0);
+      clearViewForQuestion(getCurrentQuestion());
+      saveState({ immediate: true });
+      render();
+      showToast("現在のモードを先頭に戻しました");
+    }
+
+    function reshuffle() {
+      state.shuffleOrder = makeShuffleOrder();
+      state.shufflePosition = 0;
+      if (state.mode === "shuffle") clearViewForQuestion(getCurrentQuestion());
+      saveState({ immediate: true });
+      render();
+      showToast("シャッフル順を作り直しました");
+    }
+
+    function resetAll() {
+      const confirmed = window.confirm("全120問の○・△・×、進行位置、シャッフル順をすべて削除します。元に戻せません。実行しますか？");
+      if (!confirmed) return;
+      state = createDefaultState();
+      saveState({ immediate: true });
+      render();
+      showToast("回答履歴をすべて削除しました");
+    }
+
+    function exportProgress() {
+      const payload = {
+        app: "English Pattern Trainer 120",
+        exportedAt: new Date().toISOString(),
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `english-quiz-progress-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      showToast("進捗ファイルを書き出しました");
+    }
+
+    async function importProgress(file) {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const imported = parsed && parsed.state ? parsed.state : parsed;
+        state = sanitizeState(imported);
+        saveState({ immediate: true });
+        render();
+        showToast("進捗を読み込みました");
+      } catch (_) {
+        window.alert("進捗ファイルを読み込めませんでした。書き出したJSONファイルを指定してください。");
+      } finally {
+        elements.importProgressInput.value = "";
+      }
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      elements.toast.textContent = message;
+      elements.toast.classList.add("show");
+      toastTimer = window.setTimeout(() => elements.toast.classList.remove("show"), 2200);
+    }
+
+    async function copyAnswer() {
+      const question = getCurrentQuestion();
+      if (!question) return;
+      try {
+        await navigator.clipboard.writeText(question.en);
+        showToast("英文をコピーしました");
+      } catch (_) {
+        const temp = document.createElement("textarea");
+        temp.value = question.en;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        showToast("英文をコピーしました");
+      }
+    }
+
+    function speakAnswer() {
+      const question = getCurrentQuestion();
+      if (!question || !("speechSynthesis" in window)) {
+        showToast("このブラウザは読み上げに対応していません");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(question.en);
+      utterance.lang = "en-US";
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    elements.sequentialModeButton.addEventListener("click", () => setMode("sequential"));
+    elements.shuffleModeButton.addEventListener("click", () => setMode("shuffle"));
+    elements.previousButton.addEventListener("click", () => moveBy(-1));
+    elements.skipButton.addEventListener("click", () => moveBy(1));
+    elements.nextButton.addEventListener("click", () => moveBy(1));
+    elements.completionPreviousButton.addEventListener("click", () => moveBy(-1));
+    elements.revealButton.addEventListener("click", revealAnswer);
+    elements.clearButton.addEventListener("click", () => {
+      elements.answerInput.value = "";
+      state.view.draft = "";
+      elements.characterCount.textContent = "0文字";
+      elements.clearButton.disabled = true;
+      saveState();
+      elements.answerInput.focus();
+    });
+
+    elements.answerInput.addEventListener("input", event => {
+      const question = getCurrentQuestion();
+      if (!question) return;
+      state.view = { questionId: question.id, draft: event.target.value, revealed: false };
+      elements.characterCount.textContent = `${event.target.value.length}文字`;
+      elements.clearButton.disabled = event.target.value.length === 0;
+      saveState();
+    });
+
+    for (const button of elements.gradeButtons) {
+      button.addEventListener("click", () => {
+        const question = getCurrentQuestion();
+        if (!question) return;
+        const grade = Number(button.dataset.grade);
+        state.ratings[question.id - 1] = grade;
+        saveState({ immediate: true });
+        renderStats();
+        updateSelectedGrade(grade);
+        elements.previousGradeChip.textContent = gradeLabel(grade);
+        elements.previousGradeChip.className = `grade-chip grade-${grade}`;
+        showToast(grade === 3 ? "「できた」で保存しました" : grade === 2 ? "「惜しい」で保存しました" : "「要復習」で保存しました");
+      });
+    }
+
+    elements.copyAnswerButton.addEventListener("click", copyAnswer);
+    elements.speakAnswerButton.addEventListener("click", speakAnswer);
+    elements.restartPositionButton.addEventListener("click", restartCurrentMode);
+    elements.reshuffleButton.addEventListener("click", reshuffle);
+    elements.resetAllButton.addEventListener("click", resetAll);
+    elements.restartButton.addEventListener("click", restartCurrentMode);
+    elements.switchModeButton.addEventListener("click", () => setMode(state.mode === "shuffle" ? "sequential" : "shuffle"));
+    elements.exportProgressButton.addEventListener("click", exportProgress);
+    elements.importProgressButton.addEventListener("click", () => elements.importProgressInput.click());
+    elements.importProgressInput.addEventListener("change", event => importProgress(event.target.files?.[0]));
+
+    document.addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        if (!state.view.revealed && getCurrentQuestion()) revealAnswer();
+      }
+      if (event.altKey && event.key === "ArrowRight") {
+        event.preventDefault();
+        moveBy(1);
+      }
+      if (event.altKey && event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveBy(-1);
+      }
+    });
+
+    window.addEventListener("beforeunload", () => saveState({ immediate: true }));
+
+    saveState({ immediate: true });
+    render();
+  </script>
+</body>
+</html>
