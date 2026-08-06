@@ -73,6 +73,15 @@
   .answer-btns button:disabled { opacity: .35; cursor: default; }
   .answer-btns button:active:not(:disabled) { transform: scale(.97); }
 
+  .study-actions { display: flex; justify-content: center; margin-top: 10px; }
+  .study-actions button {
+    padding: 9px 14px; font-size: .82rem; font-weight: 600; color: var(--sub);
+    border: 1px solid var(--border); border-radius: 9px; background: var(--card-bg);
+    cursor: pointer;
+  }
+  .study-actions button:hover:not(:disabled) { color: var(--red); border-color: var(--red); }
+  .study-actions button:disabled { opacity: .35; cursor: default; }
+
   .session-bar { margin-top: 14px; font-size: .82rem; color: var(--sub); text-align: center; }
   .session-bar b.g { color: var(--green); } .session-bar b.r { color: var(--red); }
 
@@ -93,6 +102,23 @@
   .cardlist-item { padding: 9px 0; border-bottom: 1px solid var(--border); font-size: .84rem; }
   .cardlist-item .en { color: var(--accent); font-size: .8rem; margin-top: 2px; }
   .cardlist-item .meta { color: var(--sub); font-size: .72rem; margin-top: 2px; }
+
+  /* ---- hidden cards ---- */
+  .hidden-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .hidden-panel-head h2 { margin-bottom: 0; }
+  .restore-all-btn, .restore-btn {
+    padding: 7px 11px; font-size: .78rem; font-weight: 600; border: 1px solid var(--accent);
+    border-radius: 8px; background: var(--card-bg); color: var(--accent); cursor: pointer;
+  }
+  .restore-all-btn:disabled { opacity: .35; cursor: default; }
+  .hidden-card-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .hidden-card-item:last-child { border-bottom: none; }
+  .hidden-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .hidden-card-text { min-width: 0; flex: 1; }
+  .hidden-card-item .jp { font-size: .86rem; line-height: 1.5; }
+  .hidden-card-item .en { color: var(--accent); font-size: .82rem; line-height: 1.45; margin-top: 4px;
+    font-family: Georgia, "Times New Roman", serif; }
+  .hidden-card-item .meta { color: var(--sub); font-size: .7rem; margin-top: 5px; }
 
   /* ---- log ---- */
   .log-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -120,6 +146,7 @@
   <nav>
     <button id="tab-study" class="active">学習</button>
     <button id="tab-stats">統計</button>
+    <button id="tab-hidden">非表示</button>
     <button id="tab-log">ログ</button>
   </nav>
 
@@ -131,6 +158,7 @@
     </div>
     <div class="filters" id="deckFilters" style="margin-bottom:8px"></div>
     <div class="filters">
+      <select id="sectionFilter" class="hidden"><option value="">すべてのセクション</option></select>
       <select id="catFilter"><option value="">すべてのカテゴリ</option></select>
       <label><input type="checkbox" id="starOnly">★のみ</label>
       <label><input type="checkbox" id="weakOnly">苦手のみ</label>
@@ -152,6 +180,9 @@
     <div class="answer-btns">
       <button class="ng" id="btnNg" disabled>✗ 間違えた</button>
       <button class="ok" id="btnOk" disabled>✓ 覚えた</button>
+    </div>
+    <div class="study-actions">
+      <button id="btnHideCard" disabled>🚫 この問題を今後出題しない</button>
     </div>
 
     <div class="session-bar" id="sessionBar"></div>
@@ -181,6 +212,17 @@
     </div>
   </section>
 
+  <!-- ============ 非表示カード ============ -->
+  <section id="view-hidden" class="hidden">
+    <div class="panel">
+      <div class="hidden-panel-head">
+        <h2>非表示の問題 <span id="hiddenCount" style="color:var(--sub);font-weight:400;font-size:.8rem"></span></h2>
+        <button id="btnRestoreAll" class="restore-all-btn" disabled>すべて戻す</button>
+      </div>
+      <div id="hiddenList"></div>
+    </div>
+  </section>
+
   <!-- ============ ログ ============ -->
   <section id="view-log" class="hidden">
     <div class="log-actions">
@@ -200,7 +242,8 @@
 /* ================= デッキ定義 ================= */
 const DECKS = [
   { id: "deck1", title: "英語面接フレーズ(聞き返し・立て直し等)" },
-  { id: "deck2", title: "強み・リーダーシップ・PEI・ケース面接" }
+  { id: "deck2", title: "強み・リーダーシップ・PEI・ケース面接" },
+  { id: "deck3", title: "Eva Call No.1" }
 ];
 
 /* ================= カードデータ (input.md より) ================= */
@@ -329,9 +372,749 @@ const CARDS2 = [
 {id:"case_014",cat:"ケース面接で使えるフレーズ",front:"導入をどのように促進し、変革をマネジメントするかも検討すべきです。",back:"We should also consider how to drive adoption and manage the change.",star:false}
 ];
 
+const CARDS3 = [
+  {
+    "id": "eva_001",
+    "section": "最重要フレーズ",
+    "cat": "自己紹介",
+    "front": "簡単に自己紹介させてください。",
+    "back": "Let me briefly introduce myself.",
+    "star": true
+  },
+  {
+    "id": "eva_002",
+    "section": "最重要フレーズ",
+    "cat": "自己紹介",
+    "front": "以上が私の経歴の簡単な概要です。",
+    "back": "That’s a brief overview of my background.",
+    "star": true
+  },
+  {
+    "id": "eva_003",
+    "section": "最重要フレーズ",
+    "cat": "自己紹介",
+    "front": "喜んでさらに詳しくご説明します。",
+    "back": "I’d be happy to go into more detail.",
+    "star": true
+  },
+  {
+    "id": "eva_004",
+    "section": "最重要フレーズ",
+    "cat": "プロセス確認",
+    "front": "ここからの想定プロセスについてご説明いただけますか。",
+    "back": "Could you walk me through the expected process from here?",
+    "star": true
+  },
+  {
+    "id": "eva_005",
+    "section": "最重要フレーズ",
+    "cat": "面談目的",
+    "front": "これらの面談は、顔合わせ、評価面接、またはその両方のどれに当たりますか。",
+    "back": "Are these conversations introductory, evaluative, or a combination of both?",
+    "star": true
+  },
+  {
+    "id": "eva_006",
+    "section": "最重要フレーズ",
+    "cat": "面談相手",
+    "front": "どなたと面談する予定で、それぞれどのような役割の方か教えていただけますか。",
+    "back": "Could you let me know who I’ll be meeting and what their roles are?",
+    "star": true
+  },
+  {
+    "id": "eva_007",
+    "section": "最重要フレーズ",
+    "cat": "面談形式",
+    "front": "各面談はどのくらいの時間を想定すればよいでしょうか。",
+    "back": "How long should I expect each interview to be?",
+    "star": true
+  },
+  {
+    "id": "eva_008",
+    "section": "最重要フレーズ",
+    "cat": "英語面談",
+    "front": "英語で実施される面談はありますか。",
+    "back": "Do you expect any of the conversations to be conducted in English?",
+    "star": true
+  },
+  {
+    "id": "eva_009",
+    "section": "最重要フレーズ",
+    "cat": "日程調整",
+    "front": "少しカレンダーを確認させてください。",
+    "back": "Let me check my calendar for a moment.",
+    "star": true
+  },
+  {
+    "id": "eva_010",
+    "section": "最重要フレーズ",
+    "cat": "日程調整",
+    "front": "その時間で調整できると思います。",
+    "back": "I think that time will work for me.",
+    "star": true
+  },
+  {
+    "id": "eva_011",
+    "section": "最重要フレーズ",
+    "cat": "日程調整",
+    "front": "申し訳ありませんが、その時間は別の予定があります。",
+    "back": "I’m afraid I have another commitment at that time.",
+    "star": true
+  },
+  {
+    "id": "eva_012",
+    "section": "最重要フレーズ",
+    "cat": "日程調整",
+    "front": "このCallの後、メールでその時間を確認してもよいでしょうか。",
+    "back": "Could I confirm that time by email after this call?",
+    "star": true
+  },
+  {
+    "id": "eva_013",
+    "section": "最重要フレーズ",
+    "cat": "聞き返し",
+    "front": "すみません、最後の部分をよく聞き取れませんでした。",
+    "back": "Sorry, I didn’t quite catch the last part.",
+    "star": true
+  },
+  {
+    "id": "eva_014",
+    "section": "最重要フレーズ",
+    "cat": "理解確認",
+    "front": "正しく理解できているか、復唱させてください。",
+    "back": "Let me repeat that to make sure I understand correctly.",
+    "star": true
+  },
+  {
+    "id": "eva_015",
+    "section": "最重要フレーズ",
+    "cat": "Call終了",
+    "front": "このCallの後、より広い空き時間帯をお送りします。",
+    "back": "I’ll send you my broader availability shortly after this call.",
+    "star": true
+  },
+  {
+    "id": "eva_016",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "Evaさん、初めまして。本日はお時間をいただきありがとうございます。",
+    "back": "Hi Eva, it’s very nice to meet you. Thank you for taking the time to speak with me today.",
+    "star": false
+  },
+  {
+    "id": "eva_017",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "お話しできるのを楽しみにしていました。",
+    "back": "I’ve been looking forward to speaking with you.",
+    "star": false
+  },
+  {
+    "id": "eva_018",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "ご連絡ありがとうございます。また、ご紹介いただいたTakuyaさんにもお礼をお伝えください。",
+    "back": "Thank you for reaching out, and please also extend my thanks to Takuya for the introduction.",
+    "star": false
+  },
+  {
+    "id": "eva_019",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "はっきり聞こえますか。",
+    "back": "Can you hear me clearly?",
+    "star": false
+  },
+  {
+    "id": "eva_020",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "こちらはよく聞こえています。",
+    "back": "I can hear you clearly.",
+    "star": false
+  },
+  {
+    "id": "eva_021",
+    "section": "面談全体",
+    "cat": "1. Call冒頭",
+    "front": "少し遅延がありますが、聞こえています。",
+    "back": "There seems to be a slight delay, but I can hear you.",
+    "star": false
+  },
+  {
+    "id": "eva_022",
+    "section": "面談全体",
+    "cat": "4. Callの目的確認",
+    "front": "本日は主に、お互いの自己紹介と、リーダーの方々との面談を設定するための次のステップについて話す、という理解で合っていますか。",
+    "back": "My understanding is that today’s call is mainly to introduce ourselves and discuss the next steps for arranging conversations with the leaders. Is that correct?",
+    "star": false
+  },
+  {
+    "id": "eva_023",
+    "section": "面談全体",
+    "cat": "4. Callの目的確認",
+    "front": "ここからの想定プロセスについてご説明いただけますか。",
+    "back": "Could you explain the expected process from here?",
+    "star": false
+  },
+  {
+    "id": "eva_024",
+    "section": "面談全体",
+    "cat": "4. Callの目的確認",
+    "front": "予定されている面談の全体像をご説明いただけますか。",
+    "back": "Could you give me an overview of the conversations you are planning?",
+    "star": false
+  },
+  {
+    "id": "eva_025",
+    "section": "面談全体",
+    "cat": "5. 面談の目的確認",
+    "front": "これらの面談は、主に顔合わせでしょうか、評価面接でしょうか、それとも両方でしょうか。",
+    "back": "Are these conversations intended to be primarily introductory, evaluative, or a combination of both?",
+    "star": false
+  },
+  {
+    "id": "eva_026",
+    "section": "面談全体",
+    "cat": "5. 面談の目的確認",
+    "front": "非公式な紹介面談、正式な面接、あるいはその両方と考えればよいでしょうか。",
+    "back": "Should I think of these as informal introductory conversations, formal interviews, or a mix of the two?",
+    "star": false
+  },
+  {
+    "id": "eva_027",
+    "section": "面談全体",
+    "cat": "5. 面談の目的確認",
+    "front": "すべての面談が正式な選考評価の一部になりますか。",
+    "back": "Will all of the conversations be part of the formal assessment process?",
+    "star": false
+  },
+  {
+    "id": "eva_028",
+    "section": "面談全体",
+    "cat": "5. 面談の目的確認",
+    "front": "リーダーごとに、私の経歴の異なる側面を確認する予定でしょうか。",
+    "back": "Are different leaders expected to focus on different aspects of my background?",
+    "star": false
+  },
+  {
+    "id": "eva_029",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "どなたと面談する予定で、それぞれどのような役割の方でしょうか。",
+    "back": "Could you give me a sense of who I’ll be meeting and their roles?",
+    "star": false
+  },
+  {
+    "id": "eva_030",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "主に日本のリーダーとの面談でしょうか。それとも、APACやグローバルのTech & AIリーダーも含まれますか。",
+    "back": "Will the conversations mainly be with leaders in Japan, or will they also include regional or global Tech & AI leaders?",
+    "star": false
+  },
+  {
+    "id": "eva_031",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "リストが確定した段階で、お名前と担当領域を共有していただけますか。",
+    "back": "Would you mind sharing their names and areas of responsibility once the list is finalized?",
+    "star": false
+  },
+  {
+    "id": "eva_032",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "すみません、お名前をもう一度お願いできますか。",
+    "back": "Sorry, could you repeat the name?",
+    "star": false
+  },
+  {
+    "id": "eva_033",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "名字のスペルを教えていただけますか。",
+    "back": "Could you spell the last name for me?",
+    "star": false
+  },
+  {
+    "id": "eva_034",
+    "section": "面談全体",
+    "cat": "6. 面談相手の確認",
+    "front": "すみません、役職は聞き取れたのですが、お名前を聞き取れませんでした。",
+    "back": "I’m sorry, I caught the role but not the name.",
+    "star": false
+  },
+  {
+    "id": "eva_035",
+    "section": "面談全体",
+    "cat": "7. 面談時間・形式",
+    "front": "各面談はどのくらいの時間を想定すればよいでしょうか。",
+    "back": "How long should I expect each conversation to be?",
+    "star": false
+  },
+  {
+    "id": "eva_036",
+    "section": "面談全体",
+    "cat": "7. 面談時間・形式",
+    "front": "面談はオンラインでしょうか、対面でしょうか。",
+    "back": "Will the meetings be held virtually or in person?",
+    "star": false
+  },
+  {
+    "id": "eva_037",
+    "section": "面談全体",
+    "cat": "7. 面談時間・形式",
+    "front": "面談は一件ずつ個別に設定されますか。それとも、いくつかの面接枠にまとめられますか。",
+    "back": "Would the meetings be scheduled individually, or grouped into a few interview blocks?",
+    "star": false
+  },
+  {
+    "id": "eva_038",
+    "section": "面談全体",
+    "cat": "7. 面談時間・形式",
+    "front": "同じ日に複数の面談を設定することを検討されていますか。",
+    "back": "Are you considering scheduling several conversations on the same day?",
+    "star": false
+  },
+  {
+    "id": "eva_039",
+    "section": "面談全体",
+    "cat": "7. 面談時間・形式",
+    "front": "複数の日、あるいは数週間に分けて実施する予定でしょうか。",
+    "back": "Would the conversations be spread across several days or weeks?",
+    "star": false
+  },
+  {
+    "id": "eva_040",
+    "section": "面談全体",
+    "cat": "8. 英語面接の確認",
+    "front": "英語で実施される面談はありますか。",
+    "back": "Do you expect any of the conversations to be conducted in English?",
+    "star": false
+  },
+  {
+    "id": "eva_041",
+    "section": "面談全体",
+    "cat": "8. 英語面接の確認",
+    "front": "英語で実施される面談は、おおよそ何件になりそうでしょうか。",
+    "back": "Approximately how many of the conversations are likely to be in English?",
+    "star": false
+  },
+  {
+    "id": "eva_042",
+    "section": "面談全体",
+    "cat": "8. 英語面接の確認",
+    "front": "使用言語は面接官によって変わりますか。",
+    "back": "Will the language depend on the individual interviewer?",
+    "star": false
+  },
+  {
+    "id": "eva_043",
+    "section": "面談全体",
+    "cat": "8. 英語面接の確認",
+    "front": "英語の面談では、技術的な議論、リーダーシップに関する議論、あるいは両方を想定すべきでしょうか。",
+    "back": "For the English conversations, should I expect a technical discussion, a leadership discussion, or both?",
+    "star": false
+  },
+  {
+    "id": "eva_044",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "少しカレンダーを確認させてください。",
+    "back": "Let me check my calendar for a moment.",
+    "star": false
+  },
+  {
+    "id": "eva_045",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "その時間で調整できると思います。",
+    "back": "I should be able to make that work.",
+    "star": false
+  },
+  {
+    "id": "eva_046",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "その時間で問題ありません。",
+    "back": "That time works well for me.",
+    "star": false
+  },
+  {
+    "id": "eva_047",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "その時間帯は空いています。",
+    "back": "I’m available during that window.",
+    "star": false
+  },
+  {
+    "id": "eva_048",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "その日はある程度柔軟に調整できます。",
+    "back": "I have some flexibility on that day.",
+    "star": false
+  },
+  {
+    "id": "eva_049",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "申し訳ありませんが、その時間は別の予定があります。",
+    "back": "I’m sorry, but I already have plans at that time.",
+    "star": false
+  },
+  {
+    "id": "eva_050",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "その時間は少し難しいかもしれません。",
+    "back": "That particular time may be difficult for me.",
+    "star": false
+  },
+  {
+    "id": "eva_051",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "ちょうどその時間は難しいですが、30分前または後であれば可能です。",
+    "back": "I’m not available at that exact time, but I could do thirty minutes earlier or later.",
+    "star": false
+  },
+  {
+    "id": "eva_052",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "少し早い時間に変更することは可能でしょうか。",
+    "back": "Would it be possible to move it slightly earlier?",
+    "star": false
+  },
+  {
+    "id": "eva_053",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "同じ日の別の時間を検討できますか。",
+    "back": "Could we look at another time on the same day?",
+    "star": false
+  },
+  {
+    "id": "eva_054",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "確定する前に、社内の予定を一件確認させてください。",
+    "back": "I’d like to double-check one internal commitment before confirming.",
+    "star": false
+  },
+  {
+    "id": "eva_055",
+    "section": "面談全体",
+    "cat": "9. スケジュール調整",
+    "front": "このCallの後、メールでその時間を確定してもよいでしょうか。",
+    "back": "Could I confirm that time by email shortly after this call?",
+    "star": false
+  },
+  {
+    "id": "eva_056",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "面談数が多いため、今後2〜3週間の広い空き時間帯をいくつかお送りした方が調整しやすいでしょうか。",
+    "back": "Given the number of conversations, would it be easier if I sent you several broad windows of availability for the next two or three weeks?",
+    "star": false
+  },
+  {
+    "id": "eva_057",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "このCallの後、より包括的な空き時間の一覧をお送りします。",
+    "back": "I can send you a more comprehensive list of my availability after this call.",
+    "star": false
+  },
+  {
+    "id": "eva_058",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "日程調整中、暫定のカレンダー招待を送っていただいて構いません。",
+    "back": "Please feel free to send tentative calendar holds while you coordinate the schedules.",
+    "star": false
+  },
+  {
+    "id": "eva_059",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "ご提案いただいた時間にできるだけ合わせます。",
+    "back": "I’ll do my best to accommodate the proposed times.",
+    "star": false
+  },
+  {
+    "id": "eva_060",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "社内会議を調整するため多少の事前連絡は必要ですが、基本的には柔軟に対応できます。",
+    "back": "I may need some notice to rearrange my internal meetings, but I can generally be flexible.",
+    "star": false
+  },
+  {
+    "id": "eva_061",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "他のタイムゾーンに合わせる必要があれば、早朝や夕方以降も柔軟に対応できます。",
+    "back": "I can also be flexible in the early morning or evening if we need to accommodate other time zones.",
+    "star": false
+  },
+  {
+    "id": "eva_062",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "確認ですが、日本時間でしょうか。",
+    "back": "Just to confirm, is that Japan Standard Time?",
+    "star": false
+  },
+  {
+    "id": "eva_063",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "日本時間の午後4時でしょうか、それともシンガポール時間でしょうか。",
+    "back": "Is that 4:00 p.m. Japan time or Singapore time?",
+    "star": false
+  },
+  {
+    "id": "eva_064",
+    "section": "面談全体",
+    "cat": "10. 複数面談の日程調整",
+    "front": "カレンダー招待にはタイムゾーンも記載していただけますか。",
+    "back": "Could you include the time zone in the calendar invitations?",
+    "star": false
+  },
+  {
+    "id": "eva_065",
+    "section": "面談全体",
+    "cat": "11. 面談間隔の希望",
+    "front": "可能であれば、それぞれの面談に十分集中できるよう、あまり多くの面談を連続させない方がありがたいです。",
+    "back": "If possible, I would prefer some time between the interviews so I can focus on each one.",
+    "star": false
+  },
+  {
+    "id": "eva_066",
+    "section": "面談全体",
+    "cat": "11. 面談間隔の希望",
+    "front": "1日2〜3件であれば対応可能です。",
+    "back": "Two or three conversations in one day would be manageable for me.",
+    "star": false
+  },
+  {
+    "id": "eva_067",
+    "section": "面談全体",
+    "cat": "12. 準備事項の確認",
+    "front": "準備しておくことを推奨される具体的なテーマはありますか。",
+    "back": "Are there any specific topics you would recommend that I prepare for?",
+    "star": false
+  },
+  {
+    "id": "eva_068",
+    "section": "面談全体",
+    "cat": "12. 準備事項の確認",
+    "front": "リーダーごとに異なる準備をした方がよいでしょうか。",
+    "back": "Should I prepare differently for each leader?",
+    "star": false
+  },
+  {
+    "id": "eva_069",
+    "section": "面談全体",
+    "cat": "12. 準備事項の確認",
+    "front": "各面談の前に面接官の経歴を確認しておいた方がよいでしょうか。",
+    "back": "Would it be helpful for me to review the interviewers’ backgrounds before each conversation?",
+    "star": false
+  },
+  {
+    "id": "eva_070",
+    "section": "面談全体",
+    "cat": "12. 準備事項の確認",
+    "front": "ケース面接、技術的なディープダイブ、個人経験面接のいずれを想定すべきでしょうか。",
+    "back": "Should I expect case interviews, technical deep dives, or personal experience interviews?",
+    "star": false
+  },
+  {
+    "id": "eva_071",
+    "section": "面談全体",
+    "cat": "12. 準備事項の確認",
+    "front": "採用チームから共有いただける資料やガイダンスはありますか。",
+    "back": "Is there any material or guidance that the recruiting team will share with me?",
+    "star": false
+  },
+  {
+    "id": "eva_072",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "すみません、もう一度お願いできますか。",
+    "back": "Sorry, could you say that again?",
+    "star": false
+  },
+  {
+    "id": "eva_073",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "もう少しゆっくり繰り返していただけますか。",
+    "back": "Could you repeat that a little more slowly?",
+    "star": false
+  },
+  {
+    "id": "eva_074",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "すみません、最後の部分を聞き取れませんでした。",
+    "back": "I’m sorry, I didn’t quite catch the last part.",
+    "star": false
+  },
+  {
+    "id": "eva_075",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "日付は聞き取れましたが、時間を聞き取れませんでした。",
+    "back": "I caught the date, but not the time.",
+    "star": false
+  },
+  {
+    "id": "eva_076",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "10件の面談があることは理解しましたが、どのような構成になるのかを聞き取れませんでした。",
+    "back": "I understood that there would be ten conversations, but I missed how they would be structured.",
+    "star": false
+  },
+  {
+    "id": "eva_077",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "“introductory”というのは、正式な評価対象ではないという意味でしょうか。",
+    "back": "When you say “introductory,” do you mean that the conversation will not be formally evaluated?",
+    "star": false
+  },
+  {
+    "id": "eva_078",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "正しく理解できているか、復唱させてください。",
+    "back": "Let me repeat that back to make sure I have it right.",
+    "star": false
+  },
+  {
+    "id": "eva_079",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "確認ですが、最初の2件は日本語で、その次の1件は英語ということで合っていますか。",
+    "back": "Just to confirm, the first two conversations will be in Japanese, and the following one will be in English. Is that correct?",
+    "star": false
+  },
+  {
+    "id": "eva_080",
+    "section": "面談全体",
+    "cat": "13. 聞き返し・理解確認",
+    "front": "私の理解では、まず私の空き時間を確認し、その後各リーダーと個別に調整するということですね。",
+    "back": "So my understanding is that you will first collect my availability and then coordinate individually with the leaders.",
+    "star": false
+  },
+  {
+    "id": "eva_081",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "少し考えさせてください。",
+    "back": "That’s a good question. Let me think for a moment.",
+    "star": false
+  },
+  {
+    "id": "eva_082",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "少し考えを整理させてください。",
+    "back": "Let me organize my thoughts briefly.",
+    "star": false
+  },
+  {
+    "id": "eva_083",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "強調したい点が2つあります。",
+    "back": "There are two points I’d like to highlight.",
+    "star": false
+  },
+  {
+    "id": "eva_084",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "主な理由は〜です。",
+    "back": "The main reason is that …",
+    "star": false
+  },
+  {
+    "id": "eva_085",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "簡単に言うと、〜です。",
+    "back": "To put it simply, …",
+    "star": false
+  },
+  {
+    "id": "eva_086",
+    "section": "面談全体",
+    "cat": "14. 考える時間を作る",
+    "front": "具体例を一つご説明します。",
+    "back": "Let me give you one concrete example.",
+    "star": false
+  },
+  {
+    "id": "eva_087",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "ありがとうございます。今後のプロセスがかなり明確になりました。",
+    "back": "Thank you. This gives me a much clearer picture of the process.",
+    "star": false
+  },
+  {
+    "id": "eva_088",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "このCallの後、広い空き時間帯をお送りします。",
+    "back": "I’ll send you my broader availability shortly after this call.",
+    "star": false
+  },
+  {
+    "id": "eva_089",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "現段階でほかに必要な情報があればお知らせください。",
+    "back": "Please let me know if there is anything else you need from me at this stage.",
+    "star": false
+  },
+  {
+    "id": "eva_090",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "リーダーの方々とお会いし、この役割やTech & AIコミュニティについてさらに理解することを楽しみにしています。",
+    "back": "I’m very much looking forward to meeting the leaders and learning more about the role and the Tech & AI community.",
+    "star": false
+  },
+  {
+    "id": "eva_091",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "さまざまな調整をいただき、改めてありがとうございます。",
+    "back": "Thank you again for coordinating everything.",
+    "star": false
+  },
+  {
+    "id": "eva_092",
+    "section": "面談全体",
+    "cat": "15. Callの終了",
+    "front": "お話しできてよかったです。",
+    "back": "It was very nice speaking with you.",
+    "star": false
+  }
+];
+
 CARDS1.forEach(c => c.deck = "deck1");
 CARDS2.forEach(c => c.deck = "deck2");
-const CARDS = [...CARDS1, ...CARDS2];
+CARDS3.forEach(c => c.deck = "deck3");
+const CARDS = [...CARDS1, ...CARDS2, ...CARDS3];
 
 /* ================= 永続化 ================= */
 const STORE_KEY = "phrase_trainer_v1";
@@ -371,6 +1154,15 @@ function loadDeckSel() {
 let deckSel = loadDeckSel();
 function saveDeckSel() { localStorage.setItem(DECK_KEY, JSON.stringify(deckSel)); }
 function activeCards() { return CARDS.filter(c => deckSel[c.deck]); }
+function isHiddenCard(c) {
+  const s = state.cards[c.id];
+  return !!(s && s.hidden);
+}
+function visibleActiveCards() { return activeCards().filter(c => !isHiddenCard(c)); }
+function sectionCards() {
+  const sec = document.getElementById("sectionFilter").value;
+  return visibleActiveCards().filter(c => !sec || c.section === sec);
+}
 
 /* ================= 出題モード (全体ランダム / チャンクレッスン) ================= */
 const MODE_KEY = "phrase_trainer_mode_v1";
@@ -402,7 +1194,7 @@ function eligibleCards() {
   const cat = document.getElementById("catFilter").value;
   const starOnly = document.getElementById("starOnly").checked;
   const weakOnly = document.getElementById("weakOnly").checked;
-  return activeCards().filter(c => {
+  return sectionCards().filter(c => {
     if (cat && c.cat !== cat) return false;
     if (starOnly && !c.star) return false;
     if (weakOnly) {
@@ -502,7 +1294,7 @@ function showCard(c) {
     $("cardLevel").textContent = "";
   } else {
     const s = state.cards[c.id];
-    $("cardCat").textContent = c.cat;
+    $("cardCat").textContent = c.section ? `${c.section}｜${c.cat}` : c.cat;
     $("cardStar").textContent = c.star ? "★" : "";
     $("cardFront").textContent = c.front;
     $("cardBack").textContent = c.back;
@@ -512,6 +1304,7 @@ function showCard(c) {
   }
   $("btnOk").disabled = true;
   $("btnNg").disabled = true;
+  $("btnHideCard").disabled = !currentCard;
   updateChunkUI();
   updateSessionBar();
 }
@@ -546,6 +1339,35 @@ function answer(ok) {
   showCard(pickCard());
 }
 
+function hideCurrentCard() {
+  if (!currentCard) return;
+  const s = cardStat(currentCard.id);
+  s.hidden = true;
+  s.hiddenAt = new Date().toISOString();
+  saveState();
+  currentCard = null;
+  rebuildSectionOptions();
+  rebuildCatOptions();
+  if (qmode.mode === "chunk") {
+    qmode.chunkIdx = Math.min(qmode.chunkIdx, Math.max(chunkPools().length - 1, 0));
+    saveMode();
+  }
+  showCard(pickCard());
+}
+
+function restoreCard(id) {
+  const s = state.cards[id];
+  if (!s) return;
+  s.hidden = false;
+  delete s.hiddenAt;
+  // チャンク学習に戻した際、再び出題対象になるようにする
+  s.cc = false;
+  saveState();
+  rebuildSectionOptions();
+  rebuildCatOptions();
+  renderHidden();
+}
+
 function updateChunkUI() {
   $("chunkBar").classList.toggle("hidden", qmode.mode !== "chunk");
   if (qmode.mode !== "chunk") return;
@@ -578,7 +1400,7 @@ function updateSessionBar() {
 
 /* ================= 統計画面 ================= */
 function renderStats() {
-  const cards = activeCards();
+  const cards = visibleActiveCards();
   let total = 0, ok = 0, mastered = 0, unseen = 0;
   const byCat = {};
   for (const c of cards) {
@@ -619,6 +1441,41 @@ function renderStats() {
         <div class="en">${x.c.back}</div>
         <div class="meta">✗ ${x.s.ng}回 / ✓ ${x.s.ok}回 — 習得Lv ${x.s.box}/${MAX_BOX}</div>
       </div>`).join("");
+}
+
+/* ================= 非表示カード画面 ================= */
+const deckTitleById = Object.fromEntries(DECKS.map(d => [d.id, d.title]));
+
+function renderHidden() {
+  const cards = CARDS
+    .filter(isHiddenCard)
+    .sort((a, b) => {
+      const ta = state.cards[a.id]?.hiddenAt || "";
+      const tb = state.cards[b.id]?.hiddenAt || "";
+      return tb.localeCompare(ta);
+    });
+
+  $("hiddenCount").textContent = `(${cards.length}件)`;
+  $("btnRestoreAll").disabled = cards.length === 0;
+  $("hiddenList").innerHTML = cards.length === 0
+    ? '<div class="muted">非表示にした問題はありません</div>'
+    : cards.map(c => {
+        const section = c.section ? ` / ${c.section}` : "";
+        return `<div class="hidden-card-item">
+          <div class="hidden-card-top">
+            <div class="hidden-card-text">
+              <div class="jp">${c.front}</div>
+              <div class="en">${c.back}</div>
+              <div class="meta">${deckTitleById[c.deck] || c.deck}${section} / ${c.cat}</div>
+            </div>
+            <button class="restore-btn" data-card-id="${c.id}">出題に戻す</button>
+          </div>
+        </div>`;
+      }).join("");
+
+  $("hiddenList").querySelectorAll(".restore-btn").forEach(btn => {
+    btn.onclick = () => restoreCard(btn.dataset.cardId);
+  });
 }
 
 /* ================= ログ画面 ================= */
@@ -667,7 +1524,8 @@ function importData(file) {
       if (!confirm(`読み込んだデータ(回答ログ ${s.log.length}件)で現在のデータを置き換えます。よろしいですか?`)) return;
       state = Object.assign(defaultState(), s);
       saveState();
-      renderLog(); renderStats(); showCard(pickCard());
+      rebuildSectionOptions(); rebuildCatOptions();
+      renderLog(); renderStats(); renderHidden(); showCard(pickCard());
       alert("読み込みました。");
     } catch (e) { alert("読み込みに失敗しました: " + e.message); }
   };
@@ -676,21 +1534,39 @@ function importData(file) {
 
 /* ================= タブ・イベント ================= */
 function switchTab(name) {
-  for (const t of ["study", "stats", "log"]) {
+  for (const t of ["study", "stats", "hidden", "log"]) {
     $("tab-" + t).classList.toggle("active", t === name);
     $("view-" + t).classList.toggle("hidden", t !== name);
   }
   if (name === "stats") renderStats();
+  if (name === "hidden") renderHidden();
   if (name === "log") renderLog();
 }
 
 $("tab-study").onclick = () => switchTab("study");
 $("tab-stats").onclick = () => switchTab("stats");
+$("tab-hidden").onclick = () => switchTab("hidden");
 $("tab-log").onclick = () => switchTab("log");
 
 $("card").onclick = reveal;
 $("btnOk").onclick = () => answer(true);
 $("btnNg").onclick = () => answer(false);
+$("btnHideCard").onclick = hideCurrentCard;
+$("btnRestoreAll").onclick = () => {
+  const hidden = CARDS.filter(isHiddenCard);
+  if (hidden.length === 0) return;
+  if (!confirm(`非表示の問題 ${hidden.length}件をすべて出題対象に戻します。よろしいですか?`)) return;
+  for (const c of hidden) {
+    const s = state.cards[c.id];
+    s.hidden = false;
+    delete s.hiddenAt;
+    s.cc = false;
+  }
+  saveState();
+  rebuildSectionOptions();
+  rebuildCatOptions();
+  renderHidden();
+};
 
 document.addEventListener("keydown", e => {
   if (!$("view-study").classList.contains("hidden")) {
@@ -700,6 +1576,11 @@ document.addEventListener("keydown", e => {
   }
 });
 
+$("sectionFilter").onchange = () => {
+  rebuildCatOptions();
+  currentCard = null;
+  showCard(pickCard());
+};
 $("catFilter").onchange = () => { currentCard = null; showCard(pickCard()); };
 $("starOnly").onchange = () => { currentCard = null; showCard(pickCard()); };
 $("weakOnly").onchange = () => { currentCard = null; showCard(pickCard()); };
@@ -740,14 +1621,29 @@ $("btnReset").onclick = () => {
   state = defaultState();
   session = { ok: 0, ng: 0 };
   saveState();
-  renderLog(); renderStats(); showCard(pickCard());
+  rebuildSectionOptions(); rebuildCatOptions();
+  renderLog(); renderStats(); renderHidden(); showCard(pickCard());
 };
 
 /* ================= 初期化 ================= */
+function rebuildSectionOptions() {
+  const sel = $("sectionFilter");
+  const prev = sel.value;
+  const sections = [...new Set(visibleActiveCards().map(c => c.section).filter(Boolean))];
+  sel.innerHTML = '<option value="">すべてのセクション</option>';
+  for (const section of sections) {
+    const o = document.createElement("option");
+    o.value = section; o.textContent = section;
+    sel.appendChild(o);
+  }
+  sel.value = sections.includes(prev) ? prev : "";
+  sel.classList.toggle("hidden", sections.length === 0);
+}
+
 function rebuildCatOptions() {
   const sel = $("catFilter");
   const prev = sel.value;
-  const cats = [...new Set(activeCards().map(c => c.cat))];
+  const cats = [...new Set(sectionCards().map(c => c.cat))];
   sel.innerHTML = '<option value="">すべてのカテゴリ</option>';
   for (const cat of cats) {
     const o = document.createElement("option");
@@ -767,6 +1663,7 @@ function rebuildCatOptions() {
     cb.onchange = () => {
       deckSel[d.id] = cb.checked;
       saveDeckSel();
+      rebuildSectionOptions();
       rebuildCatOptions();
       currentCard = null;
       showCard(pickCard());
@@ -775,7 +1672,9 @@ function rebuildCatOptions() {
     label.appendChild(document.createTextNode(d.title));
     box.appendChild(label);
   }
+  rebuildSectionOptions();
   rebuildCatOptions();
+  renderHidden();
   showCard(pickCard());
 })();
 </script>
